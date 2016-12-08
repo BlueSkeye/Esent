@@ -4,18 +4,20 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+#if MANAGEDESENT_SUPPORTS_SERIALIZATION
+using System.Runtime.Serialization.Formatters.Binary;
+#endif
+using System.Text;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-#if MANAGEDESENT_SUPPORTS_SERIALIZATION
-    using System.Runtime.Serialization.Formatters.Binary;
-#endif
-    using System.Text;
-
     /// <summary>
     /// Helper methods for the ESENT API. These aren't interop versions
     /// of the API, but encapsulate very common uses of the functions.

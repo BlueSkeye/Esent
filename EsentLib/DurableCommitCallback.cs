@@ -7,19 +7,21 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace EsentLib.Windows8
-{
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Reflection;
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Reflection;
 #if !MANAGEDESENT_ON_CORECLR
-    using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 #endif
 
-    using EsentLib.Implementation;
+using EsentLib.Implementation;
+using EsentLib.Jet;
+using EsentLib.Jet.Windows8;
 
+namespace EsentLib.Platform.Windows8
+{
     /// <summary>
     /// A class which wraps the callback dealing with durable commits.
     /// </summary>

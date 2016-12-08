@@ -4,10 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Diagnostics;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System.Diagnostics;
-
     /// <summary>
     /// A <see cref="byte"/> column value.
     /// </summary>

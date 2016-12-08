@@ -4,12 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-
     /// <summary>
     /// Information about one Esent column. This is not an interop
     /// class, but is used by the meta-data helper methods.

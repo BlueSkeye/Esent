@@ -4,11 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Text;
+using EsentLib.Implementation;
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System.Text;
-    using EsentLib.Implementation;
-
     /// <summary>
     /// Enumerate the names of tables in a database.
     /// </summary>

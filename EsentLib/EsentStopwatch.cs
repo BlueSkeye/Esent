@@ -4,12 +4,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+
+using EsentLib.Jet;
+using EsentLib.Jet.Vista;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics;
-    using EsentLib.Vista;
-
     /// <summary>
     /// Provides a set of methods and properties that you can use to measure
     /// ESENT work statistics for a thread. If the current version of ESENT

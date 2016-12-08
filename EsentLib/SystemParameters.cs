@@ -4,11 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EsentLib.Jet;
+using EsentLib.Vista;
+using EsentLib.Platform.Windows7;
+
 namespace EsentLib
 {
-    using EsentLib.Vista;
-    using EsentLib.Windows7;
-
     /// <summary>
     /// This class provides static properties to set and get
     /// global ESENT system parameters.

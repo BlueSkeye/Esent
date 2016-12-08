@@ -4,13 +4,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-
     /// <summary>
     /// Base class for objects that represent a column value to be set.
     /// </summary>

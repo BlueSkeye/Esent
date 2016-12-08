@@ -4,6 +4,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EsentLib.Jet;
+
 namespace EsentLib.Server2003
 {
     /// <summary>

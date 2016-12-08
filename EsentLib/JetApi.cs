@@ -4,23 +4,26 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+
+using EsentLib.Jet;
+using EsentLib.Server2003;
+using EsentLib.Jet.Vista;
+using EsentLib.Platform.Vista;
+using EsentLib.Platform.Windows7;
+using EsentLib.Platform.Windows8;
+
+using Win32 = EsentLib.Win32;
+
 namespace EsentLib.Implementation
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Runtime.CompilerServices;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Threading;
-    using EsentLib.Server2003;
-    using EsentLib.Vista;
-    using EsentLib.Windows7;
-    using EsentLib.Windows8;
-
-    using Win32 = EsentLib.Win32;
-
     /// <summary>
     /// Calls to the ESENT interop layer. These calls take the managed types (e.g. JET_SESID) and
     /// return errors.

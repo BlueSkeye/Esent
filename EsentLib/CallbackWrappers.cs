@@ -4,10 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Collections.Generic;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// <para>
     /// A collection of wrapped callbacks. This is used when the wrapped callback

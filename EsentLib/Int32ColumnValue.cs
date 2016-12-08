@@ -4,11 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics;
-
     /// <summary>
     /// An <see cref="int"/> column value.
     /// </summary>

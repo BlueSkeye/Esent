@@ -46,15 +46,17 @@
 //  -   Disposable objects (public): these disposable object automatically
 //      release esent resources (instances, sessions, tables and transactions). 
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Security.Permissions;
+
+using EsentLib.Jet;
+using EsentLib.Implementation;
+
 namespace EsentLib
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Runtime.InteropServices;
-    using System.Security.Permissions;
-    using EsentLib.Implementation;
-
     /// <summary>
     /// Managed versions of the ESENT Api. This class contains static methods corresponding
     /// with the unmanaged ESENT Api. These methods throw exceptions when errors are returned.
@@ -1206,7 +1208,7 @@ namespace EsentLib
         /// </param>
         /// <param name="density">Initial B+ tree density.</param>
         /// <seealso cref="Api.JetCreateIndex"/>
-        /// <seealso cref="EsentLib.Windows8.Windows8Api.JetCreateIndex4"/>
+        /// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
         public static void JetCreateIndex(
             JET_SESID sesid,
             JET_TABLEID tableid,
@@ -1231,7 +1233,7 @@ namespace EsentLib
         /// exclusive access by passing <see cref="OpenTableGrbit.DenyRead"/>
         /// to <see cref="JetOpenTable"/>.
         /// <para>
-        /// <see cref="Api.JetCreateIndex2"/> and <see cref="EsentLib.Windows8.Windows8Api.JetCreateIndex4"/>
+        /// <see cref="Api.JetCreateIndex2"/> and <see cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
         /// are very similar, and appear to take the same arguments. The difference is in the
         /// implementation. JetCreateIndex2 uses LCIDs for Unicode indices (e.g. 1033), while
         /// JetCreateIndex4 uses Locale Names (e.g. "en-US" or "de-DE". LCIDs are older, and not as well
@@ -1243,7 +1245,7 @@ namespace EsentLib
         /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
         /// <param name="numIndexCreates">Number of index description objects.</param>
         /// <seealso cref="Api.JetCreateIndex"/>
-        /// <seealso cref="EsentLib.Windows8.Windows8Api.JetCreateIndex4"/>
+        /// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
         public static void JetCreateIndex2(
             JET_SESID sesid,
             JET_TABLEID tableid,
@@ -1394,7 +1396,7 @@ namespace EsentLib
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to which to add the new table.</param>
         /// <param name="tablecreate">Object describing the table to create.</param>
-        /// <seealso cref="EsentLib.Windows8.Windows8Api.JetCreateTableColumnIndex4"/>
+        /// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateTableColumnIndex4"/>
         public static void JetCreateTableColumnIndex3(
             JET_SESID sesid,
             JET_DBID dbid,

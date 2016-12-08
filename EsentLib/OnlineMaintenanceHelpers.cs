@@ -4,14 +4,16 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+
+using EsentLib.Implementation;
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-    using EsentLib.Implementation;
-
     /// <summary>
     /// Helper methods for the ESENT API. These methods deal with database
     /// meta-data.

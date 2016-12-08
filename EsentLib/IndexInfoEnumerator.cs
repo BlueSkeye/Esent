@@ -4,13 +4,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
+
+using EsentLib.Jet;
+using EsentLib.Platform.Windows8;
+
 namespace EsentLib
 {
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Text;
-    using EsentLib.Windows8;
-
     /// <summary>
     /// Base class for enumerators that return IndexInfo objects. Subclasses differ
     /// by how they open the table.

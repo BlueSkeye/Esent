@@ -4,11 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Runtime.InteropServices;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Runtime.InteropServices;
-
     /// <summary>
     /// Methods to convert data objects used in callbacks.
     /// </summary>

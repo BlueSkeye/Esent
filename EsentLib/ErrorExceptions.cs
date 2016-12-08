@@ -4,14 +4,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-// Auto generated
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
+
+using EsentLib.Jet;
 
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.Serialization;
-
     // The basic exception hierarchy ...
     //
     // EsentErrorException

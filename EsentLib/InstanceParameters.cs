@@ -4,15 +4,17 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Globalization;
+using System.IO;
+
+using EsentLib.Jet;
+using EsentLib.Platform.Windows7;
+using EsentLib.Server2003;
+using EsentLib.Vista;
+
 namespace EsentLib
 {
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using EsentLib.Server2003;
-    using EsentLib.Vista;
-    using EsentLib.Windows7;
-
     /// <summary>
     /// This class provides properties to set and get system parameters
     /// on an ESENT instance.

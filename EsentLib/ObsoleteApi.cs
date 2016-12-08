@@ -4,10 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-
     /// <summary>
     /// API members that are marked as obsolete.
     /// </summary>

@@ -4,11 +4,11 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System.Text;
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System.Text;
-    using EsentLib.Implementation;
-
     /// <summary>
     /// Base class for enumerators that return ColumnInfo objects. Subclasses differ
     /// by how they open the table.

@@ -4,15 +4,18 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+
+using EsentLib.Jet;
+using EsentLib.Jet.Vista;
+using EsentLib.Server2003;
+using EsentLib.Platform.Vista;
+using EsentLib.Platform.Windows7;
+using EsentLib.Platform.Windows8;
+
 namespace EsentLib.Implementation
 {
-    using System;
-    using System.Collections.Generic;
-    using EsentLib.Server2003;
-    using EsentLib.Vista;
-    using EsentLib.Windows7;
-    using EsentLib.Windows8;
-
     /// <summary>
     /// This interface describes all the methods which have a P/Invoke implementation.
     /// Concrete instances of this interface provide methods that call ESENT.

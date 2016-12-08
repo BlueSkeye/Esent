@@ -4,14 +4,16 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
-
     /// <summary>
     /// A multi-purpose callback function used by the database engine to inform
     /// the application of an event involving online defragmentation and cursor

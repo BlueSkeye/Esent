@@ -4,12 +4,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-
     /// <summary>
     /// Describes one segment of an index.
     /// </summary>

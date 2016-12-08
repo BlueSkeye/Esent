@@ -4,11 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Runtime.Serialization;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Runtime.Serialization;
-
     /// <summary>
     /// Base class for ESENT error exceptions.
     /// </summary>

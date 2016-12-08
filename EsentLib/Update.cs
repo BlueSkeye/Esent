@@ -4,11 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Globalization;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Globalization;
-
     /// <summary>
     /// A class that encapsulates an update on a JET_TABLEID.
     /// </summary>

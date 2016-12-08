@@ -4,13 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using EsentLib.Jet.Windows8;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using EsentLib.Windows8;
-
     /// <summary>
     /// A class that encapsulates a transaction on a JET_SESID.
     /// </summary>

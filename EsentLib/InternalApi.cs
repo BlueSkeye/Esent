@@ -4,10 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-
     /// <summary>
     /// Internal-only methods of the Api.
     /// </summary>

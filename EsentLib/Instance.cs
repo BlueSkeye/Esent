@@ -4,17 +4,18 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Security.Permissions;
+
+using EsentLib.Jet;
+using EsentLib.Vista;
+using Microsoft.Win32.SafeHandles;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Runtime.CompilerServices;
-    using System.Security.Permissions;
-
-    using EsentLib.Vista;
-    using Microsoft.Win32.SafeHandles;
-
     /// <summary>
     /// A class that encapsulates a <see cref="JET_INSTANCE"/> in a disposable object. The
     /// instance must be closed last and closing the instance releases all other
