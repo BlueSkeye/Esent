@@ -317,9 +317,7 @@ namespace EsentLib.Implementation
         /// <param name="sesparamid">The ID of the session parameter to set.</param>
         /// <param name="valueToSet">A 32-bit integer to set.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetSetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
+        public int JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
             int valueToSet)
         {
             TraceFunctionCall("JetSetSessionParameter");

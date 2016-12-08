@@ -10,7 +10,7 @@ using EsentLib.Jet.Windows10;
 namespace EsentLib.Platform.Windows10
 {
     /// <summary>
-    /// An extension class to provide Values of <see cref="JET_sesparam"/> that were introduced in Windows 10.
+    /// An extension class to provide Values of <see cref="EsentLib.Jet.Windows8.JET_sesparam"/> that were introduced in Windows 10.
     /// </summary>
     /// <seealso cref="JET_sesparam"/>
     public static class Windows10Session
