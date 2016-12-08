@@ -6,7 +6,7 @@
 
 using System;
 
-using EsentLib.Vista;
+using EsentLib.Platform.Vista;
 using EsentLib.Platform.Windows7;
 using EsentLib.Platform.Windows8;
 

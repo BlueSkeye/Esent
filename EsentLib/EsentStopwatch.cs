@@ -9,6 +9,7 @@ using System.Diagnostics;
 
 using EsentLib.Jet;
 using EsentLib.Jet.Vista;
+using EsentLib.Platform.Vista;
 
 namespace EsentLib
 {

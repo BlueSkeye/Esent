@@ -11,7 +11,7 @@ using System.IO;
 using EsentLib.Jet;
 using EsentLib.Platform.Windows7;
 using EsentLib.Server2003;
-using EsentLib.Vista;
+using EsentLib.Platform.Vista;
 
 namespace EsentLib
 {

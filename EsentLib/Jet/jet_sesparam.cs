@@ -9,7 +9,7 @@ namespace EsentLib.Jet.Windows8
     /// <summary>
     /// ESENT session parameters.
     /// </summary>
-    /// <seealso cref="Windows10.Windows10Sesparam"/>
+    /// <seealso cref="EsentLib.Platform.Windows10.Windows10Sesparam"/>
     public enum JET_sesparam
     {
         /// <summary>

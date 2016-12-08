@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Permissions;
 
 using EsentLib.Jet;
-using EsentLib.Vista;
+using EsentLib.Platform.Vista;
 using Microsoft.Win32.SafeHandles;
 
 namespace EsentLib

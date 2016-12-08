@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------
 
 using EsentLib.Jet;
-using EsentLib.Vista;
+using EsentLib.Platform.Vista;
 using EsentLib.Platform.Windows7;
 
 namespace EsentLib

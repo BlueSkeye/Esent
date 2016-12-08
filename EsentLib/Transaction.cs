@@ -7,7 +7,10 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+
 using EsentLib.Jet.Windows8;
+using EsentLib.Platform.Windows8;
+using EsentLib.Platform.Windows10;
 
 namespace EsentLib
 {
@@ -47,7 +50,7 @@ namespace EsentLib
                 {
                     Windows8Api.JetGetSessionParameter(
                         this.sesid,
-                        Windows10.Windows10Sesparam.TransactionLevel,
+                        Windows10Sesparam.TransactionLevel,
                         out transactionLevel);
                 }
 
@@ -127,7 +130,7 @@ namespace EsentLib
                 throw new InvalidOperationException("Not in a transaction");
             }
 
-            Windows8.Windows8Api.JetCommitTransaction2(this.sesid, grbit, durableCommit, out commitId);
+            Windows8Api.JetCommitTransaction2(this.sesid, grbit, durableCommit, out commitId);
             this.ResourceWasReleased();
             Debug.Assert(!this.IsInTransaction, "Commit finished, but object is still in a transaction");
         }
