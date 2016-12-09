@@ -3,48 +3,8 @@
 //     Copyright (c) Microsoft Corporation.
 // </copyright>
 //-----------------------------------------------------------------------
-// The EsentLib namespace will be developed with these principles:
-//  -   Any program written with this Api should work with the ESENT.dll from either
-//      Windows XP, Windows Server 2003, Windows Vista, Windows Server 2008 or
-//      Windows 7.
-//  -   The Esent.Interop DLL should only require version 2.0 of the .NET Framework.
-//  -   Full and complete documentation. Intellisense should be able to
-//      provide useful and extensive help.
-//  -   Minimal editorialization. Whenever possible the EsentLib Jet* api will
-//      exactly match the ESENT Api. In particular the names of structs, types
-//      and functions will not be changed. Except for:
-//  -   Cleaning up Api constants. Instead of providing the constants from
-//      esent.h they will be grouped into useful enumerations. This will
-//      eliminate a lot of common Api errors.
-//  -   Provide helper methods/objects for common operations. These will be layered
-//      on top of the ESENT Api.
-//  -   Minimize the interop overhead.
-//  Changes that will be made are:
-//  -   Convert JET_coltyp etc. into real enumerations
-//  -   Removing cbStruct from structures
-//  -   Removing unused/reserved entries from structures
-//  -   Working around ESENT bugs or variances in API behavior
-//  -   Automatically using upgraded/downgraded functionality where possible
-//  -   Removing common API confusion where possible (e.g. always setting the columnid
-//      in the JET_COLUMNDEF)
-//  -   Throwing exceptions instead of returning errors
-//  The Api has four layers:
-//  -   NativeMethods (internal): this is the P/Invoke interop layer. This layer deals
-//      with IntPtr and other basic types as opposed to the managed types
-//      such as JET_TABLEID.
-//  -   JetApi (internal): this layer turns managed objects into
-//      objects which can be passed into the P/Invoke interop layer.
-//      Methods at this level return an error instead of throwing an exception.
-//      This layer is implemented as an object with an interface. This allows
-//      the actual implementation to be replaced at runtime, either for testing
-//      or to use a different DLL.
-//  -   Api (public): this layer provides error-handling, turning errors
-//      returned by lower layers into exceptions and warnings.
-//  -   Helper methods (public): this layer provides data conversion and
-//      iteration for common API activities. These methods do not start
-//      with 'Jet' but are implemented using the Jet methods.
-//  -   Disposable objects (public): these disposable object automatically
-//      release esent resources (instances, sessions, tables and transactions). 
+// For design goals initial version from MS see Documentation\MSInitialDesignGoals.txt
+// For design goals in this modified version see Documentation\OurDesignGoals.txt
 
 using System;
 using System.Collections.Generic;
@@ -57,35 +17,26 @@ using EsentLib.Implementation;
 
 namespace EsentLib
 {
-    /// <summary>
-    /// Managed versions of the ESENT Api. This class contains static methods corresponding
-    /// with the unmanaged ESENT Api. These methods throw exceptions when errors are returned.
-    /// </summary>
+    /// <summary>Managed versions of the ESENT Api. This class contains static methods
+    /// corresponding with the unmanaged ESENT Api. These methods throw exceptions when
+    /// errors are returned.</summary>
     public static partial class Api
     {
-        /// <summary>
-        /// Initializes static members of the Api class.
-        /// </summary>
+        /// <summary>Initializes static members of the Api class.</summary>
         static Api()
         {
             Api.Impl = new JetApi();
         }
 
-        /// <summary>
-        /// Delegate for error handling code.
-        /// </summary>
+        /// <summary>Delegate for error handling code.</summary>
         /// <param name="error">The error that has been encountered.</param>
         internal delegate void ErrorHandler(JET_err error);
 
-        /// <summary>
-        /// Gets or sets the ErrorHandler for all errors. This can
-        /// be used for logging or to throw an exception.
-        /// </summary>
+        /// <summary>Gets or sets the ErrorHandler for all errors. This can be used for
+        /// logging or to throw an exception.</summary>
         internal static event ErrorHandler HandleError;
         
-        /// <summary>
-        /// Gets or sets the IJetApi this is called for all functions.
-        /// </summary>
+        /// <summary>Gets or sets the IJetApi this is called for all functions.</summary>
         internal static IJetApi Impl { get; set; }
 
         #region Init/Term

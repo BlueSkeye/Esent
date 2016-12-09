@@ -1,0 +1,2 @@
+﻿Our design goals are slightly different from MS initial version. Main differences are :
+
