@@ -12,6 +12,8 @@ using System;
 using EsentLib.Jet.Windows8;
 using EsentLib.Platform.Windows8;
 
+using EsentLib.Jet.Types;
+
 namespace EsentLib.Jet
 {
     /// <summary>

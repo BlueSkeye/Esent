@@ -35,7 +35,7 @@ namespace EsentLib.Implementation
         public int JetBeginTransaction3(JET_SESID sesid, long userTransactionId, BeginTransactionGrbit grbit)
         {
             TraceFunctionCall("JetBeginTransaction3");
-            return Err(NativeMethods.JetBeginTransaction3(sesid.Value, userTransactionId, unchecked((uint)grbit)));
+            return TraceResult(NativeMethods.JetBeginTransaction3(sesid.Value, userTransactionId, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace EsentLib.Implementation
             NATIVE_COMMIT_ID nativeCommitId = new NATIVE_COMMIT_ID();
             unsafe
             {
-                err = Err(NativeMethods.JetCommitTransaction2(sesid.Value, unchecked((uint)grbit), cmsecDurableCommit, ref nativeCommitId));
+                err = TraceResult(NativeMethods.JetCommitTransaction2(sesid.Value, unchecked((uint)grbit), cmsecDurableCommit, ref nativeCommitId));
             }
 
             commitId = new JET_COMMIT_ID(nativeCommitId);
@@ -120,7 +120,7 @@ namespace EsentLib.Implementation
             CheckNotNegative(desiredPages, "desiredPages");
         
             uint actualPagesNative = 0;
-            int err = Err(NativeMethods.JetResizeDatabase(
+            int err = TraceResult(NativeMethods.JetResizeDatabase(
                         sesid.Value, dbid.Value, checked((uint)desiredPages), out actualPagesNative, (uint)grbit));
             actualPages = checked((int)actualPagesNative);
             return err;
@@ -203,7 +203,7 @@ namespace EsentLib.Implementation
                     }
 
                     // Call the interop method
-                    int err = Err(NativeMethods.JetOpenTemporaryTable2(sesid.Value, ref nativetemporarytable));
+                    int err = TraceResult(NativeMethods.JetOpenTemporaryTable2(sesid.Value, ref nativetemporarytable));
 
                     // Convert the return values
                     SetColumnids(temporarytable.prgcolumndef, temporarytable.prgcolumnid, nativecolumnids, temporarytable.ccolumn);
@@ -274,7 +274,7 @@ namespace EsentLib.Implementation
                 }
             }
 
-            return Err(err);
+            return TraceResult(err);
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace EsentLib.Implementation
                 length,
                 out actualDataSize);
 
-            return Err(err);
+            return TraceResult(err);
         }
 
         /// <summary>
@@ -326,7 +326,7 @@ namespace EsentLib.Implementation
 
             err = NativeMethods.JetSetSessionParameter(sesid.Value, (uint)sesparamid, ref valueToSet, sizeof(int));
 
-            return Err(err);
+            return TraceResult(err);
         }
 
         /// <summary>
@@ -352,7 +352,7 @@ namespace EsentLib.Implementation
 
             err = NativeMethods.JetSetSessionParameter(sesid.Value, (uint)sesparamid, data, dataSize);
 
-            return Err(err);
+            return TraceResult(err);
         }
 
         #endregion
@@ -406,11 +406,11 @@ namespace EsentLib.Implementation
                          nativecolumnids[i] = (uint)columnsPreread[i].Value;
                     }
 
-                    return Err(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, nativeRanges, (uint)rangeCount, out rangesPreread, nativecolumnids, (uint)columnsPreread.Length, checked((uint)grbit)));
+                    return TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, nativeRanges, (uint)rangeCount, out rangesPreread, nativecolumnids, (uint)columnsPreread.Length, checked((uint)grbit)));
                 }
                 else
                 {
-                    return Err(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, nativeRanges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
+                    return TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, nativeRanges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
                 }
             }
             finally
@@ -498,11 +498,11 @@ namespace EsentLib.Implementation
                         nativecolumnids[i] = (uint)columnsPreread[i].Value;
                     }
 
-                    return Err(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, ranges, (uint)rangeCount, out rangesPreread, nativecolumnids, (uint)columnsPreread.Length, checked((uint)grbit)));
+                    return TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, ranges, (uint)rangeCount, out rangesPreread, nativecolumnids, (uint)columnsPreread.Length, checked((uint)grbit)));
                 }
                 else
                 {
-                    return Err(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, ranges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
+                    return TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, ranges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
                 }
             }
         }
@@ -522,7 +522,7 @@ namespace EsentLib.Implementation
 
             if (filters == null || filters.Length == 0)
             {
-                return Err(NativeMethods.JetSetCursorFilter(sesid.Value, tableid.Value, null, 0, checked((uint)grbit)));
+                return TraceResult(NativeMethods.JetSetCursorFilter(sesid.Value, tableid.Value, null, 0, checked((uint)grbit)));
             }
 
             var handles = new GCHandleCollection();
@@ -535,7 +535,7 @@ namespace EsentLib.Implementation
                     nativeFilters[i] = filters[i].GetNativeIndexColumn(ref handles);
                 }
 
-                return Err(NativeMethods.JetSetCursorFilter(sesid.Value, tableid.Value, nativeFilters, (uint)filters.Length, checked((uint)grbit)));
+                return TraceResult(NativeMethods.JetSetCursorFilter(sesid.Value, tableid.Value, nativeFilters, (uint)filters.Length, checked((uint)grbit)));
             }
             finally
             {
@@ -605,7 +605,7 @@ namespace EsentLib.Implementation
             try
             {
                 NATIVE_INDEXCREATE3[] nativeIndexcreates = GetNativeIndexCreate3s(indexcreates, ref handles);
-                return Err(NativeMethods.JetCreateIndex4W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
+                return TraceResult(NativeMethods.JetCreateIndex4W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
             }
             finally
             {
@@ -678,7 +678,7 @@ namespace EsentLib.Implementation
                         }
                     }
 
-                    return Err(err);
+                    return TraceResult(err);
                 } 
                 finally
                 {

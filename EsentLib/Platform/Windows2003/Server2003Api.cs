@@ -21,7 +21,7 @@ namespace EsentLib.Platform.Windows2003
         /// <param name="grbit">Options for this call.</param>
         public static void JetOSSnapshotAbort(JET_OSSNAPID snapid, SnapshotAbortGrbit grbit)
         {
-            Api.Check(Api.Impl.JetOSSnapshotAbort(snapid, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetOSSnapshotAbort(snapid, grbit));
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace EsentLib.Platform.Windows2003
         /// </remarks>
         public static void JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize, UpdateGrbit grbit)
         {
-            Api.Check(Api.Impl.JetUpdate2(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetUpdate2(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize, grbit));
         }
     }
 }

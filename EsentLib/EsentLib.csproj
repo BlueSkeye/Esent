@@ -116,6 +116,8 @@
     <Compile Include="JetEngine.cs" />
     <Compile Include="JetCallbackWrapper.cs" />
     <Compile Include="JetCapabilities.cs" />
+    <Compile Include="JetSession.cs" />
+    <Compile Include="Jet\JetEngineException.cs" />
     <Compile Include="Jet\jet_bkinfo.cs" />
     <Compile Include="Jet\jet_bklogtime.cs" />
     <Compile Include="Jet\jet_callback.cs" />
@@ -190,6 +192,7 @@
     <Compile Include="Jet\jet_unicodeindex.cs" />
     <Compile Include="Jet\jet_unicodeindex2.cs" />
     <Compile Include="Jet\jet_wrn.cs" />
+    <Compile Include="Jet\Types\JET_INSTANCE.cs" />
     <Compile Include="LegacyFileNames.cs" />
     <Compile Include="LibraryHelpers.cs" />
     <Compile Include="MakeKeyHelpers.cs" />

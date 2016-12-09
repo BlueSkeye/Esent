@@ -38,7 +38,7 @@ namespace EsentLib
                 return false;
             }
 
-            Api.Check((int)err);
+            EsentExceptionHelper.Check((int)err);
             Debug.Assert(err >= JET_err.Success, "Exception should have been thrown in case of error");
             return true;
         }

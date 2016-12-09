@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 using EsentLib.Jet.Vista;
 
 namespace EsentLib.Platform.Vista
@@ -29,7 +30,7 @@ namespace EsentLib.Platform.Vista
                 JET_COLUMNID columnid,
                 out JET_COLUMNBASE columnbase)
         {
-            Api.Check(Api.Impl.JetGetColumnInfo(sesid, dbid, tablename, columnid, out columnbase));
+            EsentExceptionHelper.Check(Api.Impl.JetGetColumnInfo(sesid, dbid, tablename, columnid, out columnbase));
         }
 
         #region JetGetTableColumnInfo overloads
@@ -46,7 +47,7 @@ namespace EsentLib.Platform.Vista
             JET_COLUMNID columnid,
             out JET_COLUMNBASE columnbase)
         {
-            Api.Check(Api.Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columnbase));
+            EsentExceptionHelper.Check(Api.Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columnbase));
         }
         #endregion
 
@@ -74,7 +75,7 @@ namespace EsentLib.Platform.Vista
         /// </param>
         public static void JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
-            Api.Check(Api.Impl.JetOpenTemporaryTable(sesid, temporarytable));
+            EsentExceptionHelper.Check(Api.Impl.JetOpenTemporaryTable(sesid, temporarytable));
         }
 
         /// <summary>
@@ -86,7 +87,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="threadstats">Returns the thread statistics data.</param>
         public static void JetGetThreadStats(out JET_THREADSTATS threadstats)
         {
-            Api.Check(Api.Impl.JetGetThreadStats(out threadstats));
+            EsentExceptionHelper.Check(Api.Impl.JetGetThreadStats(out threadstats));
         }
 
         /// <summary>
@@ -97,7 +98,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="grbit">Options for this call.</param>
         public static void JetOSSnapshotPrepareInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotPrepareInstanceGrbit grbit)
         {
-            Api.Check(Api.Impl.JetOSSnapshotPrepareInstance(snapshot, instance, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetOSSnapshotPrepareInstance(snapshot, instance, grbit));
         }
 
         /// <summary>
@@ -112,7 +113,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="grbit">Options for this call.</param>
         public static void JetOSSnapshotTruncateLog(JET_OSSNAPID snapshot, SnapshotTruncateLogGrbit grbit)
         {
-            Api.Check(Api.Impl.JetOSSnapshotTruncateLog(snapshot, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetOSSnapshotTruncateLog(snapshot, grbit));
         }
 
         /// <summary>
@@ -128,7 +129,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="grbit">Options for this call.</param>
         public static void JetOSSnapshotTruncateLogInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotTruncateLogGrbit grbit)
         {
-            Api.Check(Api.Impl.JetOSSnapshotTruncateLogInstance(snapshot, instance, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetOSSnapshotTruncateLogInstance(snapshot, instance, grbit));
         }
 
         /// <summary>
@@ -145,7 +146,7 @@ namespace EsentLib.Platform.Vista
             out JET_INSTANCE_INFO[] instances,
             SnapshotGetFreezeInfoGrbit grbit)
         {
-            Api.Check(Api.Impl.JetOSSnapshotGetFreezeInfo(snapshot, out numInstances, out instances, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetOSSnapshotGetFreezeInfo(snapshot, out numInstances, out instances, grbit));
         }
 
         /// <summary>
@@ -155,7 +156,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="grbit">Snapshot end options.</param>
         public static void JetOSSnapshotEnd(JET_OSSNAPID snapshot, SnapshotEndGrbit grbit)
         {
-            Api.Check(Api.Impl.JetOSSnapshotEnd(snapshot, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetOSSnapshotEnd(snapshot, grbit));
         }
 
         /// <summary>
@@ -166,7 +167,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="infoLevel">The type of information to retrieve.</param>
         public static void JetGetInstanceMiscInfo(JET_INSTANCE instance, out JET_SIGNATURE signature, JET_InstanceMiscInfo infoLevel)
         {
-            Api.Check(Api.Impl.JetGetInstanceMiscInfo(instance, out signature, infoLevel));
+            EsentExceptionHelper.Check(Api.Impl.JetGetInstanceMiscInfo(instance, out signature, infoLevel));
         }
 
         /// <summary>
@@ -189,7 +190,7 @@ namespace EsentLib.Platform.Vista
         /// </returns>
         public static JET_wrn JetInit3(ref JET_INSTANCE instance, JET_RSTINFO recoveryOptions, InitGrbit grbit)
         {
-            return Api.Check(Api.Impl.JetInit3(ref instance, recoveryOptions, grbit));
+            return EsentExceptionHelper.Check(Api.Impl.JetInit3(ref instance, recoveryOptions, grbit));
         }
 
         /// <summary>
@@ -204,7 +205,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="grbit">Call options.</param>
         public static void JetGetRecordSize(JET_SESID sesid, JET_TABLEID tableid, ref JET_RECSIZE recsize, GetRecordSizeGrbit grbit)
         {
-            Api.Check(Api.Impl.JetGetRecordSize(sesid, tableid, ref recsize, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetGetRecordSize(sesid, tableid, ref recsize, grbit));
         }
     }
 }

@@ -169,7 +169,7 @@ namespace EsentLib
                         }
 
                         // Retrieve the columns
-                        Api.Check(Api.Impl.JetRetrieveColumns(sesid, tableid, nativeRetrievecolumns, columnValues.Length));
+                        EsentExceptionHelper.Check(Api.Impl.JetRetrieveColumns(sesid, tableid, nativeRetrievecolumns, columnValues.Length));
 
                         // Propagate the warnings and output.
                         for (int i = 0; i < columnValues.Length; ++i)
@@ -347,7 +347,7 @@ namespace EsentLib
                     }
 
                     // Throw errors, but put warnings in the structure
-                    Api.Check(err);
+                    EsentExceptionHelper.Check(err);
                     columnValues[i].Error = (JET_wrn)err;
 
                     // For BytesColumnValue this will copy the data to a new array.

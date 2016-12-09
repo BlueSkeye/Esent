@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -76,7 +77,7 @@ namespace EsentLib
         {
             var err = (JET_err)Impl.JetOpenTable(sesid, dbid, tablename, null, 0, grbit, out tableid);
             if (JET_err.ObjectNotFound == err) { return false; }
-            Api.Check((int)err);
+            EsentExceptionHelper.Check((int)err);
             Debug.Assert(err >= JET_err.Success, "Exception should have been thrown in case of error");
             return true;
         }
@@ -200,7 +201,7 @@ namespace EsentLib
             int err = Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel);
 
             if ((JET_err)err == JET_err.IndexNotFound) { return false; }
-            Api.Check(err);
+            EsentExceptionHelper.Check(err);
             return true;
         }
 

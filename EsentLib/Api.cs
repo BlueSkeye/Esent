@@ -12,8 +12,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 
-using EsentLib.Jet;
 using EsentLib.Implementation;
+using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -27,93 +28,45 @@ namespace EsentLib
         {
             Api.Impl = new JetEngine();
         }
-
-        /// <summary>Delegate for error handling code.</summary>
-        /// <param name="error">The error that has been encountered.</param>
-        internal delegate void ErrorHandler(JET_err error);
-
-        /// <summary>Gets or sets the ErrorHandler for all errors. This can be used for
-        /// logging or to throw an exception.</summary>
-        internal static event ErrorHandler HandleError;
         
         /// <summary>Gets or sets the IJetApi this is called for all functions.</summary>
         internal static IJetApi Impl { get; set; }
 
         #region Init/Term
-        /// <summary>Allocates a new instance of the database engine.</summary>
-        /// <param name="instance">Returns the new instance.</param>
-        /// <param name="name">The name of the instance. Names must be unique.</param>
-        public static void JetCreateInstance(out JET_INSTANCE instance, string name)
-        {
-            Api.Check(Impl.JetCreateInstance(out instance, name));
-        }
-
-        /// <summary>
-        /// Allocate a new instance of the database engine for use in a single
-        /// process, with a display name specified.
-        /// </summary>
+        /// <summary>Allocate a new instance of the database engine for use in a single
+        /// process, with a display name specified.</summary>
         /// <param name="instance">Returns the newly create instance.</param>
-        /// <param name="name">
-        /// Specifies a unique string identifier for the instance to be created.
-        /// This string must be unique within a given process hosting the
-        /// database engine.
-        /// </param>
-        /// <param name="displayName">
-        /// A display name for the instance to be created. This will be used
-        /// in eventlog entries.
-        /// </param>
+        /// <param name="name">Specifies a unique string identifier for the instance to
+        /// be created. This string must be unique within a given process hosting the
+        /// database engine.</param>
+        /// <param name="displayName">A display name for the instance to be created. This
+        /// will be used in eventlog entries.</param>
         /// <param name="grbit">Creation options.</param>
         public static void JetCreateInstance2(out JET_INSTANCE instance, string name,
             string displayName, CreateInstanceGrbit grbit)
         {
-            Api.Check(Impl.JetCreateInstance2(out instance, name, displayName, grbit));
+            EsentExceptionHelper.Check(Impl.JetCreateInstance2(out instance, name,
+                displayName, grbit));
         }
 
-        /// <summary>
-        /// Initialize the ESENT database engine.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to initialize. If an instance hasn't been
-        /// allocated then a new one is created and the engine
-        /// will operate in single-instance mode.
-        /// </param>
-        public static void JetInit(ref JET_INSTANCE instance)
-        {
-            Api.Check(Impl.JetInit(ref instance));
-        }
-
-        /// <summary>
-        /// Initialize the ESENT database engine.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to initialize. If an instance hasn't been
-        /// allocated then a new one is created and the engine
-        /// will operate in single-instance mode.
-        /// </param>
-        /// <param name="grbit">
-        /// Initialization options.
-        /// </param>
-        /// <returns>
-        /// A warning code.
-        /// </returns>
+        /// <summary>Initialize the ESENT database engine.</summary>
+        /// <param name="instance">The instance to initialize. If an instance hasn't been
+        /// allocated then a new one is created and the engine will operate in single-instance
+        /// mode.</param>
+        /// <param name="grbit">Initialization options.</param>
+        /// <returns>A warning code.</returns>
         public static JET_wrn JetInit2(ref JET_INSTANCE instance, InitGrbit grbit)
         {
-            return Api.Check(Impl.JetInit2(ref instance, grbit));
+            return EsentExceptionHelper.Check(Impl.JetInit2(ref instance, grbit));
         }
 
-        /// <summary>
-        /// Retrieves information about the instances that are running.
-        /// </summary>
-        /// <param name="numInstances">
-        /// Returns the number of instances.
-        /// </param>
-        /// <param name="instances">
-        /// Returns an array of instance info objects, one for each running
-        /// instance.
-        /// </param>
+        /// <summary>Retrieves information about the instances that are running.</summary>
+        /// <param name="numInstances">Returns the number of instances.</param>
+        /// <param name="instances">Returns an array of instance info objects, one for each
+        /// running instance. </param>
         public static void JetGetInstanceInfo(out int numInstances, out JET_INSTANCE_INFO[] instances)
         {
-            Api.Check(Impl.JetGetInstanceInfo(out numInstances, out instances));
+            EsentExceptionHelper.Check(Impl.JetGetInstanceInfo(out numInstances, out instances));
         }
 
         /// <summary>
@@ -124,7 +77,7 @@ namespace EsentLib
         /// <param name="instance">The instance to use.</param>
         public static void JetStopBackupInstance(JET_INSTANCE instance)
         {
-            Api.Check(Impl.JetStopBackupInstance(instance));
+            EsentExceptionHelper.Check(Impl.JetStopBackupInstance(instance));
         }
 
         /// <summary>
@@ -133,83 +86,16 @@ namespace EsentLib
         /// <param name="instance">The (running) instance to use.</param>
         public static void JetStopServiceInstance(JET_INSTANCE instance)
         {
-            Api.Check(Impl.JetStopServiceInstance(instance));            
+            EsentExceptionHelper.Check(Impl.JetStopServiceInstance(instance));            
         }
 
-        /// <summary>
-        /// Terminate an instance that was created with <see cref="JetInit"/> or
-        /// <see cref="JetCreateInstance"/>.
-        /// </summary>
-        /// <param name="instance">The instance to terminate.</param>
-        public static void JetTerm(JET_INSTANCE instance)
-        {
-            Api.Check(Impl.JetTerm(instance));
-        }
-
-        /// <summary>
-        /// Terminate an instance that was created with <see cref="JetInit"/> or
-        /// <see cref="JetCreateInstance"/>.
-        /// </summary>
+        /// <summary>Terminate an instance that was created with
+        /// <see cref="JetEngine.Create(string)"/>.</summary>
         /// <param name="instance">The instance to terminate.</param>
         /// <param name="grbit">Termination options.</param>
         public static void JetTerm2(JET_INSTANCE instance, TermGrbit grbit)
         {
-            Api.Check(Impl.JetTerm2(instance, grbit));
-        }
-
-        /// <summary>
-        /// Sets database configuration options.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
-        /// to set the option on all instances.
-        /// </param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to set.</param>
-        /// <param name="paramValue">The value of the parameter to set, if the parameter
-        /// is an integer type.</param>
-        /// <param name="paramString">The value of the parameter to set, if the parameter
-        /// is a string type.</param>
-        /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid,
-            JET_param paramid, int paramValue, string paramString)
-        {
-            return Api.Check(Impl.JetSetSystemParameter(instance, sesid, paramid,
-                new IntPtr(paramValue), paramString));
-        }
-
-        /// <summary>Sets database configuration options.</summary>
-        /// <param name="instance">The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
-        /// to set the option on all instances.</param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to set.</param>
-        /// <param name="paramValue">The value of the parameter to set, if the parameter
-        /// is a JET_CALLBACK.</param>
-        /// <param name="paramString">The value of the parameter to set, if the parameter
-        /// is a string type.</param>
-        /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid,
-            JET_param paramid, JET_CALLBACK paramValue, string paramString)
-        {
-            return Api.Check(Impl.JetSetSystemParameter(instance, sesid, paramid, paramValue,
-                paramString));
-        }
-
-        /// <summary>Sets database configuration options.</summary>
-        /// <param name="instance">The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
-        /// to set the option on all instances.</param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to set.</param>
-        /// <param name="paramValue">The value of the parameter to set, if the parameter
-        /// is an integer type.</param>
-        /// <param name="paramString">The value of the parameter to set, if the parameter
-        /// is a string type.</param>
-        /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid,
-            JET_param paramid, IntPtr paramValue, string paramString)
-        {
-            return Api.Check(Impl.JetSetSystemParameter(instance, sesid, paramid, paramValue,
-                paramString));
+            EsentExceptionHelper.Check(Impl.JetTerm2(instance, grbit));
         }
 
         /// <summary>Gets database configuration options.</summary>
@@ -229,7 +115,7 @@ namespace EsentLib
         public static JET_wrn JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid,
             JET_param paramid, ref IntPtr paramValue, out string paramString, int maxParam)
         {
-            return Api.Check(Impl.JetGetSystemParameter(instance, sesid, paramid, ref paramValue,
+            return EsentExceptionHelper.Check(Impl.JetGetSystemParameter(instance, sesid, paramid, ref paramValue,
                 out paramString, maxParam));
         }
 
@@ -250,19 +136,10 @@ namespace EsentLib
             JET_param paramid, ref int paramValue, out string paramString, int maxParam)
         {
             var intValue = new IntPtr(paramValue);
-            JET_wrn wrn = Api.Check(Impl.JetGetSystemParameter(instance, sesid, paramid,
+            JET_wrn wrn = EsentExceptionHelper.Check(Impl.JetGetSystemParameter(instance, sesid, paramid,
                 ref intValue, out paramString, maxParam));
             paramValue = intValue.ToInt32();
             return wrn;
-        }
-
-        /// <summary>Retrieves the version of the database engine.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="version">Returns the version number of the database engine.</param>
-        [CLSCompliant(false)]
-        public static void JetGetVersion(JET_SESID sesid, out uint version)
-        {
-            Api.Check(Impl.JetGetVersion(sesid, out version));
         }
 
         #endregion
@@ -279,7 +156,7 @@ namespace EsentLib
         public static void JetCreateDatabase(JET_SESID sesid, string database,
             string connect, out JET_DBID dbid, CreateDatabaseGrbit grbit)
         {
-            Api.Check(Impl.JetCreateDatabase(sesid, database, connect, out dbid, grbit));
+            EsentExceptionHelper.Check(Impl.JetCreateDatabase(sesid, database, connect, out dbid, grbit));
         }
 
         /// <summary>Creates and attaches a database file with a maximum database size
@@ -295,7 +172,7 @@ namespace EsentLib
         public static void JetCreateDatabase2(JET_SESID sesid, string database, int maxPages,
             out JET_DBID dbid, CreateDatabaseGrbit grbit)
         {
-            Api.Check(Impl.JetCreateDatabase2(sesid, database, maxPages, out dbid, grbit));            
+            EsentExceptionHelper.Check(Impl.JetCreateDatabase2(sesid, database, maxPages, out dbid, grbit));            
         }
 
         /// <summary>Attaches a database file for use with a database instance. In order
@@ -308,7 +185,7 @@ namespace EsentLib
         public static JET_wrn JetAttachDatabase(JET_SESID sesid, string database,
             AttachDatabaseGrbit grbit)
         {
-            return Api.Check(Impl.JetAttachDatabase(sesid, database, grbit));
+            return EsentExceptionHelper.Check(Impl.JetAttachDatabase(sesid, database, grbit));
         }
 
         /// <summary>Attaches a database file for use with a database instance. In order
@@ -325,7 +202,7 @@ namespace EsentLib
         public static JET_wrn JetAttachDatabase2(JET_SESID sesid, string database, int maxPages,
             AttachDatabaseGrbit grbit)
         {
-            return Api.Check(Impl.JetAttachDatabase2(sesid, database, maxPages, grbit));
+            return EsentExceptionHelper.Check(Impl.JetAttachDatabase2(sesid, database, maxPages, grbit));
         }
 
         /// <summary>Opens a database previously attached with <see cref="JetAttachDatabase"/>,
@@ -341,7 +218,7 @@ namespace EsentLib
         public static JET_wrn JetOpenDatabase(JET_SESID sesid, string database, string connect,
             out JET_DBID dbid, OpenDatabaseGrbit grbit)
         {
-            return Api.Check(Impl.JetOpenDatabase(sesid, database, connect, out dbid, grbit));
+            return EsentExceptionHelper.Check(Impl.JetOpenDatabase(sesid, database, connect, out dbid, grbit));
         }
 
         /// <summary>Closes a database file that was previously opened with <see cref="JetOpenDatabase"/> or
@@ -352,7 +229,7 @@ namespace EsentLib
         public static void JetCloseDatabase(JET_SESID sesid, JET_DBID dbid,
             CloseDatabaseGrbit grbit)
         {
-            Api.Check(Impl.JetCloseDatabase(sesid, dbid, grbit));
+            EsentExceptionHelper.Check(Impl.JetCloseDatabase(sesid, dbid, grbit));
         }
 
         /// <summary>Releases a database file that was previously attached to a database
@@ -361,7 +238,7 @@ namespace EsentLib
         /// <param name="database">The database to detach.</param>
         public static void JetDetachDatabase(JET_SESID sesid, string database)
         {
-            Api.Check(Impl.JetDetachDatabase(sesid, database));
+            EsentExceptionHelper.Check(Impl.JetDetachDatabase(sesid, database));
         }
 
         /// <summary>Releases a database file that was previously attached to a database
@@ -372,7 +249,7 @@ namespace EsentLib
         public static void JetDetachDatabase2(JET_SESID sesid, string database,
             DetachDatabaseGrbit grbit)
         {
-            Api.Check(Impl.JetDetachDatabase2(sesid, database, grbit));
+            EsentExceptionHelper.Check(Impl.JetDetachDatabase2(sesid, database, grbit));
         }
 
 #pragma warning disable 618,612 // Disable warning that JET_CONVERT is obsolete
@@ -391,7 +268,7 @@ namespace EsentLib
         public static void JetCompact(JET_SESID sesid, string sourceDatabase, string destinationDatabase,
             JET_PFNSTATUS statusCallback, JET_CONVERT ignored, CompactGrbit grbit)
         {
-            Api.Check(
+            EsentExceptionHelper.Check(
                 Impl.JetCompact(sesid, sourceDatabase, destinationDatabase, statusCallback, ignored, grbit));
         }
 #pragma warning restore 618,612
@@ -404,7 +281,7 @@ namespace EsentLib
         public static void JetGrowDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages,
             out int actualPages)
         {
-            Api.Check(Impl.JetGrowDatabase(sesid, dbid, desiredPages, out actualPages));
+            EsentExceptionHelper.Check(Impl.JetGrowDatabase(sesid, dbid, desiredPages, out actualPages));
         }
 
         /// <summary>Sets the size of an unopened database file.</summary>
@@ -415,7 +292,7 @@ namespace EsentLib
         public static void JetSetDatabaseSize(JET_SESID sesid, string database, int desiredPages,
             out int actualPages)
         {
-            Api.Check(Impl.JetSetDatabaseSize(sesid, database, desiredPages, out actualPages));
+            EsentExceptionHelper.Check(Impl.JetSetDatabaseSize(sesid, database, desiredPages, out actualPages));
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>
@@ -426,7 +303,7 @@ namespace EsentLib
         public static void JetGetDatabaseInfo(JET_SESID sesid, JET_DBID dbid, out int value,
             JET_DbInfo infoLevel)
         {
-            Api.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out value, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out value, infoLevel));
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>
@@ -437,7 +314,7 @@ namespace EsentLib
         public static void JetGetDatabaseInfo(JET_SESID sesid, JET_DBID dbid,
             out JET_DBINFOMISC dbinfomisc, JET_DbInfo infoLevel)
         {
-            Api.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out dbinfomisc, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out dbinfomisc, infoLevel));
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>
@@ -448,7 +325,7 @@ namespace EsentLib
         public static void JetGetDatabaseInfo(JET_SESID sesid, JET_DBID dbid, out string value,
             JET_DbInfo infoLevel)
         {
-            Api.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out value, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out value, infoLevel));
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>
@@ -458,7 +335,7 @@ namespace EsentLib
         public static void JetGetDatabaseFileInfo(string databaseName, out int value,
             JET_DbInfo infoLevel)
         {
-            Api.Check(Impl.JetGetDatabaseFileInfo(databaseName, out value, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetDatabaseFileInfo(databaseName, out value, infoLevel));
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>
@@ -468,7 +345,7 @@ namespace EsentLib
         public static void JetGetDatabaseFileInfo(string databaseName, out long value,
             JET_DbInfo infoLevel)
         {
-            Api.Check(Impl.JetGetDatabaseFileInfo(databaseName, out value, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetDatabaseFileInfo(databaseName, out value, infoLevel));
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>
@@ -478,7 +355,7 @@ namespace EsentLib
         public static void JetGetDatabaseFileInfo(string databaseName, out JET_DBINFOMISC dbinfomisc,
             JET_DbInfo infoLevel)
         {
-            Api.Check(Impl.JetGetDatabaseFileInfo(databaseName, out dbinfomisc, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetDatabaseFileInfo(databaseName, out dbinfomisc, infoLevel));
         }
 
         #endregion
@@ -496,7 +373,7 @@ namespace EsentLib
         public static void JetBackupInstance(JET_INSTANCE instance, string destination,
             BackupGrbit grbit, JET_PFNSTATUS statusCallback)
         {
-            Api.Check(Impl.JetBackupInstance(instance, destination, grbit, statusCallback));
+            EsentExceptionHelper.Check(Impl.JetBackupInstance(instance, destination, grbit, statusCallback));
         }
 
         /// <summary>Restores and recovers a streaming backup of an instance including
@@ -514,7 +391,7 @@ namespace EsentLib
         public static void JetRestoreInstance(JET_INSTANCE instance, string source,
             string destination, JET_PFNSTATUS statusCallback)
         {
-            Api.Check(Impl.JetRestoreInstance(instance, source, destination, statusCallback));
+            EsentExceptionHelper.Check(Impl.JetRestoreInstance(instance, source, destination, statusCallback));
         }
         #endregion
 
@@ -531,7 +408,7 @@ namespace EsentLib
         public static void JetOSSnapshotFreeze(JET_OSSNAPID snapshot, out int numInstances,
             out JET_INSTANCE_INFO[] instances, SnapshotFreezeGrbit grbit)
         {
-            Api.Check(Impl.JetOSSnapshotFreeze(snapshot, out numInstances, out instances, grbit));
+            EsentExceptionHelper.Check(Impl.JetOSSnapshotFreeze(snapshot, out numInstances, out instances, grbit));
         }
 
         /// <summary>Begins the preparations for a snapshot session. A snapshot session
@@ -542,7 +419,7 @@ namespace EsentLib
         /// <param name="grbit">Snapshot options.</param>
         public static void JetOSSnapshotPrepare(out JET_OSSNAPID snapshot, SnapshotPrepareGrbit grbit)
         {
-            Api.Check(Impl.JetOSSnapshotPrepare(out snapshot, grbit));
+            EsentExceptionHelper.Check(Impl.JetOSSnapshotPrepare(out snapshot, grbit));
         }
 
         /// <summary>Notifies the engine that it can resume normal IO operations after a
@@ -551,7 +428,7 @@ namespace EsentLib
         /// <param name="grbit">Thaw options.</param>
         public static void JetOSSnapshotThaw(JET_OSSNAPID snapshot, SnapshotThawGrbit grbit)
         {
-            Api.Check(Impl.JetOSSnapshotThaw(snapshot, grbit));
+            EsentExceptionHelper.Check(Impl.JetOSSnapshotThaw(snapshot, grbit));
         }
         #endregion
 
@@ -564,7 +441,7 @@ namespace EsentLib
         public static void JetBeginExternalBackupInstance(JET_INSTANCE instance,
             BeginExternalBackupGrbit grbit)
         {
-            Api.Check(Impl.JetBeginExternalBackupInstance(instance, grbit));
+            EsentExceptionHelper.Check(Impl.JetBeginExternalBackupInstance(instance, grbit));
         }
 
         /// <summary>Closes a file that was opened with JetOpenFileInstance after the
@@ -573,7 +450,7 @@ namespace EsentLib
         /// <param name="handle">The handle to close.</param>
         public static void JetCloseFileInstance(JET_INSTANCE instance, JET_HANDLE handle)
         {
-            Api.Check(Impl.JetCloseFileInstance(instance, handle));
+            EsentExceptionHelper.Check(Impl.JetCloseFileInstance(instance, handle));
         }
 
         /// <summary>Ends an external backup session. This API is the last API in a series
@@ -582,7 +459,7 @@ namespace EsentLib
         /// <param name="instance">The instance to end the backup for.</param>
         public static void JetEndExternalBackupInstance(JET_INSTANCE instance)
         {
-            Api.Check(Impl.JetEndExternalBackupInstance(instance));  
+            EsentExceptionHelper.Check(Impl.JetEndExternalBackupInstance(instance));  
         }
 
         /// <summary>Ends an external backup session. This API is the last API in a series
@@ -592,7 +469,7 @@ namespace EsentLib
         /// <param name="grbit">Options that specify how the backup ended.</param>
         public static void JetEndExternalBackupInstance2(JET_INSTANCE instance, EndExternalBackupGrbit grbit)
         {
-            Api.Check(Impl.JetEndExternalBackupInstance2(instance, grbit));
+            EsentExceptionHelper.Check(Impl.JetEndExternalBackupInstance2(instance, grbit));
         }
 
         /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
@@ -616,7 +493,7 @@ namespace EsentLib
         public static void JetGetAttachInfoInstance(JET_INSTANCE instance, out string files,
             int maxChars, out int actualChars)
         {
-            Api.Check(Impl.JetGetAttachInfoInstance(instance, out files, maxChars, out actualChars));
+            EsentExceptionHelper.Check(Impl.JetGetAttachInfoInstance(instance, out files, maxChars, out actualChars));
         }
 
         /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
@@ -639,7 +516,7 @@ namespace EsentLib
         public static void JetGetLogInfoInstance(JET_INSTANCE instance, out string files,
             int maxChars, out int actualChars)
         {
-            Api.Check(Impl.JetGetLogInfoInstance(instance, out files, maxChars, out actualChars));
+            EsentExceptionHelper.Check(Impl.JetGetLogInfoInstance(instance, out files, maxChars, out actualChars));
         }
 
         /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
@@ -660,7 +537,7 @@ namespace EsentLib
         public static void JetGetTruncateLogInfoInstance(JET_INSTANCE instance, out string files,
             int maxChars, out int actualChars)
         {
-            Api.Check(Impl.JetGetTruncateLogInfoInstance(instance, out files, maxChars, out actualChars));
+            EsentExceptionHelper.Check(Impl.JetGetTruncateLogInfoInstance(instance, out files, maxChars, out actualChars));
         }
 
         /// <summary>
@@ -682,7 +559,7 @@ namespace EsentLib
         public static void JetOpenFileInstance(JET_INSTANCE instance, string file,
             out JET_HANDLE handle, out long fileSizeLow, out long fileSizeHigh)
         {
-            Api.Check(Impl.JetOpenFileInstance(instance, file, out handle, out fileSizeLow,
+            EsentExceptionHelper.Check(Impl.JetOpenFileInstance(instance, file, out handle, out fileSizeLow,
                 out fileSizeHigh));
         }
 
@@ -697,7 +574,7 @@ namespace EsentLib
         public static void JetReadFileInstance(JET_INSTANCE instance, JET_HANDLE file,
             byte[] buffer, int bufferSize, out int bytesRead)
         {
-            Api.Check(Impl.JetReadFileInstance(instance, file, buffer, bufferSize,
+            EsentExceptionHelper.Check(Impl.JetReadFileInstance(instance, file, buffer, bufferSize,
                 out bytesRead));
         }
 
@@ -707,24 +584,12 @@ namespace EsentLib
         /// <param name="instance">The instance to truncate.</param>
         public static void JetTruncateLogInstance(JET_INSTANCE instance)
         {
-            Api.Check(Impl.JetTruncateLogInstance(instance));
+            EsentExceptionHelper.Check(Impl.JetTruncateLogInstance(instance));
         }
 
         #endregion
 
         #region Sessions
-
-        /// <summary>Initialize a new ESENT session.</summary>
-        /// <param name="instance">The initialized instance to create the session in.</param>
-        /// <param name="sesid">Returns the created session.</param>
-        /// <param name="username">The parameter is not used.</param>
-        /// <param name="password">The parameter is not used.</param>
-        /// <seealso cref="Api.BeginSession"/>
-        public static void JetBeginSession(JET_INSTANCE instance, out JET_SESID sesid,
-            string username, string password)
-        {
-            Api.Check(Impl.JetBeginSession(instance, out sesid, username, password));
-        }
 
         /// <summary>Associates a session with the current thread using the given context
         /// handle. This association overrides the default engine requirement that a
@@ -734,7 +599,7 @@ namespace EsentLib
         /// <param name="context">The context to set.</param>
         public static void JetSetSessionContext(JET_SESID sesid, IntPtr context)
         {
-            Api.Check(Impl.JetSetSessionContext(sesid, context));
+            EsentExceptionHelper.Check(Impl.JetSetSessionContext(sesid, context));
         }
 
         /// <summary>Disassociates a session from the current thread. This should be
@@ -742,15 +607,7 @@ namespace EsentLib
         /// <param name="sesid">The session to use.</param>
         public static void JetResetSessionContext(JET_SESID sesid)
         {
-            Api.Check(Impl.JetResetSessionContext(sesid));
-        }
-
-        /// <summary>Ends a session.</summary>
-        /// <param name="sesid">The session to end.</param>
-        /// <param name="grbit">This parameter is not used.</param>
-        public static void JetEndSession(JET_SESID sesid, EndSessionGrbit grbit)
-        {
-            Api.Check(Impl.JetEndSession(sesid, grbit));
+            EsentExceptionHelper.Check(Impl.JetResetSessionContext(sesid));
         }
 
         /// <summary>Initialize a new ESE session in the same instance as the given sesid.
@@ -759,7 +616,7 @@ namespace EsentLib
         /// <param name="newSesid">Returns the new session.</param>
         public static void JetDupSession(JET_SESID sesid, out JET_SESID newSesid)
         {
-            Api.Check(Impl.JetDupSession(sesid, out newSesid));
+            EsentExceptionHelper.Check(Impl.JetDupSession(sesid, out newSesid));
         }
 
         #endregion
@@ -779,7 +636,7 @@ namespace EsentLib
         /// <returns>An ESENT warning.</returns>
         public static JET_wrn JetOpenTable(JET_SESID sesid, JET_DBID dbid, string tablename, byte[] parameters, int parametersSize, OpenTableGrbit grbit, out JET_TABLEID tableid)
         {
-            return Api.Check(Impl.JetOpenTable(sesid, dbid, tablename, parameters, parametersSize, grbit, out tableid));
+            return EsentExceptionHelper.Check(Impl.JetOpenTable(sesid, dbid, tablename, parameters, parametersSize, grbit, out tableid));
         }
 
         /// <summary>
@@ -789,7 +646,7 @@ namespace EsentLib
         /// <param name="tableid">The table to close.</param>
         public static void JetCloseTable(JET_SESID sesid, JET_TABLEID tableid)
         {
-            Api.Check(Impl.JetCloseTable(sesid, tableid));
+            EsentExceptionHelper.Check(Impl.JetCloseTable(sesid, tableid));
         }
 
         /// <summary>
@@ -808,7 +665,7 @@ namespace EsentLib
         /// <param name="grbit">Reserved for future use.</param>
         public static void JetDupCursor(JET_SESID sesid, JET_TABLEID tableid, out JET_TABLEID newTableid, DupCursorGrbit grbit)
         {
-            Api.Check(Impl.JetDupCursor(sesid, tableid, out newTableid, grbit));
+            EsentExceptionHelper.Check(Impl.JetDupCursor(sesid, tableid, out newTableid, grbit));
         }
 
         /// <summary>
@@ -823,7 +680,7 @@ namespace EsentLib
         /// <param name="tableid">The table that the statistics will be computed on.</param>
         public static void JetComputeStats(JET_SESID sesid, JET_TABLEID tableid)
         {
-            Api.Check(Impl.JetComputeStats(sesid, tableid));
+            EsentExceptionHelper.Check(Impl.JetComputeStats(sesid, tableid));
         }
 
         /// <summary>
@@ -841,7 +698,7 @@ namespace EsentLib
         /// <param name="grbit">Set options.</param>
         public static void JetSetLS(JET_SESID sesid, JET_TABLEID tableid, JET_LS ls, LsGrbit grbit)
         {
-            Api.Check(Impl.JetSetLS(sesid, tableid, ls, grbit));
+            EsentExceptionHelper.Check(Impl.JetSetLS(sesid, tableid, ls, grbit));
         }
 
         /// <summary>
@@ -858,7 +715,7 @@ namespace EsentLib
         /// <param name="grbit">Retrieve options.</param>
         public static void JetGetLS(JET_SESID sesid, JET_TABLEID tableid, out JET_LS ls, LsGrbit grbit)
         {
-            Api.Check(Impl.JetGetLS(sesid, tableid, out ls, grbit));
+            EsentExceptionHelper.Check(Impl.JetGetLS(sesid, tableid, out ls, grbit));
         }
 
         /// <summary>
@@ -873,7 +730,7 @@ namespace EsentLib
         /// <param name="tableid">The cursor to check.</param>
         public static void JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid)
         {
-            Api.Check(Impl.JetGetCursorInfo(sesid, tableid));
+            EsentExceptionHelper.Check(Impl.JetGetCursorInfo(sesid, tableid));
         }
 
         #endregion
@@ -887,7 +744,7 @@ namespace EsentLib
         /// <param name="sesid">The session to begin the transaction for.</param>
         public static void JetBeginTransaction(JET_SESID sesid)
         {
-            Api.Check(Impl.JetBeginTransaction(sesid));
+            EsentExceptionHelper.Check(Impl.JetBeginTransaction(sesid));
         }
 
         /// <summary>
@@ -898,7 +755,7 @@ namespace EsentLib
         /// <param name="grbit">Transaction options.</param>
         public static void JetBeginTransaction2(JET_SESID sesid, BeginTransactionGrbit grbit)
         {
-            Api.Check(Impl.JetBeginTransaction2(sesid, grbit));
+            EsentExceptionHelper.Check(Impl.JetBeginTransaction2(sesid, grbit));
         }
 
         /// <summary>
@@ -911,7 +768,7 @@ namespace EsentLib
         /// <param name="grbit">Commit options.</param>
         public static void JetCommitTransaction(JET_SESID sesid, CommitTransactionGrbit grbit)
         {
-            Api.Check(Impl.JetCommitTransaction(sesid, grbit));
+            EsentExceptionHelper.Check(Impl.JetCommitTransaction(sesid, grbit));
         }
 
         /// <summary>
@@ -924,7 +781,7 @@ namespace EsentLib
         /// <param name="grbit">Rollback options.</param>
         public static void JetRollback(JET_SESID sesid, RollbackTransactionGrbit grbit)
         {
-            Api.Check(Impl.JetRollback(sesid, grbit));
+            EsentExceptionHelper.Check(Impl.JetRollback(sesid, grbit));
         }
 
         #endregion
@@ -944,7 +801,7 @@ namespace EsentLib
         /// <param name="tableid">Returns the tableid of the new table.</param>
         public static void JetCreateTable(JET_SESID sesid, JET_DBID dbid, string table, int pages, int density, out JET_TABLEID tableid)
         {
-            Api.Check(Impl.JetCreateTable(sesid, dbid, table, pages, density, out tableid));
+            EsentExceptionHelper.Check(Impl.JetCreateTable(sesid, dbid, table, pages, density, out tableid));
         }
 
         /// <summary>
@@ -959,7 +816,7 @@ namespace EsentLib
         /// <param name="columnid">Returns the columnid of the new column.</param>
         public static void JetAddColumn(JET_SESID sesid, JET_TABLEID tableid, string column, JET_COLUMNDEF columndef, byte[] defaultValue, int defaultValueSize, out JET_COLUMNID columnid)
         {
-            Api.Check(Impl.JetAddColumn(sesid, tableid, column, columndef, defaultValue, defaultValueSize, out columnid));
+            EsentExceptionHelper.Check(Impl.JetAddColumn(sesid, tableid, column, columndef, defaultValue, defaultValueSize, out columnid));
         }
 
         /// <summary>
@@ -970,7 +827,7 @@ namespace EsentLib
         /// <param name="column">The name of the column to be deleted.</param>
         public static void JetDeleteColumn(JET_SESID sesid, JET_TABLEID tableid, string column)
         {
-            Api.Check(Impl.JetDeleteColumn(sesid, tableid, column));
+            EsentExceptionHelper.Check(Impl.JetDeleteColumn(sesid, tableid, column));
         }
 
         /// <summary>
@@ -982,7 +839,7 @@ namespace EsentLib
         /// <param name="grbit">Column deletion options.</param>
         public static void JetDeleteColumn2(JET_SESID sesid, JET_TABLEID tableid, string column, DeleteColumnGrbit grbit)
         {
-            Api.Check(Impl.JetDeleteColumn2(sesid, tableid, column, grbit));
+            EsentExceptionHelper.Check(Impl.JetDeleteColumn2(sesid, tableid, column, grbit));
         }
 
         /// <summary>
@@ -993,7 +850,7 @@ namespace EsentLib
         /// <param name="index">The name of the index to be deleted.</param>
         public static void JetDeleteIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
         {
-            Api.Check(Impl.JetDeleteIndex(sesid, tableid, index));
+            EsentExceptionHelper.Check(Impl.JetDeleteIndex(sesid, tableid, index));
         }
 
         /// <summary>
@@ -1004,7 +861,7 @@ namespace EsentLib
         /// <param name="table">The name of the table to delete.</param>
         public static void JetDeleteTable(JET_SESID sesid, JET_DBID dbid, string table)
         {
-            Api.Check(Impl.JetDeleteTable(sesid, dbid, table));
+            EsentExceptionHelper.Check(Impl.JetDeleteTable(sesid, dbid, table));
         }
 
         /// <summary>
@@ -1035,7 +892,7 @@ namespace EsentLib
             int keyDescriptionLength,
             int density)
         {
-            Api.Check(Impl.JetCreateIndex(sesid, tableid, indexName, grbit, keyDescription, keyDescriptionLength, density));
+            EsentExceptionHelper.Check(Impl.JetCreateIndex(sesid, tableid, indexName, grbit, keyDescription, keyDescriptionLength, density));
         }
 
         /// <summary>
@@ -1069,7 +926,7 @@ namespace EsentLib
             JET_INDEXCREATE[] indexcreates,
             int numIndexCreates)
         {
-            Api.Check(Impl.JetCreateIndex2(sesid, tableid, indexcreates, numIndexCreates));            
+            EsentExceptionHelper.Check(Impl.JetCreateIndex2(sesid, tableid, indexcreates, numIndexCreates));            
         }
 
         /// <summary>
@@ -1109,7 +966,7 @@ namespace EsentLib
             out JET_TABLEID tableid,
             JET_COLUMNID[] columnids)
         {
-            Api.Check(Impl.JetOpenTempTable(sesid, columns, numColumns, grbit, out tableid, columnids));            
+            EsentExceptionHelper.Check(Impl.JetOpenTempTable(sesid, columns, numColumns, grbit, out tableid, columnids));            
         }
 
         /// <summary>
@@ -1156,7 +1013,7 @@ namespace EsentLib
             out JET_TABLEID tableid,
             JET_COLUMNID[] columnids)
         {
-            Api.Check(Impl.JetOpenTempTable2(sesid, columns, numColumns, lcid, grbit, out tableid, columnids));
+            EsentExceptionHelper.Check(Impl.JetOpenTempTable2(sesid, columns, numColumns, lcid, grbit, out tableid, columnids));
         }
 
         /// <summary>
@@ -1202,7 +1059,7 @@ namespace EsentLib
             out JET_TABLEID tableid,
             JET_COLUMNID[] columnids)
         {
-            Api.Check(Impl.JetOpenTempTable3(sesid, columns, numColumns, unicodeindex, grbit, out tableid, columnids));            
+            EsentExceptionHelper.Check(Impl.JetOpenTempTable3(sesid, columns, numColumns, unicodeindex, grbit, out tableid, columnids));            
         }
 
         /// <summary>
@@ -1217,7 +1074,7 @@ namespace EsentLib
             JET_DBID dbid,
             JET_TABLECREATE tablecreate)
         {
-            Api.Check(Impl.JetCreateTableColumnIndex3(sesid, dbid, tablecreate));
+            EsentExceptionHelper.Check(Impl.JetCreateTableColumnIndex3(sesid, dbid, tablecreate));
         }
 
         #region JetGetTableColumnInfo overloads
@@ -1235,7 +1092,7 @@ namespace EsentLib
                 string columnName,
                 out JET_COLUMNDEF columndef)
         {
-            Api.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, out columndef));
+            EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, out columndef));
         }
 
         /// <summary>
@@ -1251,7 +1108,7 @@ namespace EsentLib
                 JET_COLUMNID columnid,
                 out JET_COLUMNDEF columndef)
         {
-            Api.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columndef));
+            EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columndef));
         }
 
         /// <summary>
@@ -1267,7 +1124,7 @@ namespace EsentLib
             string columnName,
             out JET_COLUMNBASE columnbase)
         {
-            Api.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, out columnbase));
+            EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, out columnbase));
         }
 
         /// <summary>
@@ -1283,7 +1140,7 @@ namespace EsentLib
                 string columnName,
                 out JET_COLUMNLIST columnlist)
         {
-            Api.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, ColInfoGrbit.None, out columnlist));
+            EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, ColInfoGrbit.None, out columnlist));
         }
 
         /// <summary>
@@ -1301,7 +1158,7 @@ namespace EsentLib
                 ColInfoGrbit grbit,
                 out JET_COLUMNLIST columnlist)
         {
-            Api.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, grbit, out columnlist));
+            EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, grbit, out columnlist));
         }
 
         #endregion
@@ -1323,7 +1180,7 @@ namespace EsentLib
                 string columnName,
                 out JET_COLUMNDEF columndef)
         {
-            Api.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columndef));
+            EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columndef));
         }
 
         /// <summary>
@@ -1341,7 +1198,7 @@ namespace EsentLib
                 string columnName,
                 out JET_COLUMNLIST columnlist)
         {
-            Api.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnlist));
+            EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnlist));
         }
 
         /// <summary>
@@ -1359,7 +1216,7 @@ namespace EsentLib
                 string columnName,
                 out JET_COLUMNBASE columnbase)
         {
-            Api.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnbase));
+            EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnbase));
         }
 
         #endregion
@@ -1374,7 +1231,7 @@ namespace EsentLib
         /// <param name="objectlist">Filled in with information about the objects in the database.</param>
         public static void JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, out JET_OBJECTLIST objectlist)
         {
-            Api.Check(Impl.JetGetObjectInfo(sesid, dbid, out objectlist));
+            EsentExceptionHelper.Check(Impl.JetGetObjectInfo(sesid, dbid, out objectlist));
         }
 
         /// <summary>
@@ -1392,7 +1249,7 @@ namespace EsentLib
             string objectName,
             out JET_OBJECTINFO objectinfo)
         {
-            Api.Check(Impl.JetGetObjectInfo(sesid, dbid, objtyp, objectName, out objectinfo));
+            EsentExceptionHelper.Check(Impl.JetGetObjectInfo(sesid, dbid, objtyp, objectName, out objectinfo));
         }
 
         #endregion
@@ -1417,7 +1274,7 @@ namespace EsentLib
         /// </param>
         public static void JetGetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, out string indexName, int maxNameLength)
         {
-            Api.Check(Impl.JetGetCurrentIndex(sesid, tableid, out indexName, maxNameLength));
+            EsentExceptionHelper.Check(Impl.JetGetCurrentIndex(sesid, tableid, out indexName, maxNameLength));
         }
 
         #region JetGetTableInfo overloads
@@ -1434,7 +1291,7 @@ namespace EsentLib
         /// <param name="infoLevel">The type of information to retrieve.</param>       
         public static void JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out JET_OBJECTINFO result, JET_TblInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
         }
 
         /// <summary>
@@ -1450,7 +1307,7 @@ namespace EsentLib
         /// <param name="infoLevel">The type of information to retrieve.</param>
         public static void JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out string result, JET_TblInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
         }
 
         /// <summary>
@@ -1465,7 +1322,7 @@ namespace EsentLib
         /// <param name="infoLevel">The type of information to retrieve.</param>
         public static void JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out JET_DBID result, JET_TblInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
         }
 
         /// <summary>
@@ -1481,7 +1338,7 @@ namespace EsentLib
         /// <param name="infoLevel">The type of information to retrieve.</param>
         public static void JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, int[] result, JET_TblInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableInfo(sesid, tableid, result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, result, infoLevel));
         }
 
         /// <summary>
@@ -1497,7 +1354,7 @@ namespace EsentLib
         /// <param name="infoLevel">The type of information to retrieve.</param>
         public static void JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out int result, JET_TblInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
         }
 
         #endregion
@@ -1522,7 +1379,7 @@ namespace EsentLib
                 out ushort result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1542,7 +1399,7 @@ namespace EsentLib
                 out int result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1562,7 +1419,7 @@ namespace EsentLib
                 out JET_INDEXID result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1582,7 +1439,7 @@ namespace EsentLib
                 out JET_INDEXLIST result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1602,7 +1459,7 @@ namespace EsentLib
                 out string result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
         #endregion
@@ -1625,7 +1482,7 @@ namespace EsentLib
                 out ushort result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1643,7 +1500,7 @@ namespace EsentLib
                 out int result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1661,7 +1518,7 @@ namespace EsentLib
                 out JET_INDEXID result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1679,7 +1536,7 @@ namespace EsentLib
                 out JET_INDEXLIST result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
         /// <summary>
@@ -1697,7 +1554,7 @@ namespace EsentLib
                 out string result,
                 JET_IdxInfo infoLevel)
         {
-            Api.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
+            EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
         #endregion
@@ -1711,7 +1568,7 @@ namespace EsentLib
         /// <param name="newTableName">The new name of the table.</param>
         public static void JetRenameTable(JET_SESID sesid, JET_DBID dbid, string tableName, string newTableName)
         {
-            Api.Check(Impl.JetRenameTable(sesid, dbid, tableName, newTableName));
+            EsentExceptionHelper.Check(Impl.JetRenameTable(sesid, dbid, tableName, newTableName));
         }
 
         /// <summary>
@@ -1724,7 +1581,7 @@ namespace EsentLib
         /// <param name="grbit">Column rename options.</param>
         public static void JetRenameColumn(JET_SESID sesid, JET_TABLEID tableid, string name, string newName, RenameColumnGrbit grbit)
         {
-            Api.Check(Impl.JetRenameColumn(sesid, tableid, name, newName, grbit));
+            EsentExceptionHelper.Check(Impl.JetRenameColumn(sesid, tableid, name, newName, grbit));
         }
 
         /// <summary>
@@ -1740,7 +1597,7 @@ namespace EsentLib
         public static void JetSetColumnDefaultValue(
             JET_SESID sesid, JET_DBID dbid, string tableName, string columnName, byte[] data, int dataSize, SetColumnDefaultValueGrbit grbit)
         {
-            Api.Check(Impl.JetSetColumnDefaultValue(sesid, dbid, tableName, columnName, data, dataSize, grbit));
+            EsentExceptionHelper.Check(Impl.JetSetColumnDefaultValue(sesid, dbid, tableName, columnName, data, dataSize, grbit));
         }
 
         #endregion
@@ -1758,7 +1615,7 @@ namespace EsentLib
         /// <param name="bookmarkSize">The size of the bookmark.</param>
         public static void JetGotoBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize)
         {
-            Api.Check(Impl.JetGotoBookmark(sesid, tableid, bookmark, bookmarkSize));
+            EsentExceptionHelper.Check(Impl.JetGotoBookmark(sesid, tableid, bookmark, bookmarkSize));
         }
 
         /// <summary>
@@ -1784,7 +1641,7 @@ namespace EsentLib
             int primaryKeySize,
             GotoSecondaryIndexBookmarkGrbit grbit)
         {
-            Api.Check(
+            EsentExceptionHelper.Check(
                 Impl.JetGotoSecondaryIndexBookmark(
                     sesid, tableid, secondaryKey, secondaryKeySize, primaryKey, primaryKeySize, grbit));
         }
@@ -1802,7 +1659,7 @@ namespace EsentLib
         /// <param name="grbit">Move options.</param>
         public static void JetMove(JET_SESID sesid, JET_TABLEID tableid, int numRows, MoveGrbit grbit)
         {
-            Api.Check(Impl.JetMove(sesid, tableid, numRows, grbit));
+            EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, numRows, grbit));
         }
 
         /// <summary>
@@ -1818,7 +1675,7 @@ namespace EsentLib
         /// <param name="grbit">Move options.</param>
         public static void JetMove(JET_SESID sesid, JET_TABLEID tableid, JET_Move numRows, MoveGrbit grbit)
         {
-            Api.Check(Impl.JetMove(sesid, tableid, (int)numRows, grbit));
+            EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, (int)numRows, grbit));
         }
 
         /// <summary>
@@ -1864,7 +1721,7 @@ namespace EsentLib
         /// <returns>An ESENT warning.</returns>
         public static JET_wrn JetSeek(JET_SESID sesid, JET_TABLEID tableid, SeekGrbit grbit)
         {
-            return Api.Check(Impl.JetSeek(sesid, tableid, grbit));
+            return EsentExceptionHelper.Check(Impl.JetSeek(sesid, tableid, grbit));
         }
 
         /// <summary>
@@ -1881,7 +1738,7 @@ namespace EsentLib
         /// <param name="grbit">Index range options.</param>
         public static void JetSetIndexRange(JET_SESID sesid, JET_TABLEID tableid, SetIndexRangeGrbit grbit)
         {
-            Api.Check(Impl.JetSetIndexRange(sesid, tableid, grbit));
+            EsentExceptionHelper.Check(Impl.JetSetIndexRange(sesid, tableid, grbit));
         }
 
         /// <summary>
@@ -1910,7 +1767,7 @@ namespace EsentLib
             out JET_RECORDLIST recordlist,
             IntersectIndexesGrbit grbit)
         {
-            Api.Check(Impl.JetIntersectIndexes(sesid, ranges, numRanges, out recordlist, grbit));
+            EsentExceptionHelper.Check(Impl.JetIntersectIndexes(sesid, ranges, numRanges, out recordlist, grbit));
         }
 
         /// <summary>
@@ -1924,7 +1781,7 @@ namespace EsentLib
         /// </param>
         public static void JetSetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
         {
-            Api.Check(Impl.JetSetCurrentIndex(sesid, tableid, index));
+            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex(sesid, tableid, index));
         }
 
         /// <summary>
@@ -1941,7 +1798,7 @@ namespace EsentLib
         /// </param>
         public static void JetSetCurrentIndex2(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit)
         {
-            Api.Check(Impl.JetSetCurrentIndex2(sesid, tableid, index, grbit));
+            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex2(sesid, tableid, index, grbit));
         }
 
         /// <summary>
@@ -1965,7 +1822,7 @@ namespace EsentLib
         /// </param>
         public static void JetSetCurrentIndex3(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit, int itagSequence)
         {
-            Api.Check(Impl.JetSetCurrentIndex3(sesid, tableid, index, grbit, itagSequence));
+            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex3(sesid, tableid, index, grbit, itagSequence));
         }
 
         /// <summary>
@@ -1999,7 +1856,7 @@ namespace EsentLib
             SetCurrentIndexGrbit grbit,
             int itagSequence)
         {
-            Api.Check(Impl.JetSetCurrentIndex4(sesid, tableid, index, indexid, grbit, itagSequence));
+            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex4(sesid, tableid, index, indexid, grbit, itagSequence));
         }
 
         /// <summary>
@@ -2026,7 +1883,7 @@ namespace EsentLib
                 maxRecordsToCount = int.MaxValue;
             }
 
-            Api.Check(Impl.JetIndexRecordCount(sesid, tableid, out numRecords, maxRecordsToCount));
+            EsentExceptionHelper.Check(Impl.JetIndexRecordCount(sesid, tableid, out numRecords, maxRecordsToCount));
         }
 
         /// <summary>
@@ -2041,7 +1898,7 @@ namespace EsentLib
         /// <param name="grbit">Reserved for future use.</param>
         public static void JetSetTableSequential(JET_SESID sesid, JET_TABLEID tableid, SetTableSequentialGrbit grbit)
         {
-            Api.Check(Impl.JetSetTableSequential(sesid, tableid, grbit));
+            EsentExceptionHelper.Check(Impl.JetSetTableSequential(sesid, tableid, grbit));
         }
 
         /// <summary>
@@ -2054,7 +1911,7 @@ namespace EsentLib
         /// <param name="grbit">Reserved for future use.</param>
         public static void JetResetTableSequential(JET_SESID sesid, JET_TABLEID tableid, ResetTableSequentialGrbit grbit)
         {
-            Api.Check(Impl.JetResetTableSequential(sesid, tableid, grbit));
+            EsentExceptionHelper.Check(Impl.JetResetTableSequential(sesid, tableid, grbit));
         }
 
         /// <summary>
@@ -2067,7 +1924,7 @@ namespace EsentLib
         /// <param name="recpos">Returns the approximate fractional position of the record.</param>
         public static void JetGetRecordPosition(JET_SESID sesid, JET_TABLEID tableid, out JET_RECPOS recpos)
         {
-            Api.Check(Impl.JetGetRecordPosition(sesid, tableid, out recpos));
+            EsentExceptionHelper.Check(Impl.JetGetRecordPosition(sesid, tableid, out recpos));
         }
 
         /// <summary>
@@ -2080,7 +1937,7 @@ namespace EsentLib
         /// <param name="recpos">The approximate position to move to.</param>
         public static void JetGotoPosition(JET_SESID sesid, JET_TABLEID tableid, JET_RECPOS recpos)
         {
-            Api.Check(Impl.JetGotoPosition(sesid, tableid, recpos));
+            EsentExceptionHelper.Check(Impl.JetGotoPosition(sesid, tableid, recpos));
         }
 
         #endregion
@@ -2102,7 +1959,7 @@ namespace EsentLib
         /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
         public static void JetGetBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
         {
-            Api.Check(Impl.JetGetBookmark(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize));
+            EsentExceptionHelper.Check(Impl.JetGetBookmark(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize));
         }
 
         /// <summary>
@@ -2133,7 +1990,7 @@ namespace EsentLib
             out int actualPrimaryKeySize,
             GetSecondaryIndexBookmarkGrbit grbit)
         {
-            Api.Check(
+            EsentExceptionHelper.Check(
                 Impl.JetGetSecondaryIndexBookmark(
                     sesid,
                     tableid,
@@ -2158,7 +2015,7 @@ namespace EsentLib
         /// <param name="grbit">Retrieve key options.</param>
         public static void JetRetrieveKey(JET_SESID sesid, JET_TABLEID tableid, byte[] data, int dataSize, out int actualDataSize, RetrieveKeyGrbit grbit)
         {
-            Api.Check(Impl.JetRetrieveKey(sesid, tableid, data, dataSize, out actualDataSize, grbit));
+            EsentExceptionHelper.Check(Impl.JetRetrieveKey(sesid, tableid, data, dataSize, out actualDataSize, grbit));
         }
 
         /// <summary>Retrieves a single column value from the current record. The record
@@ -2235,7 +2092,7 @@ namespace EsentLib
                     retrievecolumns[i].UpdateFromNativeRetrievecolumn(ref nativeretrievecolumns[i]);
                 }
 
-                return Api.Check(err);
+                return EsentExceptionHelper.Check(err);
             }
         }
 
@@ -2294,7 +2151,7 @@ namespace EsentLib
             int maxDataSize,
             EnumerateColumnsGrbit grbit)
         {
-            return Api.Check(
+            return EsentExceptionHelper.Check(
                 Impl.JetEnumerateColumns(
                     sesid,
                     tableid,
@@ -2323,7 +2180,7 @@ namespace EsentLib
             EnumerateColumnsGrbit grbit,
             out IEnumerable<EnumeratedColumn> enumeratedColumns)
         {
-            return Api.Check(
+            return EsentExceptionHelper.Check(
                 Impl.JetEnumerateColumns(sesid, tableid, grbit, out enumeratedColumns));
         }
 
@@ -2338,7 +2195,7 @@ namespace EsentLib
         /// <param name="tableid">The cursor on a database table. The current row will be deleted.</param>
         public static void JetDelete(JET_SESID sesid, JET_TABLEID tableid)
         {
-            Api.Check(Impl.JetDelete(sesid, tableid));
+            EsentExceptionHelper.Check(Impl.JetDelete(sesid, tableid));
         }
 
         /// <summary>
@@ -2349,7 +2206,7 @@ namespace EsentLib
         /// <param name="prep">The type of update to prepare.</param>
         public static void JetPrepareUpdate(JET_SESID sesid, JET_TABLEID tableid, JET_prep prep)
         {
-            Api.Check(Impl.JetPrepareUpdate(sesid, tableid, prep));
+            EsentExceptionHelper.Check(Impl.JetPrepareUpdate(sesid, tableid, prep));
         }
 
         /// <summary>
@@ -2371,7 +2228,7 @@ namespace EsentLib
         /// </remarks>
         public static void JetUpdate(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
         {
-            Api.Check(Impl.JetUpdate(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize));
+            EsentExceptionHelper.Check(Impl.JetUpdate(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize));
         }
 
         /// <summary>
@@ -2391,7 +2248,7 @@ namespace EsentLib
         public static void JetUpdate(JET_SESID sesid, JET_TABLEID tableid)
         {
             int ignored;
-            Api.Check(Impl.JetUpdate(sesid, tableid, null, 0, out ignored));
+            EsentExceptionHelper.Check(Impl.JetUpdate(sesid, tableid, null, 0, out ignored));
         }
 
         /// <summary>
@@ -2493,7 +2350,7 @@ namespace EsentLib
                         setcolumns[i].err = (JET_wrn)nativeSetColumns[i].err;
                     }
 
-                    return Api.Check(err);
+                    return EsentExceptionHelper.Check(err);
                 }
             }
         }
@@ -2510,7 +2367,7 @@ namespace EsentLib
         /// <param name="grbit">Lock options, use this to specify which type of lock to obtain.</param>
         public static void JetGetLock(JET_SESID sesid, JET_TABLEID tableid, GetLockGrbit grbit)
         {
-            Api.Check(Impl.JetGetLock(sesid, tableid, grbit));
+            EsentExceptionHelper.Check(Impl.JetGetLock(sesid, tableid, grbit));
         }
 
         /// <summary>
@@ -2545,7 +2402,7 @@ namespace EsentLib
             out int actualPreviousValueLength,
             EscrowUpdateGrbit grbit)
         {
-            Api.Check(Impl.JetEscrowUpdate(
+            EsentExceptionHelper.Check(Impl.JetEscrowUpdate(
                 sesid,
                 tableid,
                 columnid,
@@ -2566,8 +2423,7 @@ namespace EsentLib
         /// notifications to the application for specific events. These
         /// notifications are associated with a specific table and remain in
         /// effect only until the instance containing the table is shut down
-        /// using <see cref="JetTerm"/>.
-        /// </summary>
+        /// using.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">
         /// A cursor opened on the table that the callback should be
@@ -2590,7 +2446,7 @@ namespace EsentLib
             IntPtr context,
             out JET_HANDLE callbackId)
         {
-            Api.Check(Impl.JetRegisterCallback(sesid, tableid, cbtyp, callback, context, out callbackId));
+            EsentExceptionHelper.Check(Impl.JetRegisterCallback(sesid, tableid, cbtyp, callback, context, out callbackId));
         }
 
         /// <summary>
@@ -2611,7 +2467,7 @@ namespace EsentLib
         /// </param>
         public static void JetUnregisterCallback(JET_SESID sesid, JET_TABLEID tableid, JET_cbtyp cbtyp, JET_HANDLE callbackId)
         {
-            Api.Check(Impl.JetUnregisterCallback(sesid, tableid, cbtyp, callbackId));
+            EsentExceptionHelper.Check(Impl.JetUnregisterCallback(sesid, tableid, cbtyp, callbackId));
         }
 
         #endregion
@@ -2651,7 +2507,7 @@ namespace EsentLib
             ref int seconds,
             DefragGrbit grbit)
         {
-            return Api.Check(Impl.JetDefragment(sesid, dbid, tableName, ref passes, ref seconds, grbit));
+            return EsentExceptionHelper.Check(Impl.JetDefragment(sesid, dbid, tableName, ref passes, ref seconds, grbit));
         }
 
         /// <summary>
@@ -2693,7 +2549,7 @@ namespace EsentLib
             JET_CALLBACK callback, 
             DefragGrbit grbit)
         {
-            return Api.Check(Impl.JetDefragment2(sesid, dbid, tableName, ref passes, ref seconds, callback, grbit));
+            return EsentExceptionHelper.Check(Impl.JetDefragment2(sesid, dbid, tableName, ref passes, ref seconds, callback, grbit));
         }
 
         /// <summary>
@@ -2704,7 +2560,7 @@ namespace EsentLib
         /// <returns>An error code if the operation fails.</returns>
         public static JET_wrn JetIdle(JET_SESID sesid, IdleGrbit grbit)
         {
-            return Api.Check(Impl.JetIdle(sesid, grbit));
+            return EsentExceptionHelper.Check(Impl.JetIdle(sesid, grbit));
         }
 
         #endregion
@@ -2724,51 +2580,30 @@ namespace EsentLib
         /// </param>
         public static void JetFreeBuffer(IntPtr buffer)
         {
-            Api.Check(Impl.JetFreeBuffer(buffer));
+            EsentExceptionHelper.Check(Impl.JetFreeBuffer(buffer));
         }
 
         #endregion
 
         #region Error Handling
-
-        /// <summary>
-        /// Throw an exception if the parameter is an ESE error,
-        /// returns a <see cref="JET_wrn"/> otherwise.
-        /// </summary>
-        /// <param name="err">The error code to check.</param>
-        /// <returns>An ESENT warning code (possibly success).</returns>
-        internal static JET_wrn Check(int err)
-        {
-            if (err < 0)
-            {
-                throw CreateErrorException(err);
-            }
-
-            return unchecked((JET_wrn)err);
-        }
-
-        /// <summary>
-        /// Create an error exception that should be thrown for a failure.
-        /// </summary>
-        /// <param name="err">The error code.</param>
-        /// <returns>A failure exception.</returns>
-        private static Exception CreateErrorException(int err)
-        {
-            Debug.Assert(err < 0, "expected a negative error code");
-
-            JET_err error = unchecked((JET_err)err);
-
-            var handler = Api.HandleError;
-            if (handler != null)
-            {
-                handler(error);
-            }
-
-            // We didn't throw an exception from the handler, so
-            // generate the default exception.
-            return EsentExceptionHelper.JetErrToException(error);
-        }
-
+        ///// <summary>Throw an exception if the parameter is an ESE error, returns a
+        ///// <see cref="JET_wrn"/> otherwise.</summary>
+        ///// <param name="err">The error code to check.</param>
+        ///// <returns>An ESENT warning code (possibly success).</returns>
+        //internal static JET_wrn Check(int err)
+        //{
+        //    if (err < 0) {
+        //        JET_err error = unchecked((JET_err)err);
+        //        var handler = Api.HandleError;
+        //        if (handler != null) {
+        //            handler(error);
+        //        }
+        //        // We didn't throw an exception from the handler, so
+        //        // generate the default exception.
+        //        throw EsentExceptionHelper.JetErrToException(error);
+        //    }
+        //    return unchecked((JET_wrn)err);
+        //}
         #endregion Error Handling
     }
 }

@@ -422,7 +422,7 @@ namespace EsentLib
         /// <param name="value">The value to set.</param>
         private static void SetStringParameter(JET_param param, string value)
         {
-            Api.JetSetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, param, 0, value);
+            Api.JetSetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE.Nil, JET_SESID.Nil, param, 0, value);
         }
 
         /// <summary>
@@ -434,7 +434,7 @@ namespace EsentLib
         {
             int ignored = 0;
             string value;
-            Api.JetGetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, param, ref ignored, out value, 1024);
+            Api.JetGetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE.Nil, JET_SESID.Nil, param, ref ignored, out value, 1024);
             return value;
         }
 
@@ -445,7 +445,7 @@ namespace EsentLib
         /// <param name="value">The value to set.</param>
         private static void SetIntegerParameter(JET_param param, int value)
         {
-            Api.JetSetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, param, value, null);
+            Api.JetSetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE.Nil, JET_SESID.Nil, param, value, null);
         }
 
         /// <summary>
@@ -457,7 +457,7 @@ namespace EsentLib
         {
             int value = 0;
             string ignored;
-            Api.JetGetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, param, ref value, out ignored, 0);
+            Api.JetGetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE.Nil, JET_SESID.Nil, param, ref value, out ignored, 0);
             return value;
         }
 
@@ -469,7 +469,7 @@ namespace EsentLib
         private static void SetBoolParameter(JET_param param, bool value)
         {
             int setting = value ? 1 : 0;
-            Api.JetSetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, param, setting, null);
+            Api.JetSetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE.Nil, JET_SESID.Nil, param, setting, null);
         }
 
         /// <summary>
@@ -481,7 +481,7 @@ namespace EsentLib
         {
             int value = 0;
             string ignored;
-            Api.JetGetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil, param, ref value, out ignored, 0);
+            Api.JetGetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE.Nil, JET_SESID.Nil, param, ref value, out ignored, 0);
             return value != 0;
         }
     }

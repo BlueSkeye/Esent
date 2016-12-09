@@ -61,7 +61,7 @@ namespace EsentLib.Implementation
 
             operationContext = new JET_OPERATIONCONTEXT(ref nativeContext);
 
-            return Err(err);
+            return TraceResult(err);
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace EsentLib.Implementation
                 ref nativeContext,
                 checked((int)dataSize));
 
-            return Err(err);
+            return TraceResult(err);
         }
         #endregion
 
@@ -116,7 +116,7 @@ namespace EsentLib.Implementation
             {
                 fixed (JET_THREADSTATS2* rawJetThreadstats = &threadstats)
                 {
-                    return Err(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS2.Size)));
+                    return TraceResult(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS2.Size)));
                 }
             }
         }

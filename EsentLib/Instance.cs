@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Permissions;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 using EsentLib.Platform.Vista;
 using Microsoft.Win32.SafeHandles;
 
@@ -33,14 +34,10 @@ namespace EsentLib
         /// </summary>
         private readonly string name;
 
-        /// <summary>
-        /// The display name of the instance.
-        /// </summary>
+        /// <summary>The display name of the instance.</summary>
         private readonly string displayName;
 
-        /// <summary>
-        /// The TermGrbit to be used at JetTerm time.
-        /// </summary>
+        /// <summary>The TermGrbit to be used at JetTerm time.</summary>
         private TermGrbit termGrbit;
 
         /// <summary>

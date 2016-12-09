@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 using EsentLib.Jet.Vista;
 using EsentLib.Platform.Vista;
 using EsentLib.Platform.Windows7;
@@ -16,24 +17,22 @@ using EsentLib.Platform.Windows2003;
 
 namespace EsentLib.Implementation
 {
-    /// <summary>
-    /// This interface describes all the methods which have a P/Invoke implementation.
-    /// Concrete instances of this interface provide methods that call ESENT.
-    /// </summary>
-    internal partial interface IJetApi
+    /// <summary>This interface describes all the methods which have a P/Invoke
+    /// implementation. Concrete instances of this interface provide methods that
+    /// call ESENT.</summary>
+    internal partial interface IJetApi : IDisposable
     {
-        /// <summary>
-        /// Gets a description of the capabilities of the current version of ESENT.
-        /// </summary>
+        /// <summary>Gets a description of the capabilities of the current version
+        /// of ESENT.</summary>
         JetCapabilities Capabilities { get; }
 
         #region Init/Term
 
-        /// <summary>Allocates a new instance of the database engine.</summary>
-        /// <param name="instance">Returns the new instance.</param>
-        /// <param name="name">The name of the instance. Names must be unique.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetCreateInstance(out JET_INSTANCE instance, string name);
+        ///// <summary>Allocates a new instance of the database engine.</summary>
+        ///// <param name="instance">Returns the new instance.</param>
+        ///// <param name="name">The name of the instance. Names must be unique.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //int JetCreateInstance(out JET_INSTANCE instance, string name);
 
         /// <summary>
         /// Allocate a new instance of the database engine for use in a single
@@ -53,16 +52,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         int JetCreateInstance2(out JET_INSTANCE instance, string name, string displayName, CreateInstanceGrbit grbit);
 
-        /// <summary>
-        /// Initialize the ESENT database engine.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to initialize. If an instance hasn't been
-        /// allocated then a new one is created and the engine
-        /// will operate in single-instance mode.
-        /// </param>
+        /// <summary>Initialize the ESENT database engine.</summary>
         /// <returns>An error if the call fails.</returns>
-        int JetInit(ref JET_INSTANCE instance);
+        void Initialize();
 
         /// <summary>
         /// Initialize the ESENT database engine.
@@ -140,18 +132,10 @@ namespace EsentLib.Implementation
         /// <param name="instance">The (running) instance to use.</param>
         /// <param name="grbit">The options to stop or resume the instance.</param>
         /// <returns>An error code.</returns>
-        int JetStopServiceInstance2(
-            JET_INSTANCE instance,
-            StopServiceGrbit grbit);
+        int JetStopServiceInstance2(JET_INSTANCE instance, StopServiceGrbit grbit);
 
-        /// <summary>Terminate an instance that was created with <see cref="JetInit"/>
-        /// or <see cref="JetCreateInstance"/>.</summary>
-        /// <param name="instance">The instance to terminate.</param>
-        /// <returns>An error or warning.</returns>
-        int JetTerm(JET_INSTANCE instance);
-
-        /// <summary>Terminate an instance that was created with <see cref="JetInit"/>
-        /// or <see cref="JetCreateInstance"/>.</summary>
+        /// <summary>Terminate an instance that was created with <see cref="Initialize"/>
+        /// or <see cref="JetEngine.Create"/>.</summary>
         /// <param name="instance">The instance to terminate.</param>
         /// <param name="grbit">Termination options.</param>
         /// <returns>An error or warning.</returns>
@@ -202,13 +186,9 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         int JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, ref IntPtr paramValue, out string paramString, int maxParam);
 
-        /// <summary>
-        /// Retrieves the version of the database engine.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="version">Returns the version number of the database engine.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetGetVersion(JET_SESID sesid, out uint version);
+        /// <summary>Retrieves the version of the database engine.</summary>
+        /// <returns>Engine implemented version.</returns>
+        uint GetVersion();
         #endregion
 
         #region Databases
@@ -749,15 +729,11 @@ namespace EsentLib.Implementation
 
         #region Sessions
 
-        /// <summary>
-        /// Initialize a new ESENT session.
-        /// </summary>
-        /// <param name="instance">The initialized instance to create the session in.</param>
-        /// <param name="sesid">Returns the created session.</param>
+        /// <summary>Initialize a new ESENT session.</summary>
         /// <param name="username">The parameter is not used.</param>
         /// <param name="password">The parameter is not used.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetBeginSession(JET_INSTANCE instance, out JET_SESID sesid, string username, string password);
+        /// <returns>A new session.</returns>
+        JetSession BeginSession(string username, string password);
 
         /// <summary>
         /// Associates a session with the current thread using the given context
@@ -778,13 +754,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         int JetResetSessionContext(JET_SESID sesid);
 
-        /// <summary>
-        /// Ends a session.
-        /// </summary>
-        /// <param name="sesid">The session to end.</param>
+        /// <summary>Ends a session.</summary>
         /// <param name="grbit">This parameter is not used.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetEndSession(JET_SESID sesid, EndSessionGrbit grbit);
+        void Close(EndSessionGrbit grbit);
 
         /// <summary>
         /// Initialize a new ESE session in the same instance as the given sesid.
@@ -2309,8 +2282,7 @@ namespace EsentLib.Implementation
         /// notifications to the application for specific events. These
         /// notifications are associated with a specific table and remain in
         /// effect only until the instance containing the table is shut down
-        /// using <see cref="JetTerm"/>.
-        /// </summary>
+        /// using.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">
         /// A cursor opened on the table that the callback should be

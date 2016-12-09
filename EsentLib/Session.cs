@@ -3,11 +3,12 @@
 //     Copyright (c) Microsoft Corporation.
 // </copyright>
 //-----------------------------------------------------------------------
+using System.Globalization;
+
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
-    using System.Globalization;
-
     /// <summary>
     /// A class that encapsulates a JET_SESID in a disposable object.
     /// </summary>

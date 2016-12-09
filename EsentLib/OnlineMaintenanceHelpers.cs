@@ -40,7 +40,7 @@ namespace EsentLib
             string tableName,
             DefragGrbit grbit)
         {
-            return Api.Check(Impl.Defragment(sesid, dbid, tableName, grbit));
+            return EsentExceptionHelper.Check(Impl.Defragment(sesid, dbid, tableName, grbit));
         }
     }
 }

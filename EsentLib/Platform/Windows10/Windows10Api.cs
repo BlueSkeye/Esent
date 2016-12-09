@@ -26,7 +26,7 @@ namespace EsentLib.Platform.Windows10
             JET_sesparam sesparamid,
             out JET_OPERATIONCONTEXT operationContext)
         {
-            Api.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out operationContext));
+            EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out operationContext));
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace EsentLib.Platform.Windows10
         /// <seealso cref="JET_OPERATIONCONTEXT"/>
         public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, JET_OPERATIONCONTEXT operationContext)
         {
-            Api.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, operationContext));
+            EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, operationContext));
         }
         #endregion
 
@@ -53,7 +53,7 @@ namespace EsentLib.Platform.Windows10
         /// <param name="threadstats">Returns the thread statistics data.</param>
         public static void JetGetThreadStats(out JET_THREADSTATS2 threadstats)
         {
-            Api.Check(Api.Impl.JetGetThreadStats(out threadstats));
+            EsentExceptionHelper.Check(Api.Impl.JetGetThreadStats(out threadstats));
         }
 
         #endregion

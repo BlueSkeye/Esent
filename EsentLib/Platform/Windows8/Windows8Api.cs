@@ -8,6 +8,7 @@ using System;
 
 using EsentLib.Platform.Vista;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 using EsentLib.Jet.Vista;
 using EsentLib.Jet.Windows8;
 using Win81 = EsentLib.Platform.Windows81;
@@ -30,7 +31,7 @@ namespace EsentLib.Platform.Windows8
             JET_INSTANCE instance,
             StopServiceGrbit grbit)
         {
-            Api.Check(Api.Impl.JetStopServiceInstance2(instance, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetStopServiceInstance2(instance, grbit));
         }
 
         #endregion
@@ -46,7 +47,7 @@ namespace EsentLib.Platform.Windows8
         /// <remarks>Introduced in Windows 8.</remarks>
         public static void JetBeginTransaction3(JET_SESID sesid, long userTransactionId, BeginTransactionGrbit grbit)
         {
-            Api.Check(Api.Impl.JetBeginTransaction3(sesid, userTransactionId, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetBeginTransaction3(sesid, userTransactionId, grbit));
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace EsentLib.Platform.Windows8
             TimeSpan durableCommit,
             out JET_COMMIT_ID commitId)
         {
-            Api.Check(Api.Impl.JetCommitTransaction2(sesid, grbit, durableCommit, out commitId));
+            EsentExceptionHelper.Check(Api.Impl.JetCommitTransaction2(sesid, grbit, durableCommit, out commitId));
         }
 
         #endregion
@@ -79,7 +80,7 @@ namespace EsentLib.Platform.Windows8
             JET_err error,
             out JET_ERRINFOBASIC errinfo)
         {
-            Api.Check(Api.Impl.JetGetErrorInfo(error, out errinfo));
+            EsentExceptionHelper.Check(Api.Impl.JetGetErrorInfo(error, out errinfo));
         }
 
         /// <summary>
@@ -108,7 +109,7 @@ namespace EsentLib.Platform.Windows8
             out int actualPages,
             ResizeDatabaseGrbit grbit)
         {
-            Api.Check(Api.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit));
         }
 
         #region DDL
@@ -134,7 +135,7 @@ namespace EsentLib.Platform.Windows8
             JET_INDEXCREATE[] indexcreates,
             int numIndexCreates)
         {
-            Api.Check(Api.Impl.JetCreateIndex4(sesid, tableid, indexcreates, numIndexCreates));            
+            EsentExceptionHelper.Check(Api.Impl.JetCreateIndex4(sesid, tableid, indexcreates, numIndexCreates));            
         }
 
         /// <summary>
@@ -163,7 +164,7 @@ namespace EsentLib.Platform.Windows8
         /// </param>
         public static void JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
-            Api.Check(Api.Impl.JetOpenTemporaryTable2(sesid, temporarytable));
+            EsentExceptionHelper.Check(Api.Impl.JetOpenTemporaryTable2(sesid, temporarytable));
         }
 
         /// <summary>
@@ -179,7 +180,7 @@ namespace EsentLib.Platform.Windows8
             JET_DBID dbid,
             JET_TABLECREATE tablecreate)
         {
-            Api.Check(Api.Impl.JetCreateTableColumnIndex4(sesid, dbid, tablecreate));
+            EsentExceptionHelper.Check(Api.Impl.JetCreateTableColumnIndex4(sesid, dbid, tablecreate));
         }
         #endregion
 
@@ -197,7 +198,7 @@ namespace EsentLib.Platform.Windows8
             JET_sesparam sesparamid,
             out int value)
         {
-            Api.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out value));
+            EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out value));
         }
 
         /// <summary>
@@ -216,7 +217,7 @@ namespace EsentLib.Platform.Windows8
             int length,
             out int actualDataSize)
         {
-            Api.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, data, length, out actualDataSize));
+            EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, data, length, out actualDataSize));
         }
 
         /// <summary>
@@ -227,7 +228,7 @@ namespace EsentLib.Platform.Windows8
         /// <param name="value">A 32-bit integer to set.</param>
         public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, int value)
         {
-            Api.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, value));
+            EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, value));
         }
 
         /// <summary>
@@ -243,7 +244,7 @@ namespace EsentLib.Platform.Windows8
             byte[] data,
             int dataSize)
         {
-            Api.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, data, dataSize));
+            EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, data, dataSize));
         }
 
         #endregion
@@ -301,7 +302,7 @@ namespace EsentLib.Platform.Windows8
             JET_COLUMNID[] columnsPreread,
             PrereadIndexRangesGrbit grbit)
         {
-            Api.Check(Api.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
         }
 
         /// <summary>
@@ -333,7 +334,7 @@ namespace EsentLib.Platform.Windows8
             JET_COLUMNID[] columnsPreread,
             PrereadIndexRangesGrbit grbit)
         {
-            Api.Check(Api.Impl.JetPrereadKeyRanges(sesid, tableid, keysStart, keyStartLengths, keysEnd, keyEndLengths, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetPrereadKeyRanges(sesid, tableid, keysStart, keyStartLengths, keysEnd, keyEndLengths, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
         }
 
         /// <summary>
@@ -345,7 +346,7 @@ namespace EsentLib.Platform.Windows8
         /// <param name="grbit">Move options.</param>
         public static void JetSetCursorFilter(JET_SESID sesid, JET_TABLEID tableid, JET_INDEX_COLUMN[] filters, CursorFilterGrbit grbit)
         {
-            Api.Check(Api.Impl.JetSetCursorFilter(sesid, tableid, filters, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetSetCursorFilter(sesid, tableid, filters, grbit));
         }
 
         #endregion

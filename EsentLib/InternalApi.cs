@@ -133,7 +133,7 @@ namespace EsentLib
             JET_COLUMNID columnid, IntPtr data, int dataSize, out int actualDataSize,
             RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
         {
-            return Api.Check(EsentLib.Api.Impl.JetRetrieveColumn(sesid, tableid, columnid,
+            return EsentExceptionHelper.Check(EsentLib.Api.Impl.JetRetrieveColumn(sesid, tableid, columnid,
                 data, dataSize, out actualDataSize, grbit, retinfo));
         }
 
@@ -148,7 +148,7 @@ namespace EsentLib
         internal static void JetMakeKey(JET_SESID sesid, JET_TABLEID tableid, IntPtr data,
             int dataSize, MakeKeyGrbit grbit)
         {
-            Api.Check(EsentLib.Api.Impl.JetMakeKey(sesid, tableid, data, dataSize, grbit));
+            EsentExceptionHelper.Check(EsentLib.Api.Impl.JetMakeKey(sesid, tableid, data, dataSize, grbit));
         }
 
         /// <summary>The JetSetColumn function modifies a single column value in a modified
@@ -170,7 +170,7 @@ namespace EsentLib
             JET_COLUMNID columnid, IntPtr data, int dataSize, SetColumnGrbit grbit,
             JET_SETINFO setinfo)
         {
-            return Api.Check(EsentLib.Api.Impl.JetSetColumn(sesid, tableid, columnid, data,
+            return EsentExceptionHelper.Check(EsentLib.Api.Impl.JetSetColumn(sesid, tableid, columnid, data,
                 dataSize, grbit, setinfo));
         }
     }

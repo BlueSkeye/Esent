@@ -18,6 +18,7 @@ using System.Runtime.CompilerServices;
 
 using EsentLib.Implementation;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 using EsentLib.Jet.Windows8;
 
 namespace EsentLib.Platform.Windows8

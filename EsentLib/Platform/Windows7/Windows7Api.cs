@@ -17,7 +17,7 @@ namespace EsentLib.Platform.Windows7
         /// <param name="grbit">Crash dump options.</param>
         public static void JetConfigureProcessForCrashDump(CrashDumpGrbit grbit)
         {
-            Api.Check(Api.Impl.JetConfigureProcessForCrashDump(grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetConfigureProcessForCrashDump(grbit));
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace EsentLib.Platform.Windows7
             out int keysPreread,
             PrereadKeysGrbit grbit)
         {
-            Api.Check(Api.Impl.JetPrereadKeys(sesid, tableid, keys, keyLengths, keyIndex, keyCount, out keysPreread, grbit));
+            EsentExceptionHelper.Check(Api.Impl.JetPrereadKeys(sesid, tableid, keys, keyLengths, keyIndex, keyCount, out keysPreread, grbit));
         }
 
         /// <summary>

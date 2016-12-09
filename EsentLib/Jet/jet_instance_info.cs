@@ -11,6 +11,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+using EsentLib.Jet.Types;
+
 namespace EsentLib.Jet
 {
     /// <summary>

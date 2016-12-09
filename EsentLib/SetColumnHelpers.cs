@@ -439,7 +439,7 @@ namespace EsentLib
             unsafe
             {
                 NATIVE_SETCOLUMN* nativeSetcolumns = stackalloc NATIVE_SETCOLUMN[values.Length];
-                Api.Check(values[0].SetColumns(sesid, tableid, values, nativeSetcolumns, 0));
+                EsentExceptionHelper.Check(values[0].SetColumns(sesid, tableid, values, nativeSetcolumns, 0));
             }
         }
 
