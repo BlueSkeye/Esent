@@ -662,7 +662,6 @@ namespace EsentLib
         }
     }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// A JET_OSSNAPID contains a handle to a snapshot of a database.
     /// </summary>
@@ -778,7 +777,6 @@ namespace EsentLib
             return this.Value.Equals(other.Value);
         }
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// A JET_HANDLE contains a generic handle.
@@ -896,7 +894,6 @@ namespace EsentLib
         }
     }
 
-#if !MANAGEDESENT_ON_WSA
     /// <summary>
     /// Local storage for an ESENT handle. Used by <see cref="Api.JetGetLS"/>
     /// and <see cref="Api.JetSetLS"/>.
@@ -1009,7 +1006,6 @@ namespace EsentLib
             return this.Value.Equals(other.Value);
         }
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// Holds an index ID. An index ID is a hint that is used to accelerate the

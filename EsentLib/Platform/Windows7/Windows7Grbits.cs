@@ -8,7 +8,6 @@ namespace EsentLib.Platform.Windows7
 {
     using System;
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// Options for <see cref="Windows7Api.JetConfigureProcessForCrashDump"/>.
     /// </summary>
@@ -58,7 +57,6 @@ namespace EsentLib.Platform.Windows7
         /// </summary>
         CacheIncludeCorruptedPages = 0x40,
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// Options for <see cref="Windows7Api.JetPrereadKeys(JET_SESID, JET_TABLEID, byte[][], int[], int, int, out int, PrereadKeysGrbit)"/>.
@@ -128,12 +126,10 @@ namespace EsentLib.Platform.Windows7
         /// </summary>
         public const CommitTransactionGrbit ForceNewLog = (CommitTransactionGrbit)0x10;
 
-#if !MANAGEDESENT_ON_WSA
         /// <summary>
         /// No instances will be prepared by default. Instances must be added explicitly.
         /// </summary>
         public const SnapshotPrepareGrbit ExplicitPrepare = (SnapshotPrepareGrbit)0x8;
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Hint that the sequential traversal will be in the forward direction.

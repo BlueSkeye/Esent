@@ -10,9 +10,7 @@ using EsentLib.Jet.Windows10;
 
 namespace EsentLib.Platform.Windows10
 {
-    /// <summary>
-    /// Api calls introduced in Windows 10.
-    /// </summary>
+    /// <summary>Api calls introduced in Windows 10.</summary>
     public static class Windows10Api
     {
         #region Session Parameters

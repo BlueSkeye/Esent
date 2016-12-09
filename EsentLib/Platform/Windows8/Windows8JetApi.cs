@@ -21,7 +21,7 @@ namespace EsentLib.Implementation
     /// Windows8 calls to the ESENT interop layer. These calls take the managed types (e.g. JET_SESID) and
     /// return errors.
     /// </summary>
-    internal sealed partial class JetApi : IJetApi
+    internal sealed partial class JetEngine : IJetApi
     {
         #region Transactions
         /// <summary>

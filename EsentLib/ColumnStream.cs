@@ -210,7 +210,7 @@ namespace EsentLib
             }
 
             setinfo = new JET_SETINFO { itagSequence = this.Itag, ibLongValue = this.ibLongValue };
-            Api.JetSetColumn(this.sesid, this.tableid, this.columnid, buffer, count, offset, grbit, setinfo);
+            InternalApi.JetSetColumn(this.sesid, this.tableid, this.columnid, buffer, count, offset, grbit, setinfo);
 
             checked
             {
@@ -237,7 +237,7 @@ namespace EsentLib
 
             int length;
             var retinfo = new JET_RETINFO { itagSequence = this.Itag, ibLongValue = this.ibLongValue };
-            Api.JetRetrieveColumn(this.sesid, this.tableid, this.columnid, buffer, count, offset, out length, RetrieveGrbit, retinfo);
+            InternalApi.JetRetrieveColumn(this.sesid, this.tableid, this.columnid, buffer, count, offset, out length, RetrieveGrbit, retinfo);
             int bytesRead = Math.Min(length, count);
 
             checked

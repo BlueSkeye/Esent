@@ -66,14 +66,12 @@ namespace EsentLib.Platform.Windows8
             this.wrappedCallback = wrappedCallback;
             this.wrapperCallback = this.NativeDurableCommitCallback;
 
-#if !MANAGEDESENT_ON_WSA // RuntimeHelpers works differently in Windows Store Apps.
             if (this.wrappedCallback != null)
             {
                 RuntimeHelpers.PrepareMethod(this.wrappedCallback.Method.MethodHandle);
             }
 
             RuntimeHelpers.PrepareMethod(typeof(DurableCommitCallback).GetMethod("NativeDurableCommitCallback", BindingFlags.NonPublic | BindingFlags.Instance).MethodHandle);
-#endif
 
             EsentLib.Platform.Windows8.InstanceParameters instanceParameters =
                 new EsentLib.Platform.Windows8.InstanceParameters(this.instance);
@@ -165,7 +163,7 @@ namespace EsentLib.Platform.Windows8
                 Trace.WriteLineIf(
                     TraceSwitch.TraceWarning, string.Format(CultureInfo.InvariantCulture, "Caught Exception {0}", ex));
 
-                JetApi.ReportUnhandledException(ex, "Unhandled exception during NativeDurableCommitCallback");
+                JetEngine.ReportUnhandledException(ex, "Unhandled exception during NativeDurableCommitCallback");
 
                 // This should never be executed, but the compiler doesn't know it.
                 return JET_err.CallbackFailed;

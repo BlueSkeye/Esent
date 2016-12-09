@@ -69,7 +69,6 @@ namespace EsentLib.Jet
         /// </summary>
         private readonly NATIVE_PFNSTATUS nativeCallback;
 
-#if !MANAGEDESENT_ON_WSA
         /// <summary>
         /// Initializes static members of the <see cref="StatusCallbackWrapper"/> class. 
         /// </summary>
@@ -83,7 +82,6 @@ namespace EsentLib.Jet
                 "CallbackImpl",
                 BindingFlags.NonPublic | BindingFlags.Instance).MethodHandle);
         }
-#endif
 
         /// <summary>
         /// Initializes a new instance of the StatusCallbackWrapper class.
@@ -125,12 +123,10 @@ namespace EsentLib.Jet
         /// </summary>
         public void ThrowSavedException()
         {
-#if !MANAGEDESENT_ON_WSA // Thread model has changed in Windows store apps.
             if (this.ThreadWasAborted)
             {
                 Thread.CurrentThread.Abort();
             }
-#endif
 
             if (null != this.SavedException)
             {
@@ -162,7 +158,6 @@ namespace EsentLib.Jet
                 object data = CallbackDataConverter.GetManagedData(nativeData, snp, snt);
                 return this.wrappedCallback(sesid, snp, snt, data);
             }
-#if !MANAGEDESENT_ON_WSA // Thread model has changed in windows store apps.
             catch (ThreadAbortException)
             {
                 Trace.WriteLineIf(TraceSwitch.TraceWarning, "Caught ThreadAbortException");
@@ -173,7 +168,6 @@ namespace EsentLib.Jet
                 LibraryHelpers.ThreadResetAbort();
                 return JET_err.CallbackFailed;
             }
-#endif
             catch (Exception ex)
             {
                 Trace.WriteLineIf(

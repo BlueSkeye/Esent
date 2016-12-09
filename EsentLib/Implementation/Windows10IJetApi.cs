@@ -11,11 +11,9 @@ using EsentLib.Jet.Windows8;
 
 namespace EsentLib.Implementation
 {
-    /// <summary>
-    /// This interface describes all the Windows10 methods which have a
-    /// P/Invoke implementation. Concrete instances of this interface provide
-    /// methods that call ESENT.
-    /// </summary>
+    /// <summary>This interface describes all the Windows10 methods which have a
+    /// P/Invoke implementation. Concrete instances of this interface provide methods
+    /// that call ESENT.</summary>
     internal partial interface IJetApi
     {
         #region Session Parameters
@@ -27,9 +25,7 @@ namespace EsentLib.Implementation
         /// <param name="operationContext">An operation context to retrieve.</param>
         /// <seealso cref="JET_OPERATIONCONTEXT"/>
         /// <returns>An error code.</returns>
-        int JetGetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
+        int JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
             out JET_OPERATIONCONTEXT operationContext);
 
         /// <summary>

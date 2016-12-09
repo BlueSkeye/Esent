@@ -4,7 +4,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -592,4 +591,3 @@ namespace EsentLib.Jet.Vista
         public ulong cbLongValueDataCompressed;
     }
 }
-#endif // !MANAGEDESENT_ON_WSA

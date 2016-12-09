@@ -68,7 +68,7 @@ namespace EsentLib
                 {
                     fixed (char* buffer = data)
                     {
-                        JetSetColumn(
+                        InternalApi.JetSetColumn(
                             sesid,
                             tableid,
                             columnid,
@@ -81,18 +81,6 @@ namespace EsentLib
             }
             else if (encoding.GetMaxByteCount(data.Length) <= Caches.ColumnCache.BufferSize)
             {
-#if MANAGEDESENT_ON_WSA
-                // Encoding.GetBytes(char*, int, byte*, int) overload is missing in new Windows UI.
-                // So we can't use the ColumnCache. We'll just use a different GetBytes() overload.
-                byte[] buffer = encoding.GetBytes(data);
-                unsafe
-                {
-                    fixed (byte* bytes = buffer)
-                    {
-                        JetSetColumn(sesid, tableid, columnid, new IntPtr(bytes), buffer.Length, grbit, null);
-                    }
-                }
-#else
                 // The encoding output will fix in a cached buffer. Get one to avoid 
                 // more memory allocations.
                 byte[] buffer = null;
@@ -106,7 +94,7 @@ namespace EsentLib
                         fixed (byte* bytes = buffer)
                         {
                             int dataSize = encoding.GetBytes(chars, data.Length, bytes, buffer.Length);
-                            JetSetColumn(sesid, tableid, columnid, new IntPtr(bytes), dataSize, grbit, null);
+                            InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(bytes), dataSize, grbit, null);
                         }                    
                     }
                 }
@@ -117,7 +105,6 @@ namespace EsentLib
                         Caches.ColumnCache.Free(ref buffer);
                     }
                 }
-#endif
             }
             else
             {
@@ -187,7 +174,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(byte);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -205,7 +192,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(short);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -223,7 +210,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(int);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -241,7 +228,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(long);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -259,7 +246,7 @@ namespace EsentLib
             {
                 const int DataSize = 16; // sizeof(Guid) isn't a compile-time constant
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -290,7 +277,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(float);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -308,7 +295,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(double);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -360,7 +347,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(ushort);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -379,7 +366,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(uint);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 
@@ -398,7 +385,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(ulong);
                 var pointer = new IntPtr(&data);
-                JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
             }
         }
 

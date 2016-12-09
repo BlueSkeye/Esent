@@ -8,7 +8,6 @@ using System;
 
 namespace EsentLib.Platform.Windows2003
 {
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// Options for <see cref="Server2003Api.JetOSSnapshotAbort"/>.
     /// </summary>
@@ -20,7 +19,6 @@ namespace EsentLib.Platform.Windows2003
         /// </summary>
         None = 0,    
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// Options for <see cref="Server2003Api.JetUpdate2"/>.
@@ -33,7 +31,6 @@ namespace EsentLib.Platform.Windows2003
         /// </summary>
         None = 0,
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// This flag causes the update to return an error if the update would
         /// not have been possible in the Windows 2000 version of ESE, which
@@ -46,7 +43,6 @@ namespace EsentLib.Platform.Windows2003
         /// </summary>
         [Obsolete("Only needed for legacy replication applications.")]
         CheckESE97Compatibility = 0x1,
-#endif // !MANAGEDESENT_ON_WSA
     }
 
     /// <summary>

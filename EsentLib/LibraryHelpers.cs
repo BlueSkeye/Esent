@@ -87,7 +87,7 @@ namespace EsentLib
         /// <param name="size">The size of the memory desired.</param>
         public static IntPtr MarshalAllocHGlobal(int size)
         {
-#if MANAGEDESENT_ON_CORECLR && !MANAGEDESENT_ON_WSA
+#if MANAGEDESENT_ON_CORECLR
             return Win32.NativeMethods.LocalAlloc(0, new UIntPtr((uint)size));
 #else
             return Marshal.AllocHGlobal(size);
@@ -100,7 +100,7 @@ namespace EsentLib
         /// <param name="buffer">A pointer to native memory.</param>
         public static void MarshalFreeHGlobal(IntPtr buffer)
         {
-#if MANAGEDESENT_ON_CORECLR && !MANAGEDESENT_ON_WSA
+#if MANAGEDESENT_ON_CORECLR
             Win32.NativeMethods.LocalFree(buffer);
 #else
             Marshal.FreeHGlobal(buffer);
@@ -114,7 +114,7 @@ namespace EsentLib
         /// <exception cref="T:System.ArgumentOutOfRangeException">The <paramref name="managedString" /> parameter exceeds the maximum length allowed by the operating system.</exception>
         public static IntPtr MarshalStringToHGlobalUni(string managedString)
         {
-#if MANAGEDESENT_ON_CORECLR && !MANAGEDESENT_ON_WSA
+#if MANAGEDESENT_ON_CORECLR
             return MyStringToHGlobalUni(managedString);
 #else
             return Marshal.StringToHGlobalUni(managedString);
@@ -150,7 +150,7 @@ namespace EsentLib
         // FUTURE-2013/12/16-martinc. It appears that all of this hacking for running on Core CLR may no longer be necessary.
         // We initially ported to an early version of Core CLR that had a lot of functionality missing. By the time
         // Windows Store Apps came out in Windows 8, many of these functions were added back.
-#if MANAGEDESENT_ON_CORECLR && !MANAGEDESENT_ON_WSA
+#if MANAGEDESENT_ON_CORECLR
         // System.Runtime.InteropServices.Marshal
 
         /// <summary>Copies the contents of a managed <see cref="T:System.String" /> into unmanaged memory.</summary>
@@ -190,7 +190,7 @@ namespace EsentLib
 
             return rawBuffer;
         }
-#endif // MANAGEDESENT_ON_CORECLR && !MANAGEDESENT_ON_WSA
+#endif // MANAGEDESENT_ON_CORECLR
 
         /// <summary>Returns a <see cref="T:System.DateTime" /> equivalent to the specified OLE Automation Date.</summary>
         /// <returns>A <see cref="T:System.DateTime" /> that represents the same date and time as <paramref name="d" />.</returns>

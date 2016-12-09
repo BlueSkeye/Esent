@@ -25,7 +25,7 @@ namespace EsentLib
         /// <summary>Initializes static members of the Api class.</summary>
         static Api()
         {
-            Api.Impl = new JetApi();
+            Api.Impl = new JetEngine();
         }
 
         /// <summary>Delegate for error handling code.</summary>
@@ -40,10 +40,7 @@ namespace EsentLib
         internal static IJetApi Impl { get; set; }
 
         #region Init/Term
-
-        /// <summary>
-        /// Allocates a new instance of the database engine.
-        /// </summary>
+        /// <summary>Allocates a new instance of the database engine.</summary>
         /// <param name="instance">Returns the new instance.</param>
         /// <param name="name">The name of the instance. Names must be unique.</param>
         public static void JetCreateInstance(out JET_INSTANCE instance, string name)
@@ -104,7 +101,6 @@ namespace EsentLib
             return Api.Check(Impl.JetInit2(ref instance, grbit));
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Retrieves information about the instances that are running.
         /// </summary>
@@ -139,7 +135,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetStopServiceInstance(instance));            
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Terminate an instance that was created with <see cref="JetInit"/> or
@@ -261,7 +256,6 @@ namespace EsentLib
             return wrn;
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>Retrieves the version of the database engine.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="version">Returns the version number of the database engine.</param>
@@ -270,7 +264,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetGetVersion(sesid, out version));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -382,7 +375,6 @@ namespace EsentLib
             Api.Check(Impl.JetDetachDatabase2(sesid, database, grbit));
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
 #pragma warning disable 618,612 // Disable warning that JET_CONVERT is obsolete
         /// <summary>Makes a copy of an existing database. The copy is compacted to a state
         /// optimal for usage. Data in the copied data will be packed according to the measures
@@ -425,7 +417,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetSetDatabaseSize(sesid, database, desiredPages, out actualPages));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>Retrieves certain information about the given database.</summary>
         /// <param name="sesid">The session to use.</param>
@@ -494,7 +485,6 @@ namespace EsentLib
 
         #region Backup/Restore
 
-#if !MANAGEDESENT_ON_WSA
         /// <summary>Performs a streaming backup of an instance, including all the attached
         /// databases, to a directory. With multiple backup methods supported by the engine,
         /// this is the simplest and most encapsulated function.</summary>
@@ -526,12 +516,9 @@ namespace EsentLib
         {
             Api.Check(Impl.JetRestoreInstance(instance, source, destination, statusCallback));
         }
-#endif // !MANAGEDESENT_ON_WSA
         #endregion
 
         #region Snapshot Backup
-
-#if !MANAGEDESENT_ON_WSA
 
         /// <summary>Starts a snapshot. While the snapshot is in progress, no write-to-disk
         /// activity by the engine can take place.</summary>
@@ -566,11 +553,9 @@ namespace EsentLib
         {
             Api.Check(Impl.JetOSSnapshotThaw(snapshot, grbit));
         }
-#endif // !MANAGEDESENT_ON_WSA
         #endregion
 
         #region Streaming Backup/Restore
-#if !MANAGEDESENT_ON_WSA
 
         /// <summary>Initiates an external backup while the engine and database are online
         /// and active. </summary>
@@ -724,7 +709,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetTruncateLogInstance(instance));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -769,7 +753,6 @@ namespace EsentLib
             Api.Check(Impl.JetEndSession(sesid, grbit));
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>Initialize a new ESE session in the same instance as the given sesid.
         /// </summary>
         /// <param name="sesid">The session to duplicate.</param>
@@ -778,7 +761,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetDupSession(sesid, out newSesid));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -810,7 +792,6 @@ namespace EsentLib
             Api.Check(Impl.JetCloseTable(sesid, tableid));
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Duplicates an open cursor and returns a handle to the duplicated cursor.
         /// If the cursor that was duplicated was a read-only cursor then the
@@ -894,7 +875,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetGetCursorInfo(sesid, tableid));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -1132,7 +1112,6 @@ namespace EsentLib
             Api.Check(Impl.JetOpenTempTable(sesid, columns, numColumns, grbit, out tableid, columnids));            
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Creates a temporary table with a single index. A temporary table
         /// stores and retrieves records just like an ordinary table created
@@ -1179,7 +1158,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetOpenTempTable2(sesid, columns, numColumns, lcid, grbit, out tableid, columnids));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Creates a temporary table with a single index. A temporary table
@@ -1749,7 +1727,6 @@ namespace EsentLib
             Api.Check(Impl.JetRenameColumn(sesid, tableid, name, newName, grbit));
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Changes the default value of an existing column.
         /// </summary>
@@ -1765,7 +1742,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetSetColumnDefaultValue(sesid, dbid, tableName, columnName, data, dataSize, grbit));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -1870,7 +1846,7 @@ namespace EsentLib
             {
                 fixed (byte* pointer = data)
                 {
-                    Api.JetMakeKey(sesid, tableid, new IntPtr(pointer), dataSize, grbit);
+                    InternalApi.JetMakeKey(sesid, tableid, new IntPtr(pointer), dataSize, grbit);
                 }
             }
         }
@@ -2185,19 +2161,16 @@ namespace EsentLib
             Api.Check(Impl.JetRetrieveKey(sesid, tableid, data, dataSize, out actualDataSize, grbit));
         }
 
-        /// <summary>
-        /// Retrieves a single column value from the current record. The record is that
-        /// record associated with the index entry at the current position of the cursor.
-        /// Alternatively, this function can retrieve a column from a record being created
-        /// in the cursor copy buffer. This function can also retrieve column data from an
-        /// index entry that references the current record. In addition to retrieving the
-        /// actual column value, JetRetrieveColumn can also be used to retrieve the size
-        /// of a column, before retrieving the column data itself so that application
-        /// buffers can be sized appropriately.  
-        /// </summary>
-        /// <remarks>
-        /// The RetrieveColumnAs functions provide datatype-specific retrieval functions.
-        /// </remarks>
+        /// <summary>Retrieves a single column value from the current record. The record
+        /// is that record associated with the index entry at the current position of the
+        /// cursor. Alternatively, this function can retrieve a column from a record being
+        /// created in the cursor copy buffer. This function can also retrieve column data
+        /// from an index entry that references the current record. In addition to retrieving
+        /// the actual column value, JetRetrieveColumn can also be used to retrieve the
+        /// size of a column, before retrieving the column data itself so that application
+        /// buffers can be sized appropriately.</summary>
+        /// <remarks>The RetrieveColumnAs functions provide datatype-specific retrieval
+        /// functions.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the column from.</param>
         /// <param name="columnid">The columnid to retrieve.</param>
@@ -2205,16 +2178,17 @@ namespace EsentLib
         /// <param name="dataSize">The size of the data buffer.</param>
         /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
         /// <param name="grbit">Retrieve column options.</param>
-        /// <param name="retinfo">
-        /// If pretinfo is give as NULL then the function behaves as though an itagSequence
-        /// of 1 and an ibLongValue of 0 (zero) were given. This causes column retrieval to
-        /// retrieve the first value of a multi-valued column, and to retrieve long data at
-        /// offset 0 (zero).
-        /// </param>
+        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves
+        /// as though an itagSequence of 1 and an ibLongValue of 0 (zero) were given.
+        /// This causes column retrieval to retrieve the first value of a multi-valued
+        /// column, and to retrieve long data at offset 0 (zero).</param>
         /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, byte[] data, int dataSize, out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
+        public static JET_wrn JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid,
+            JET_COLUMNID columnid, byte[] data, int dataSize, out int actualDataSize,
+            RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
         {
-            return Api.JetRetrieveColumn(sesid, tableid, columnid, data, dataSize, 0, out actualDataSize, grbit, retinfo);
+            return InternalApi.JetRetrieveColumn(sesid, tableid, columnid, data, dataSize,
+                0, out actualDataSize, grbit, retinfo);
         }
 
         /// <summary>
@@ -2438,9 +2412,12 @@ namespace EsentLib
         /// <param name="grbit">SetColumn options.</param>
         /// <param name="setinfo">Used to specify itag or long-value offset.</param>
         /// <returns>A warning code.</returns>
-        public static JET_wrn JetSetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, byte[] data, int dataSize, SetColumnGrbit grbit, JET_SETINFO setinfo)
+        public static JET_wrn JetSetColumn(JET_SESID sesid, JET_TABLEID tableid,
+            JET_COLUMNID columnid, byte[] data, int dataSize, SetColumnGrbit grbit,
+            JET_SETINFO setinfo)
         {
-            return Api.JetSetColumn(sesid, tableid, columnid, data, dataSize, 0, grbit, setinfo);
+            return InternalApi.JetSetColumn(sesid, tableid, columnid, data, dataSize,
+                0, grbit, setinfo);
         }
 
         /// <summary>
@@ -2521,7 +2498,6 @@ namespace EsentLib
             }
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Explicitly reserve the ability to update a row, write lock, or to explicitly prevent a row from
         /// being updated by any other session, read lock. Normally, row write locks are acquired implicitly as a
@@ -2536,7 +2512,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetGetLock(sesid, tableid, grbit));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Performs an atomic addition operation on one column. This function allows
@@ -2721,7 +2696,6 @@ namespace EsentLib
             return Api.Check(Impl.JetDefragment2(sesid, dbid, tableName, ref passes, ref seconds, callback, grbit));
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Performs idle cleanup tasks or checks the version store status in ESE.
         /// </summary>
@@ -2732,13 +2706,11 @@ namespace EsentLib
         {
             return Api.Check(Impl.JetIdle(sesid, grbit));
         }
-#endif
 
         #endregion
 
         #region Misc
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Frees memory that was allocated by a database engine call.
         /// </summary>
@@ -2754,7 +2726,6 @@ namespace EsentLib
         {
             Api.Check(Impl.JetFreeBuffer(buffer));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 

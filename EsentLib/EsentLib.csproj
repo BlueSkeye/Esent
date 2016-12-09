@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>EsentLib</RootNamespace>
     <AssemblyName>EsentLib</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <DefineConstants>MANAGEDESENT_SUPPORTS_SERIALIZATION</DefineConstants>
     <FileAlignment>512</FileAlignment>
     <StartupObject>
@@ -113,7 +113,7 @@
     <Compile Include="InternalApi.cs" />
     <Compile Include="IntersectIndexesEnumerator.cs" />
     <Compile Include="INullableJetStruct.cs" />
-    <Compile Include="JetApi.cs" />
+    <Compile Include="JetEngine.cs" />
     <Compile Include="JetCallbackWrapper.cs" />
     <Compile Include="JetCapabilities.cs" />
     <Compile Include="Jet\jet_bkinfo.cs" />

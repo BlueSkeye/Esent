@@ -357,7 +357,6 @@ namespace EsentLib.Jet
         /// </summary>
         ErrorToString = 70,
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Configures the engine with a <see cref="JET_CALLBACK"/> delegate.
         /// This callback may be called for the following reasons:
@@ -366,7 +365,6 @@ namespace EsentLib.Jet
         /// for more information. This parameter cannot currently be retrieved.
         /// </summary>
         RuntimeCallback = 73,
-#endif
 
         /// <summary>
         /// This parameter controls the outcome of JetInit when the database

@@ -23,7 +23,6 @@ namespace EsentLib.Implementation
     {
         #region Configuration Constants
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// The CharSet for the methods in the DLL.
         /// </summary>
@@ -43,13 +42,11 @@ namespace EsentLib.Implementation
         /// This should match the CharSet above.
         /// </summary>
         public static Encoding Encoding { get; private set; }
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion Configuration Constants
 
         #region init/term
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCreateInstance(out IntPtr instance, string szInstanceName);
 
@@ -58,18 +55,15 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCreateInstance2(out IntPtr instance, string szInstanceName, string szDisplayName, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetCreateInstance2W(out IntPtr instance, string szInstanceName, string szDisplayName, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetInit(ref IntPtr instance);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetInit2(ref IntPtr instance, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         // JetInit3 was introduced in Vista, so therefore we'll only support the Unicode version.
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
@@ -78,7 +72,6 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetInit3W(ref IntPtr instance, IntPtr prstinfo, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern unsafe int JetGetInstanceInfo(out uint pcInstanceInfo, out NATIVE_INSTANCE_INFO* prgInstanceInfo);
 
@@ -95,40 +88,31 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetStopServiceInstance(IntPtr instance);
 
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetStopServiceInstance2(IntPtr instance, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetTerm(IntPtr instance);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetTerm2(IntPtr instance, uint grbit);
         
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static unsafe extern int JetSetSystemParameter(IntPtr* pinstance, IntPtr sesid, uint paramid, IntPtr lParam, string szParam);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static unsafe extern int JetSetSystemParameterW(IntPtr* pinstance, IntPtr sesid, uint paramid, IntPtr lParam, string szParam);
 
         // The param is ref because it is an 'in' parameter when getting error text
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetSystemParameter(IntPtr instance, IntPtr sesid, uint paramid, ref IntPtr plParam, [Out] StringBuilder szParam, uint cbMax);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetSystemParameterW(IntPtr instance, IntPtr sesid, uint paramid, ref IntPtr plParam, [Out] StringBuilder szParam, uint cbMax);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGetVersion(IntPtr sesid, out uint dwVersion);
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -187,7 +171,6 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetCloseDatabase(IntPtr sesid, uint dbid, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCompact(
             IntPtr sesid, string szDatabaseSrc, string szDatabaseDest, IntPtr pfnStatus, IntPtr pconvert, uint grbit);
@@ -216,15 +199,12 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetDatabaseInfo(IntPtr sesid, uint dbid, [Out] StringBuilder stringValue, uint cbMax, uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetDatabaseInfoW(IntPtr sesid, uint dbid, out int intValue, uint cbMax, uint InfoLevel);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetDatabaseInfoW(IntPtr sesid, uint dbid, out NATIVE_DBINFOMISC dbinfomisc, uint cbMax, uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetDatabaseInfoW(IntPtr sesid, uint dbid, out NATIVE_DBINFOMISC4 dbinfomisc, uint cbMax, uint InfoLevel);
@@ -240,27 +220,22 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetDatabaseFileInfoW(string szFilename, out int intValue, uint cbMax, uint InfoLevel);
 
-#if !MANAGEDESENT_ON_WSA
         // ASCII, int
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetDatabaseFileInfo(string szFilename, out int intValue, uint cbMax, uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         // Unicode, long
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetDatabaseFileInfoW(string szFilename, out long intValue, uint cbMax, uint InfoLevel);
 
-#if !MANAGEDESENT_ON_WSA
         // ASCII, long
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetDatabaseFileInfo(string szFilename, out long intValue, uint cbMax, uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         // Unicode, JET_DBINFOMISC4
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetDatabaseFileInfoW(string szFilename, out NATIVE_DBINFOMISC4 dbinfomisc, uint cbMax, uint InfoLevel);
 
-#if !MANAGEDESENT_ON_WSA
         // ASCII, JET_DBINFOMISC
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetDatabaseFileInfo(string szFilename, out NATIVE_DBINFOMISC dbinfomisc, uint cbMax, uint InfoLevel);
@@ -268,13 +243,11 @@ namespace EsentLib.Implementation
         // Unicode, JET_DBINFOMISC
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetDatabaseFileInfoW(string szFilename, out NATIVE_DBINFOMISC dbinfomisc, uint cbMax, uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
         #region Backup/Restore
 
-#if !MANAGEDESENT_ON_WSA
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetBackupInstance(
             IntPtr instance, string szBackupPath, uint grbit, IntPtr pfnStatus);
@@ -288,13 +261,11 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetRestoreInstanceW(IntPtr instance, string sz, string szDest, IntPtr pfn);
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
         #region Snapshot Backup
 
-#if !MANAGEDESENT_ON_WSA
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetOSSnapshotPrepare(out IntPtr snapId, uint grbit);
 
@@ -344,12 +315,10 @@ namespace EsentLib.Implementation
         // Introduced in Windows Server 2003
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetOSSnapshotAbort(IntPtr snapId, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
         #endregion
 
         #region Snapshot Backup/Restore
 
-#if !MANAGEDESENT_ON_WSA
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetBeginExternalBackupInstance(IntPtr instance, uint grbit);
 
@@ -394,18 +363,12 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetTruncateLogInstance(IntPtr instance);
-#endif // !MANAGEDESENT_ON_WSA
         #endregion
 
         #region sessions
 
-#if MANAGEDESENT_ON_WSA // Not exposed in MSDK
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetBeginSessionW(IntPtr instance, out IntPtr session, string username, string password);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetBeginSession(IntPtr instance, out IntPtr session, string username, string password);
-#endif
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetSetSessionContext(IntPtr session, IntPtr context);
@@ -416,10 +379,8 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetEndSession(IntPtr sesid, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetDupSession(IntPtr sesid, out IntPtr newSesid);
-#endif
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static unsafe extern int JetGetThreadStats(JET_THREADSTATS* pvResult, uint cbMax);
@@ -428,10 +389,8 @@ namespace EsentLib.Implementation
 
         #region tables
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetOpenTable(IntPtr sesid, uint dbid, string tablename, byte[] pvParameters, uint cbParameters, uint grbit, out IntPtr tableid);
-#endif
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetOpenTableW(IntPtr sesid, uint dbid, string tablename, byte[] pvParameters, uint cbParameters, uint grbit, out IntPtr tableid);
@@ -439,7 +398,6 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetCloseTable(IntPtr sesid, IntPtr tableid);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetDupCursor(IntPtr sesid, IntPtr tableid, out IntPtr tableidNew, uint grbit);
 
@@ -454,7 +412,6 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGetCursorInfo(IntPtr sesid, IntPtr tableid, IntPtr pvResult, uint cbMax, uint infoLevel);
-#endif // !MANAGEDESENT_ON_WSA
         #endregion
 
         #region transactions
@@ -481,49 +438,24 @@ namespace EsentLib.Implementation
 
         #region DDL
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCreateTable(IntPtr sesid, uint dbid, string szTableName, int pages, int density, out IntPtr tableid);
-#endif
 
-#if MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetAddColumnW(IntPtr sesid, IntPtr tableid, string szColumnName, [In] ref NATIVE_COLUMNDEF columndef, [In] byte[] pvDefault, uint cbDefault, out uint columnid);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetAddColumn(IntPtr sesid, IntPtr tableid, string szColumnName, [In] ref NATIVE_COLUMNDEF columndef, [In] byte[] pvDefault, uint cbDefault, out uint columnid);
-#endif
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDeleteColumn(IntPtr sesid, IntPtr tableid, string szColumnName);
-#endif
 
-#if MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetDeleteColumn2W(IntPtr sesid, IntPtr tableid, string szColumnName, uint grbit);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDeleteColumn2(IntPtr sesid, IntPtr tableid, string szColumnName, uint grbit);
-#endif
 
-#if MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetDeleteIndexW(IntPtr sesid, IntPtr tableid, string szIndexName);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDeleteIndex(IntPtr sesid, IntPtr tableid, string szIndexName);
-#endif
 
-#if MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetDeleteTableW(IntPtr sesid, uint dbid, string szTableName);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDeleteTable(IntPtr sesid, uint dbid, string szTableName);
-#endif
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCreateIndex(IntPtr sesid, IntPtr tableid, string szIndexName, uint grbit, string szKey, uint cbKey, uint lDensity);
 
@@ -560,7 +492,6 @@ namespace EsentLib.Implementation
             uint grbit,
             out IntPtr ptableid,
             [Out] uint[] rgcolumnid);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetOpenTempTable3(
@@ -572,11 +503,9 @@ namespace EsentLib.Implementation
             out IntPtr ptableid,
             [Out] uint[] rgcolumnid);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         // Introduced in Windows Vista
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetOpenTemporaryTable(IntPtr sesid, [In] [Out] ref NATIVE_OPENTEMPORARYTABLE popentemporarytable);
-#endif // !MANAGEDESENT_ON_WSA
 
         // Overload to allow for null pidxunicode
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
@@ -589,7 +518,6 @@ namespace EsentLib.Implementation
             out IntPtr ptableid,
             [Out] uint[] rgcolumnid);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCreateTableColumnIndex2(IntPtr sesid, uint dbid, ref JET_TABLECREATE.NATIVE_TABLECREATE2 tablecreate3);
 
@@ -600,10 +528,8 @@ namespace EsentLib.Implementation
         // Introduced in Windows 7
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetCreateTableColumnIndex3W(IntPtr sesid, uint dbid, ref JET_TABLECREATE.NATIVE_TABLECREATE3 tablecreate3);
-#endif // !MANAGEDESENT_ON_WSA
 
         #region JetGetTableColumnInfo overlaods.
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetTableColumnInfo(IntPtr sesid, IntPtr tableid, string szColumnName, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
 
@@ -615,7 +541,6 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetTableColumnInfo(IntPtr sesid, IntPtr tableid, string szIgnored, ref NATIVE_COLUMNLIST columnlist, uint cbMax, uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid, string szColumnName, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
@@ -634,7 +559,6 @@ namespace EsentLib.Implementation
         #endregion
 
         #region JetGetColumnInfo overlaods.
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetColumnInfo(IntPtr sesid, uint dbid, string szTableName, string szColumnName, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
 
@@ -646,7 +570,6 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetColumnInfo(IntPtr sesid, uint dbid, string szTableName, ref uint pcolumnid, ref NATIVE_COLUMNBASE columnbase, uint cbMax, uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetColumnInfoW(IntPtr sesid, uint dbid, string szTableName, string szColumnName, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
@@ -661,7 +584,6 @@ namespace EsentLib.Implementation
         public static extern int JetGetColumnInfoW(IntPtr sesid, uint dbid, string szTableName, ref uint pcolumnid, ref NATIVE_COLUMNBASE_WIDE columnbase, uint cbMax, uint InfoLevel);
         #endregion
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetObjectInfo(
             IntPtr sesid,
@@ -672,7 +594,6 @@ namespace EsentLib.Implementation
             [In] [Out] ref NATIVE_OBJECTLIST objectlist,
             uint cbMax,
             uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetObjectInfoW(
@@ -685,7 +606,6 @@ namespace EsentLib.Implementation
             uint cbMax,
             uint InfoLevel);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetObjectInfo(
             IntPtr sesid,
@@ -696,7 +616,6 @@ namespace EsentLib.Implementation
             [In] [Out] ref NATIVE_OBJECTINFO objectinfo,
             uint cbMax,
             uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetObjectInfoW(
@@ -709,17 +628,11 @@ namespace EsentLib.Implementation
             uint cbMax,
             uint InfoLevel);
 
-#if MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetGetCurrentIndexW(IntPtr sesid, IntPtr tableid, [Out] StringBuilder szIndexName, uint cchIndexName);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetCurrentIndex(IntPtr sesid, IntPtr tableid, [Out] StringBuilder szIndexName, uint cchIndexName);
-#endif
 
         #region JetGetTableInfo overloads
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetTableInfo(
             IntPtr sesid,
@@ -751,7 +664,6 @@ namespace EsentLib.Implementation
             [Out] StringBuilder pvResult,
             uint cbMax,
             uint infoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetTableInfoW(
@@ -789,7 +701,6 @@ namespace EsentLib.Implementation
 
         #region JetGetIndexInfo overloads
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetIndexInfo(
             IntPtr sesid,
@@ -829,7 +740,6 @@ namespace EsentLib.Implementation
             [In] [Out] ref NATIVE_INDEXLIST result,
             uint cbResult,
             uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetIndexInfoW(
@@ -885,7 +795,6 @@ namespace EsentLib.Implementation
 
         #region JetGetTableIndexInfo overloads
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetTableIndexInfo(
             IntPtr sesid,
@@ -921,7 +830,6 @@ namespace EsentLib.Implementation
             [In] [Out] ref NATIVE_INDEXLIST result,
             uint cbResult,
             uint InfoLevel);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetTableIndexInfoW(
@@ -970,27 +878,15 @@ namespace EsentLib.Implementation
 
         #endregion
 
-#if MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetRenameTableW(IntPtr sesid, uint dbid, string szName, string szNameNew);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetRenameTable(IntPtr sesid, uint dbid, string szName, string szNameNew);
-#endif // !MANAGEDESENT_ON_WSA
 
-#if MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetRenameColumnW(IntPtr sesid, IntPtr tableid, string szName, string szNameNew, uint grbit);
-#else
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetRenameColumn(IntPtr sesid, IntPtr tableid, string szName, string szNameNew, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetSetColumnDefaultValue(
             IntPtr sesid, uint tableid, [MarshalAs(UnmanagedType.LPStr)] string szTableName, [MarshalAs(UnmanagedType.LPStr)] string szColumnName, byte[] pvData, uint cbData, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -1030,7 +926,6 @@ namespace EsentLib.Implementation
             [In] [Out] ref NATIVE_RECORDLIST recordlist,
             uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetSetCurrentIndex(IntPtr sesid, IntPtr tableid, string szIndexName);
 
@@ -1042,14 +937,6 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetSetCurrentIndex4(IntPtr sesid, IntPtr tableid, string szIndexName, [In] ref JET_INDEXID indexid, uint grbit, uint itagSequence);
-#else
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetSetCurrentIndex4W(IntPtr sesid, IntPtr tableid, string szIndexName, [In] ref JET_INDEXID indexid, uint grbit, uint itagSequence);
-
-        // This overload allows a null indexid.
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetSetCurrentIndex4W(IntPtr sesid, IntPtr tableid, string szIndexName, [In] IntPtr indexid, uint grbit, uint itagSequence);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetIndexRecordCount(IntPtr sesid, IntPtr tableid, out uint crec, uint crecMax);
@@ -1123,7 +1010,6 @@ namespace EsentLib.Implementation
             uint cbDataMost,
             uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGetRecordSize(
             IntPtr sesid, IntPtr tableid, ref NATIVE_RECSIZE precsize, uint grbit);
@@ -1131,7 +1017,6 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGetRecordSize2(
             IntPtr sesid, IntPtr tableid, ref NATIVE_RECSIZE2 precsize, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
@@ -1143,10 +1028,8 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetPrepareUpdate(IntPtr sesid, IntPtr tableid, uint prep);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetUpdate(IntPtr sesid, IntPtr tableid, [Out] byte[] pvBookmark, uint cbBookmark, out uint cbActual);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetUpdate2(IntPtr sesid, IntPtr tableid, [Out] byte[] pvBookmark, uint cbBookmark, out uint cbActual, uint grbit);
@@ -1162,10 +1045,8 @@ namespace EsentLib.Implementation
         public static unsafe extern int JetSetColumns(
             IntPtr sesid, IntPtr tableid, [In] [Out] NATIVE_SETCOLUMN* psetcolumn, uint csetcolumn);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGetLock(IntPtr sesid, IntPtr tableid, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetEscrowUpdate(
@@ -1194,7 +1075,6 @@ namespace EsentLib.Implementation
 
         #region Online Maintenance
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDefragment(
             IntPtr sesid, uint dbid, string szTableName, ref uint pcPasses, ref uint pcSeconds, uint grbit);
@@ -1210,7 +1090,6 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDefragment2(
             IntPtr sesid, uint dbid, string szTableName, IntPtr pcPasses, IntPtr pcSeconds, IntPtr callback, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetDefragment2W(
@@ -1220,22 +1099,18 @@ namespace EsentLib.Implementation
         public static extern int JetDefragment2W(
             IntPtr sesid, uint dbid, string szTableName, IntPtr pcPasses, IntPtr pcSeconds, IntPtr callback, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetIdle(IntPtr sesid, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
 
         #region Misc
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetConfigureProcessForCrashDump(uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetFreeBuffer(IntPtr pbBuf);
-#endif // !MANAGEDESENT_ON_WSA
 
         #endregion
     }

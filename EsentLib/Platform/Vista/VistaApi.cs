@@ -89,7 +89,6 @@ namespace EsentLib.Platform.Vista
             Api.Check(Api.Impl.JetGetThreadStats(out threadstats));
         }
 
-#if !MANAGEDESENT_ON_WSA
         /// <summary>
         /// Selects a specific instance to be part of the snapshot session.
         /// </summary>
@@ -169,7 +168,6 @@ namespace EsentLib.Platform.Vista
         {
             Api.Check(Api.Impl.JetGetInstanceMiscInfo(instance, out signature, infoLevel));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Initialize the ESENT database engine.
@@ -194,7 +192,6 @@ namespace EsentLib.Platform.Vista
             return Api.Check(Api.Impl.JetInit3(ref instance, recoveryOptions, grbit));
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Retrieves record size information from the desired location.
         /// </summary>
@@ -209,6 +206,5 @@ namespace EsentLib.Platform.Vista
         {
             Api.Check(Api.Impl.JetGetRecordSize(sesid, tableid, ref recsize, grbit));
         }
-#endif // !MANAGEDESENT_ON_WSA
     }
 }

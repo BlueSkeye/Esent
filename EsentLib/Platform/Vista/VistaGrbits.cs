@@ -8,7 +8,6 @@ using System;
 
 namespace EsentLib.Platform.Vista
 {
-#if !MANAGEDESENT_ON_WSA
     /// <summary>
     /// Options for <see cref="VistaApi.JetOSSnapshotEnd"/>.
     /// </summary>
@@ -80,7 +79,6 @@ namespace EsentLib.Platform.Vista
         /// </summary>
         LogSignature = 0,
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// Grbits that have been added to the Vista version of ESENT.
@@ -117,13 +115,11 @@ namespace EsentLib.Platform.Vista
         /// </summary>
         public const CreateIndexGrbit IndexNestedTable = (CreateIndexGrbit)0x20000;
 
-#if !MANAGEDESENT_ON_WSA
         /// <summary>
         /// The engine can mark the database headers as appropriate (for example,
         /// a full backup completed), even though the call to truncate was not completed.
         /// </summary>
         public const EndExternalBackupGrbit TruncateDone = (EndExternalBackupGrbit)0x100;
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Perform recovery, but halt at the Undo phase. Allows whatever logs are present to
@@ -147,13 +143,11 @@ namespace EsentLib.Platform.Vista
         /// </summary>
         public const InitGrbit LogStreamMustExist = (InitGrbit)0x40;
 
-#if !MANAGEDESENT_ON_WSA
         /// <summary>
         /// The snapshot session continues after JetOSSnapshotThaw and will
         /// require a JetOSSnapshotEnd function call.
         /// </summary>
         public const SnapshotPrepareGrbit ContinueAfterThaw = (SnapshotPrepareGrbit)0x4;
-#endif // !MANAGEDESENT_ON_WSA
         /// <summary>
         /// Specifying this flag will cause the index to use the maximum key size
         /// specified in the cbKeyMost field in the structure. Otherwise, the

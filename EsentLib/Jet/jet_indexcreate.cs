@@ -321,7 +321,6 @@ namespace EsentLib.Jet
             }
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Gets the native (interop) version of this object, except for
         /// <see cref="szIndexName"/> and <see cref="szKey"/>.
@@ -418,7 +417,6 @@ namespace EsentLib.Jet
         {
             this.err = (JET_err)value.err;
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Returns a value indicating whether the pidxUnicode member of this
@@ -457,7 +455,6 @@ namespace EsentLib.Jet
             return true;
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// The native version of the JET_INDEXCREATE structure.
         /// </summary>
@@ -578,6 +575,5 @@ namespace EsentLib.Jet
             /// </summary>
             public uint cbKeyMost;
         }
-#endif // !MANAGEDESENT_ON_WSA
     }
 }

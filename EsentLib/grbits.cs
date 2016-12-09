@@ -185,7 +185,6 @@ namespace EsentLib
         None = 0,
     }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// Options for <see cref="Api.JetCompact"/>.
     /// </summary>
@@ -337,7 +336,6 @@ namespace EsentLib
         /// </summary>
         Abort = 0x2,
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// Options for <see cref="Api.JetBeginTransaction2"/>.
@@ -556,7 +554,6 @@ namespace EsentLib
         TableClass15 = 0x000F0000,
     }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// Options for <see cref="Api.JetDupCursor"/>.
     /// </summary>
@@ -597,10 +594,9 @@ namespace EsentLib
         /// </summary>
         Table = 0x4,
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
-    /// Options for the <see cref="Api.JetSetColumn(JET_SESID, JET_TABLEID, JET_COLUMNID, byte[], int, int, SetColumnGrbit, JET_SETINFO)"/>
+    /// Options for the <see cref="EsentLib.InternalApi.JetSetColumn(JET_SESID, JET_TABLEID, JET_COLUMNID, byte[], int, int, SetColumnGrbit, JET_SETINFO)"/>
     /// and its associated overloads.
     /// </summary>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Compressed"/>
@@ -820,7 +816,6 @@ namespace EsentLib
         EnumerateTaggedOnly = 0x00040000, 
     }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// Options for <see cref="EsentLib.Platform.Vista.VistaApi.JetGetRecordSize"/>.
     /// </summary>
@@ -852,7 +847,6 @@ namespace EsentLib
         /// </summary>
         Local = 0x4,
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// Options for <see cref="Api.JetGetSecondaryIndexBookmark"/>.
@@ -1597,7 +1591,6 @@ namespace EsentLib
         None = 0,
     }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// Options for <see cref="Api.JetSetColumnDefaultValue"/>.
     /// </summary>
@@ -1634,7 +1627,6 @@ namespace EsentLib
         /// </summary>
         GetStatus = 0x04,
     }
-#endif // !MANAGEDESENT_ON_WSA
 
     /// <summary>
     /// Options for <see cref="Api.JetDefragment"/>.

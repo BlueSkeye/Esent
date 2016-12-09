@@ -4,15 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Text;
+
 namespace EsentLib
 {
-    using System;
-    using System.Text;
-
-    /// <summary>
-    /// Helper methods for the ESENT API. These do data conversion for
-    /// JetMakeKey.
-        /// </summary>
+    /// <summary>Helper methods for the ESENT API. These do data conversion for
+    /// JetMakeKey.</summary>
     public static partial class Api
     {
         /// <summary>
@@ -67,18 +65,12 @@ namespace EsentLib
                 {
                     fixed (char* buffer = data)
                     {
-                        Api.JetMakeKey(sesid, tableid, new IntPtr(buffer), checked(data.Length * sizeof(char)), grbit);
+                        InternalApi.JetMakeKey(sesid, tableid, new IntPtr(buffer), checked(data.Length * sizeof(char)), grbit);
                     }
                 }
             }
             else
             {
-#if MANAGEDESENT_ON_WSA
-                // Encoding.GetBytes(char*, int, byte*, int) overload is missing in new Windows UI.
-                // So we can't use the ColumnCache. We'll just use a different GetBytes() overload.
-                byte[] buffer = encoding.GetBytes(data);
-                Api.JetMakeKey(sesid, tableid, buffer, buffer.Length, grbit);
-#else
                 // Convert the string using a cached column buffer. The column buffer is far larger
                 // than the maximum key size, so any data truncation here won't matter.
                 byte[] buffer = null;
@@ -104,7 +96,6 @@ namespace EsentLib
                         Caches.ColumnCache.Free(ref buffer);
                     }
                 }
-#endif
             }
         }
 
@@ -136,7 +127,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(byte);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -154,7 +145,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(short);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -172,7 +163,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(int);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -190,7 +181,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(long);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -208,7 +199,7 @@ namespace EsentLib
             {
                 const int DataSize = 16 /* sizeof(Guid) */;
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -239,7 +230,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(float);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -257,7 +248,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(double);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -276,7 +267,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(ushort);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -295,7 +286,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(uint);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
 
@@ -314,7 +305,7 @@ namespace EsentLib
             {
                 const int DataSize = sizeof(ulong);
                 var pointer = new IntPtr(&data);
-                Api.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
+                InternalApi.JetMakeKey(sesid, tableid, pointer, DataSize, grbit);
             }
         }
     }

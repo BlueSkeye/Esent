@@ -11,7 +11,6 @@ namespace EsentLib.Platform.Windows7
     /// </summary>
     public static class Windows7Api
     {
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Crash dump options for Watson.
         /// </summary>
@@ -20,7 +19,6 @@ namespace EsentLib.Platform.Windows7
         {
             Api.Check(Api.Impl.JetConfigureProcessForCrashDump(grbit));
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// If the records with the specified keys are not in the buffer cache

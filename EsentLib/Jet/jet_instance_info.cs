@@ -4,7 +4,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -266,4 +265,3 @@ namespace EsentLib.Jet
         }
     }
 }
-#endif // !MANAGEDESENT_ON_WSA

@@ -13,11 +13,9 @@ using EsentLib.Jet.Windows8;
 
 namespace EsentLib.Implementation
 {
-    /// <summary>
-    /// Windows10 calls to the ESENT interop layer. These calls take the managed types (e.g. JET_SESID) and
-    /// return errors.
-    /// </summary>
-    internal sealed partial class JetApi : IJetApi
+    /// <summary>Windows10 calls to the ESENT interop layer. These calls take the managed
+    /// types (e.g. JET_SESID) and return errors.</summary>
+    internal sealed partial class JetEngine : IJetApi
     {
         #region Session Parameters
         /// <summary>

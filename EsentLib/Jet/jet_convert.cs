@@ -4,7 +4,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
 using System;
 
 namespace EsentLib.Jet
@@ -18,4 +17,3 @@ namespace EsentLib.Jet
     {
     }
 }
-#endif // !MANAGEDESENT_ON_WSA

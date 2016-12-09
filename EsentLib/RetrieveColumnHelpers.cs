@@ -18,22 +18,17 @@ using EsentLib.Jet;
 
 namespace EsentLib
 {
-    /// <summary>
-    /// Helper methods for the ESENT API. These aren't interop versions
-    /// of the API, but encapsulate very common uses of the functions.
-    /// </summary>
+    /// <summary>Helper methods for the ESENT API. These aren't interop versions
+    /// of the API, but encapsulate very common uses of the functions. </summary>
     public static partial class Api
     {
-        /// <summary>
-        /// Encoding to use to decode ASCII text. We use this because
-        /// UTF8.GetString is faster than ASCII.GetString.
-        /// </summary>
+        /// <summary>Encoding to use to decode ASCII text. We use this because UTF8.GetString
+        /// is faster than ASCII.GetString.</summary>
         private static readonly Encoding AsciiDecoder = new UTF8Encoding(false, true);
 
-        /// <summary>
-        /// Retrieves the bookmark for the record that is associated with the index entry
-        /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using JetGotoBookmark. 
+        /// <summary>Retrieves the bookmark for the record that is associated with the
+        /// index entry at the current position of a cursor. This bookmark can then be
+        /// used to reposition that cursor back to the same record using JetGotoBookmark. 
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the bookmark from.</param>
@@ -437,7 +432,7 @@ namespace EsentLib
                 short data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -480,7 +475,7 @@ namespace EsentLib
                 int data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -523,7 +518,7 @@ namespace EsentLib
                 long data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -566,7 +561,7 @@ namespace EsentLib
                 float data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -609,7 +604,7 @@ namespace EsentLib
                 double data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -686,7 +681,7 @@ namespace EsentLib
                 byte data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -729,7 +724,7 @@ namespace EsentLib
                 Guid data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -809,7 +804,7 @@ namespace EsentLib
                 ushort data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -854,7 +849,7 @@ namespace EsentLib
                 uint data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -899,7 +894,7 @@ namespace EsentLib
                 ulong data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = JetRetrieveColumn(
+                JET_wrn wrn = InternalApi.JetRetrieveColumn(
                     sesid, tableid, columnid, pointer, DataSize, out actualDataSize, grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
@@ -1088,7 +1083,7 @@ namespace EsentLib
             const int BufferSize = 512;
             char* buffer = stackalloc char[BufferSize];
             int actualDataSize;
-            JET_wrn wrn = JetRetrieveColumn(sesid, tableid, columnid, new IntPtr(buffer), BufferSize * sizeof(char), out actualDataSize, grbit, null);
+            JET_wrn wrn = InternalApi.JetRetrieveColumn(sesid, tableid, columnid, new IntPtr(buffer), BufferSize * sizeof(char), out actualDataSize, grbit, null);
             if (JET_wrn.ColumnNull == wrn)
             {
                 return null;
@@ -1107,7 +1102,7 @@ namespace EsentLib
             fixed (char* p = s)
             {
                 int newDataSize;
-                wrn = JetRetrieveColumn(sesid, tableid, columnid, new IntPtr(p), actualDataSize, out newDataSize, grbit, null);
+                wrn = InternalApi.JetRetrieveColumn(sesid, tableid, columnid, new IntPtr(p), actualDataSize, out newDataSize, grbit, null);
                 if (JET_wrn.BufferTruncated == wrn)
                 {
                     string error = string.Format(

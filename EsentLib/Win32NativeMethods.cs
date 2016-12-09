@@ -12,7 +12,6 @@ namespace EsentLib.Win32
     using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
 
-#if !MANAGEDESENT_ON_WSA // None of this can be called in windows store apps.
     /// <summary>
     /// Allocation type options for <see cref="NativeMethods.VirtualAlloc"/>.
     /// </summary>
@@ -51,14 +50,13 @@ namespace EsentLib.Win32
         /// </summary>
         MEM_RELEASE = 0x8000,
     }
-#endif
 
     /// <summary>
     /// P/Invoke methods for Win32 functions.
     /// </summary>
     internal static class NativeMethods
     {
-#if MANAGEDESENT_ON_CORECLR || MANAGEDESENT_ON_WSA
+#if MANAGEDESENT_ON_CORECLR
         /// <summary>
         /// The name of the DLL that holds the Core Memory API set.
         /// </summary>
@@ -91,7 +89,6 @@ namespace EsentLib.Win32
         private const string WinCoreProcessThreads = "kernel32.dll";
 #endif // MANAGEDESENT_ON_CORECLR || MANAGEDESENT_ON_WSA
 
-#if !MANAGEDESENT_ON_WSA // None of this can be called in windows store apps.
         /// <summary>
         /// Throw an exception if the given pointer is null (IntPtr.Zero).
         /// </summary>
@@ -131,8 +128,6 @@ namespace EsentLib.Win32
 
         [DllImport(HeapObsolete)]
         public static extern IntPtr LocalFree(IntPtr hglobal);
-
-#endif // !MANAGEDESENT_ON_WSA
 
         // Win32 APIs that are white-listed for Windows Store Apps can be safely referenced here.
         [DllImport(WinCoreProcessThreads)]

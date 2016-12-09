@@ -7,16 +7,13 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
 using System.Diagnostics;
 
 using EsentLib.Jet;
 
 namespace EsentLib
 {
-    /// <summary>
-    /// Helper methods for the ESENT API. These wrap JetMakeKey.
-    /// </summary>
+    /// <summary>Helper methods for the ESENT API. These wrap JetMakeKey.</summary>
     public static partial class Api
     {
         /// <summary>
@@ -47,4 +44,3 @@ namespace EsentLib
         }
     }
 }
-#endif // !MANAGEDESENT_ON_WSA

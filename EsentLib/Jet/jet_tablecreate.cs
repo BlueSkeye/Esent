@@ -373,7 +373,6 @@ Justification = "This should match the unmanaged API, which isn't capitalized.")
             }
         }
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// Gets the native (interop) version of this object. The following members are
         /// NOT converted: <see cref="rgcolumncreate"/>, <see cref="rgindexcreate"/>,
@@ -439,7 +438,6 @@ Justification = "This should match the unmanaged API, which isn't capitalized.")
 
             return native;
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Provides a hook to allow comparison of additional fields in
@@ -451,7 +449,6 @@ Justification = "This should match the unmanaged API, which isn't capitalized.")
         /// are the same as this.</param>
         partial void NotYetPublishedEquals(JET_TABLECREATE other, ref bool notYetPublishedEquals);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         /// <summary>
         /// The native version of the <see cref="JET_TABLECREATE"/> structure. This includes callbacks,
         /// space hints, and uses NATIVE_INDEXCREATE.
@@ -642,6 +639,5 @@ Justification = "This should match the unmanaged API, which isn't capitalized.")
             /// </summary>
             public uint cCreated;
         }
-#endif // !MANAGEDESENT_ON_WSA
     }
 }

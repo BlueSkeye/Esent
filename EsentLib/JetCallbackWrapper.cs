@@ -61,7 +61,6 @@ namespace EsentLib
         /// </summary>
         private readonly NATIVE_CALLBACK nativeCallback;
 
-#if !MANAGEDESENT_ON_WSA
         /// <summary>
         /// Initializes static members of the <see cref="JetCallbackWrapper"/> class. 
         /// </summary>
@@ -75,7 +74,6 @@ namespace EsentLib
                 "CallbackImpl",
                 BindingFlags.NonPublic | BindingFlags.Instance).MethodHandle);
         }
-#endif // !MANAGEDESENT_ON_WSA
 
         /// <summary>
         /// Initializes a new instance of the JetCallbackWrapper class.

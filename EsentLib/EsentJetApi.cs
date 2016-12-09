@@ -20,7 +20,7 @@ namespace EsentLib.Implementation
     /// <summary>
     /// JetApi code that is specific to ESENT.
     /// </summary>
-    internal sealed partial class JetApi
+    internal sealed partial class JetEngine
     {
         /// <summary>
         /// Reports the exception to a central authority.
@@ -112,17 +112,12 @@ namespace EsentLib.Implementation
         /// <returns>The current version of Esent.</returns>
         private uint GetVersionFromEsent()
         {
-#if MANAGEDESENT_ON_WSA
-            // JetGetVersion isn't available in new Windows user interface, so we'll pretend it's always Win8:
-            return 8250 << 8;
-#else
             // Create a unique name so that multiple threads can call this simultaneously.
             // This can happen if there are multiple AppDomains.
             string instanceName = string.Format(CultureInfo.InvariantCulture, "GettingEsentVersion{0}", LibraryHelpers.GetCurrentManagedThreadId());
             JET_INSTANCE instance = JET_INSTANCE.Nil;
             RuntimeHelpers.PrepareConstrainedRegions();            
-            try
-            {
+            try {
                 this.JetCreateInstance(out instance, instanceName);
                 this.JetSetSystemParameter(instance, JET_SESID.Nil, JET_param.Recovery, new IntPtr(0), "off");
                 this.JetSetSystemParameter(instance, JET_SESID.Nil, JET_param.NoInformationEvent, new IntPtr(1), null);
@@ -135,25 +130,16 @@ namespace EsentLib.Implementation
 
                 JET_SESID sesid;
                 this.JetBeginSession(instance, out sesid, string.Empty, string.Empty);
-                try
-                {
+                try {
                     uint version;
                     this.JetGetVersion(sesid, out version);
                     return version;
                 }
-                finally
-                {
-                    this.JetEndSession(sesid, EndSessionGrbit.None);
-                }
+                finally { this.JetEndSession(sesid, EndSessionGrbit.None); }
             }
-            finally
-            {
-                if (JET_INSTANCE.Nil != instance)
-                {
-                    this.JetTerm(instance);
-                }
+            finally {
+                if (JET_INSTANCE.Nil != instance) { this.JetTerm(instance); }
             }
-#endif
         }
     }
 }
