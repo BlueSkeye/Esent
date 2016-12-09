@@ -7,14 +7,16 @@
 // </summary>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Threading;
+
+using EsentLib.Jet;
+
 namespace EsentLib.Implementation
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using System.Runtime.CompilerServices;
-    using System.Threading;
-
     /// <summary>
     /// JetApi code that is specific to ESENT.
     /// </summary>

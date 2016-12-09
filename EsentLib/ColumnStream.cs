@@ -4,15 +4,17 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-
     /// <summary>
     /// This class provides a streaming interface to a long-value column
     /// (i.e. a column of type <see cref="JET_coltyp.LongBinary"/> or

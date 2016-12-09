@@ -9,7 +9,7 @@ namespace EsentLib
     using System;
 
     /// <summary>
-    /// Table options, used in <see cref="JET_OBJECTINFO"/>.
+    /// Table options, used in <see cref="EsentLib.Jet.JET_OBJECTINFO"/>.
     /// </summary>
     [Flags]
     public enum ObjectInfoGrbit

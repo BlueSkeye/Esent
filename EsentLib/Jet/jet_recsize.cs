@@ -15,7 +15,7 @@ using EsentLib.Vista;
 namespace EsentLib.Jet.Vista
 {
     /// <summary>
-    /// Used by <see cref="VistaApi.JetGetRecordSize"/> to return information about a record's usage
+    /// Used by <see cref="EsentLib.Platform.Vista.VistaApi.JetGetRecordSize"/> to return information about a record's usage
     /// requirements in user data space, number of set columns, number of
     /// values, and ESENT record structure overhead space.
     /// </summary>

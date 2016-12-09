@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using EsentLib.Jet;
 using EsentLib.Jet.Windows10;
 
-namespace EsentLib.Platform.Implementation
+namespace EsentLib.Implementation
 {
     /// <summary>
     /// Native interop for Windows10 functions in ese.dll.

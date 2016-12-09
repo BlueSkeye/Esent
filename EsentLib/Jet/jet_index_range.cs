@@ -47,7 +47,7 @@ namespace EsentLib.Jet
     }
 
     /// <summary>
-    /// Contains definition for <see cref="Windows8Api.JetPrereadIndexRanges"/>.
+    /// Contains definition for <see cref="EsentLib.Platform.Windows8.Windows8Api.JetPrereadIndexRanges"/>.
     /// </summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",

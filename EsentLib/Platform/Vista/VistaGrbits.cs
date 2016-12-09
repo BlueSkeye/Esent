@@ -107,7 +107,7 @@ namespace EsentLib.Platform.Vista
 
         /// <summary>
         /// Specifying this flag will cause any update to the index that would
-        /// result in a truncated key to fail with <see cref="JET_err.KeyTruncated"/>.
+        /// result in a truncated key to fail with <see cref="EsentLib.Jet.JET_err.KeyTruncated"/>.
         /// Otherwise, keys will be silently truncated.
         /// </summary>
         public const CreateIndexGrbit IndexDisallowTruncation = (CreateIndexGrbit)0x10000;

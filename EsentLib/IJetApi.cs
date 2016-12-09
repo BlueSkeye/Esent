@@ -9,10 +9,10 @@ using System.Collections.Generic;
 
 using EsentLib.Jet;
 using EsentLib.Jet.Vista;
-using EsentLib.Server2003;
 using EsentLib.Platform.Vista;
 using EsentLib.Platform.Windows7;
 using EsentLib.Platform.Windows8;
+using EsentLib.Platform.Windows2003;
 
 namespace EsentLib.Implementation
 {
@@ -2395,19 +2395,19 @@ namespace EsentLib.Implementation
         /// <param name="dbid">The database to be defragmented.</param>
         /// <param name="tableName">
         /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="Windows7.Windows7Grbits.DefragmentBTree"/>) require
+        /// database ID, and other options (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>) require
         /// the name of the table to defragment.
         /// </param>
         /// <param name="passes">
         /// When starting an online defragmentation task, this parameter sets the maximum number of defragmentation
         /// passes. When stopping an online defragmentation task, this parameter is set to the number of passes
-        /// performed. This is not honored in all modes (such as <see cref="Windows7.Windows7Grbits.DefragmentBTree"/>).
+        /// performed. This is not honored in all modes (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>).
         /// </param>
         /// <param name="seconds">
         /// When starting an online defragmentation task, this parameter sets
         /// the maximum time for defragmentation. When stopping an online
         /// defragmentation task, this output buffer is set to the length of
-        /// time used for defragmentation. This is not honored in all modes (such as <see cref="Windows7.Windows7Grbits.DefragmentBTree"/>).
+        /// time used for defragmentation. This is not honored in all modes (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>).
         /// </param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code or warning.</returns>
@@ -2428,7 +2428,7 @@ namespace EsentLib.Implementation
         /// <param name="dbid">The database to be defragmented.</param>
         /// <param name="tableName">
         /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="Windows7.Windows7Grbits.DefragmentBTree"/>) require
+        /// database ID, and other options (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>) require
         /// the name of the table to defragment.
         /// </param>
         /// <param name="grbit">Defragmentation options.</param>

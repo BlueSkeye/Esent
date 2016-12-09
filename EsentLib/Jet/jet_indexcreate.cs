@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using EsentLib.Vista;
+using EsentLib.Platform.Vista;
 
 namespace EsentLib.Jet
 {
@@ -194,7 +194,7 @@ namespace EsentLib.Jet
         /// The minimum supported maximum key size is JET_cbKeyMostMin (255) which
         /// is the legacy maximum key size. The maximum key size is dependent on
         /// the database page size <see cref="JET_param.DatabasePageSize"/>. The
-        /// maximum key size can be retrieved with <see cref="SystemParameters.KeyMost"/>.
+        /// maximum key size can be retrieved with <see cref="EsentLib.SystemParameters.KeyMost"/>.
         /// <para>
         /// This parameter is ignored on Windows XP and Windows Server 2003.
         /// </para>

@@ -40,7 +40,7 @@ namespace EsentLib.Implementation
             NATIVE_OPERATIONCONTEXT nativeContext = new NATIVE_OPERATIONCONTEXT();
             int dataSize = Marshal.SizeOf(nativeContext);
 
-            err = NativeMethods.JetGetSessionParameter(
+            err = EsentLib.Implementation.NativeMethods.JetGetSessionParameter(
                 sesid.Value,
                 (uint)sesparamid,
                 out nativeContext,
@@ -85,7 +85,7 @@ namespace EsentLib.Implementation
             NATIVE_OPERATIONCONTEXT nativeContext = operationContext.GetNativeOperationContext();
             int dataSize = Marshal.SizeOf(nativeContext);
 
-            err = NativeMethods.JetSetSessionParameter(
+            err = EsentLib.Implementation.NativeMethods.JetSetSessionParameter(
                 sesid.Value,
                 (uint)sesparamid,
                 ref nativeContext,

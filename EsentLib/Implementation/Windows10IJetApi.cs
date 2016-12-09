@@ -9,7 +9,7 @@ using EsentLib.Jet;
 using EsentLib.Jet.Windows10;
 using EsentLib.Jet.Windows8;
 
-namespace EsentLib.Platform.Implementation
+namespace EsentLib.Implementation
 {
     /// <summary>
     /// This interface describes all the Windows10 methods which have a

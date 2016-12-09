@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 
 using EsentLib.Platform.Windows8;
+using EsentLib.Jet.Windows8;
 using EsentLib.Jet.Windows10;
 
 namespace EsentLib.Platform.Windows10

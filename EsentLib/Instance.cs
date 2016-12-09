@@ -26,7 +26,7 @@ namespace EsentLib
         /// <summary>
         /// Parameters for the instance.
         /// </summary>
-        private readonly InstanceParameters parameters;
+        private readonly EsentLib.Platform.Windows8.InstanceParameters parameters;
 
         /// <summary>
         /// The name of the instance.
@@ -119,7 +119,7 @@ namespace EsentLib
                 this.SetHandle(instance.Value);
             }
 
-            this.parameters = new InstanceParameters(instance);
+            this.parameters = new EsentLib.Platform.Windows8.InstanceParameters(instance);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace EsentLib
         /// <summary>
         /// Gets the InstanceParameters for this instance. 
         /// </summary>
-        public InstanceParameters Parameters
+        public EsentLib.Platform.Windows8.InstanceParameters Parameters
         {
             [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
             get

@@ -9,11 +9,11 @@ using System.Globalization;
 using System.IO;
 
 using EsentLib.Jet;
-using EsentLib.Platform.Windows7;
-using EsentLib.Server2003;
 using EsentLib.Platform.Vista;
+using EsentLib.Platform.Windows7;
+using EsentLib.Platform.Windows2003;
 
-namespace EsentLib
+namespace EsentLib.Platform.Windows8
 {
     /// <summary>
     /// This class provides properties to set and get system parameters
@@ -393,7 +393,7 @@ namespace EsentLib
         /// database pages. A size of zero indicates that the default size of an ordinary
         /// database should be used. It is often desirable for small applications to configure
         /// the temporary database to be as small as possible. Setting this parameter to
-        /// <see cref="SystemParameters.PageTempDBSmallest"/> will achieve the smallest
+        /// <see cref="EsentLib.SystemParameters.PageTempDBSmallest"/> will achieve the smallest
         /// temporary database possible.
         /// </summary>
         public int PageTempDBMin

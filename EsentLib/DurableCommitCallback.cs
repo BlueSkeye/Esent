@@ -75,7 +75,8 @@ namespace EsentLib.Platform.Windows8
             RuntimeHelpers.PrepareMethod(typeof(DurableCommitCallback).GetMethod("NativeDurableCommitCallback", BindingFlags.NonPublic | BindingFlags.Instance).MethodHandle);
 #endif
 
-            InstanceParameters instanceParameters = new InstanceParameters(this.instance);
+            EsentLib.Platform.Windows8.InstanceParameters instanceParameters =
+                new EsentLib.Platform.Windows8.InstanceParameters(this.instance);
 
             // This might be null.
             instanceParameters.SetDurableCommitCallback(this.wrapperCallback);

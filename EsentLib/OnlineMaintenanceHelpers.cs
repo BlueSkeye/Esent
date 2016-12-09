@@ -28,7 +28,7 @@ namespace EsentLib
         /// <param name="dbid">The database to be defragmented.</param>
         /// <param name="tableName">
         /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="Windows7.Windows7Grbits.DefragmentBTree"/>) require
+        /// database ID, and other options (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>) require
         /// the name of the table to defragment.
         /// </param>
         /// <param name="grbit">Defragmentation options.</param>

@@ -4,7 +4,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using EsentLib.Vista;
+using EsentLib.Platform.Vista;
 
 namespace EsentLib.Jet
 {
@@ -12,7 +12,7 @@ namespace EsentLib.Jet
     /// ESENT column types. This list is not extensive. Some column types introduced later
     /// are in different classes, such as <see cref="VistaColtyp"/>.
     /// <seealso cref="VistaColtyp"/>
-    /// <seealso cref="Windows10.Windows10Coltyp"/>
+    /// <seealso cref="EsentLib.Platform.Windows10.Windows10Coltyp"/>
     /// </summary>
     public enum JET_coltyp
     {

@@ -206,9 +206,9 @@
     <Compile Include="Platform\Windows81\Windows81InstanceParameters.cs" />
     <Compile Include="Platform\Windows81\Windows81Param.cs" />
     <Compile Include="RetrieveColumnHelpers.cs" />
-    <Compile Include="Server2003Api.cs" />
-    <Compile Include="Server2003Grbits.cs" />
-    <Compile Include="Server2003Param.cs" />
+    <Compile Include="Platform\Windows2003\Server2003Api.cs" />
+    <Compile Include="Platform\Windows2003\Server2003Grbits.cs" />
+    <Compile Include="Platform\Windows2003\Server2003Param.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="SetColumnHelpers.cs" />
     <Compile Include="StringCache.cs" />

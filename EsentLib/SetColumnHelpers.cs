@@ -4,17 +4,19 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
+#if MANAGEDESENT_SUPPORTS_SERIALIZATION
+using System.Runtime.Serialization.Formatters.Binary;
+#endif
+using System.Text;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Runtime.Serialization;
-#if MANAGEDESENT_SUPPORTS_SERIALIZATION
-    using System.Runtime.Serialization.Formatters.Binary;
-#endif
-    using System.Text;
-
     /// <summary>
     /// Helper methods for the ESENT API. These do data conversion for
     /// setting columns.

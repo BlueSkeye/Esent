@@ -105,7 +105,7 @@ namespace EsentLib
 
         /// <summary>
         /// Gets a value indicating whether large (> 255 byte) keys are supported.
-        /// The key size for an index can be specified in the <see cref="JET_INDEXCREATE"/>
+        /// The key size for an index can be specified in the <see cref="EsentLib.Jet.JET_INDEXCREATE"/>
         /// object.
         /// </summary>
         public static bool SupportsLargeKeys

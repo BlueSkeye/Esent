@@ -4,7 +4,9 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace EsentLib.Server2003
+using EsentLib.Jet;
+
+namespace EsentLib.Platform.Windows2003
 {
     /// <summary>
     /// APIs that have been added to the Windows Server 2003 version of ESENT.

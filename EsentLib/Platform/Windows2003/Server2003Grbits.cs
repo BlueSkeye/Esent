@@ -4,10 +4,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace EsentLib.Server2003
-{
-    using System;
+using System;
 
+namespace EsentLib.Platform.Windows2003
+{
 #if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
     /// Options for <see cref="Server2003Api.JetOSSnapshotAbort"/>.

@@ -14,11 +14,11 @@ using System.Text;
 using System.Threading;
 
 using EsentLib.Jet;
-using EsentLib.Server2003;
 using EsentLib.Jet.Vista;
 using EsentLib.Platform.Vista;
 using EsentLib.Platform.Windows7;
 using EsentLib.Platform.Windows8;
+using EsentLib.Platform.Windows2003;
 
 using Win32 = EsentLib.Win32;
 

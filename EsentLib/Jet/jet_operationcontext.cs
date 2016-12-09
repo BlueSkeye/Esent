@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 namespace EsentLib.Jet.Windows10
 {
     /// <summary>
-    /// A structure that can be used with <see cref="EsentLib.Windows10.Windows10Sesparam.OperationContext"/> to set a client context on a session.
+    /// A structure that can be used with <see cref="EsentLib.Platform.Windows10.Windows10Sesparam.OperationContext"/> to set a client context on a session.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
@@ -53,7 +53,7 @@ namespace EsentLib.Jet.Windows10
     }
 
     /// <summary>
-    /// A type that can be used with <see cref="Windows10Sesparam.OperationContext"/> to set a client context on a session.
+    /// A type that can be used with <see cref="EsentLib.Platform.Windows10.Windows10Sesparam.OperationContext"/> to set a client context on a session.
     /// </summary>
     public struct JET_OPERATIONCONTEXT : IEquatable<JET_OPERATIONCONTEXT>
     {

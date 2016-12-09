@@ -40,7 +40,7 @@ namespace EsentLib.Platform.Windows8
     /// <summary>
     /// Options passed to log flush callback.
     /// </summary>
-    /// <seealso cref="EsentLib.Windows10.Windows10Grbits.LogUnavailable"/>
+    /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.LogUnavailable"/>
     [Flags]
     public enum DurableCommitCallbackGrbit
     {
@@ -124,7 +124,7 @@ namespace EsentLib.Platform.Windows8
     }
 
     /// <summary>
-    /// Options for <see cref="JET_INDEX_COLUMN"/>.
+    /// Options for <see cref="EsentLib.Jet.JET_INDEX_COLUMN"/>.
     /// </summary>
     [Flags]
     public enum JetIndexColumnGrbit

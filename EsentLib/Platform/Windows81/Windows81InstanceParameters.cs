@@ -4,10 +4,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace EsentLib
-{
-    using EsentLib.Platform.Windows81;
+using EsentLib.Platform.Windows81;
 
+namespace EsentLib.Platform.Windows8
+{
     /// <summary>
     /// This class provides static properties to set and get
     /// per-instance ESENT system parameters.

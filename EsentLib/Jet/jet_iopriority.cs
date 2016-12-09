@@ -9,7 +9,7 @@ namespace EsentLib.Jet
     using System;
 
     /// <summary>
-    /// Values for use with <see cref="VistaParam.IOPriority"/>.
+    /// Values for use with <see cref="EsentLib.Platform.Vista.VistaParam.IOPriority"/>.
     /// </summary>
     [Flags]
     public enum JET_IOPriority

@@ -6,7 +6,7 @@
 
 using EsentLib.Jet;
 
-namespace EsentLib.Server2003
+namespace EsentLib.Platform.Windows2003
 {
     /// <summary>
     /// System parameters that have been added to the Windows Server 2003 version of ESENT.

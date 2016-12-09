@@ -6,7 +6,7 @@
 
 using EsentLib.Platform.Windows8;
 
-namespace EsentLib.Platform.Windows8
+namespace EsentLib
 {
     /// <summary>
     /// This class provides static properties to set and get

@@ -14,20 +14,20 @@ namespace EsentLib.Jet
         /// <summary>
         /// Default option. Retrieves a <see cref="JET_OBJECTINFO"/> containing
         /// information about the table. Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,out EsentLib.JET_OBJECTINFO,EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,out JET_OBJECTINFO,JET_TblInfo)"/>.
         /// </summary>
         Default = 0,
 
         /// <summary>
         /// Retrieves the name of the table. Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,out string,EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,out string,JET_TblInfo)"/>.
         /// </summary>
         Name = 1,
 
         /// <summary>
         /// Retrieves the <see cref="JET_DBID"/> of the database containing the
         /// table. Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,out EsentLib.JET_DBID,EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,out JET_DBID,JET_TblInfo)"/>.
         /// </summary>
         Dbid = 2,
 
@@ -40,7 +40,7 @@ namespace EsentLib.Jet
         /// the buffer will consist of an array of structures that represent a list of
         /// extents. This structure contains two members: the last page number in the
         /// extent and the number of pages in the extent. Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,int[],EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,int[],JET_TblInfo)"/>.
         /// </summary>
         SpaceUsage = 7,
 
@@ -49,19 +49,19 @@ namespace EsentLib.Jet
         /// The first entry will be set to the number of pages in the table.
         /// The second entry will be set to the target density of pages for the table.
         /// Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,int[],EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,int[],JET_TblInfo)"/>.
         /// </summary>
         SpaceAlloc = 9,
 
         /// <summary>
         /// Gets the number of owned pages in the table. Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,out int,EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,out int,JET_TblInfo)"/>.
         /// </summary>
         SpaceOwned = 10,
 
         /// <summary>
         /// Gets the number of available pages in the table. Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,out int,EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,out int,JET_TblInfo)"/>.
         /// </summary>
         SpaceAvailable = 11,
 
@@ -70,7 +70,7 @@ namespace EsentLib.Jet
         /// name of the table from which the derived table inherited its DDL. If
         /// the table is not a derived table, the buffer will an empty string.
         /// Use this option with
-        /// <see cref="Api.JetGetTableInfo(EsentLib.JET_SESID,EsentLib.JET_TABLEID,out string,EsentLib.JET_TblInfo)"/>.
+        /// <see cref="Api.JetGetTableInfo(JET_SESID,JET_TABLEID,out string,JET_TblInfo)"/>.
         /// </summary>
         TemplateTableName = 12,
     }

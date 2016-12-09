@@ -8,10 +8,12 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 #if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
+using System.Diagnostics;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System.Diagnostics;
-
     /// <summary>
     /// Helper methods for the ESENT API. These wrap JetMakeKey.
     /// </summary>

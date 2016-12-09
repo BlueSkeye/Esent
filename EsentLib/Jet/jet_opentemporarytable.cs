@@ -128,7 +128,7 @@ namespace EsentLib.Jet.Vista
         /// and previous releases. This parameter may also be set to a larger
         /// value as a function of the database page size for the instance
         /// <see cref="JET_param.DatabasePageSize"/>. See
-        /// <see cref="VistaParam.KeyMost"/> for more information.
+        /// <see cref="EsentLib.Platform.Vista.VistaParam.KeyMost"/> for more information.
         /// </summary>
         public int cbKeyMost { get; set; }
 

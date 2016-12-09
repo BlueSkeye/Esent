@@ -174,8 +174,7 @@ namespace EsentLib.Platform.Windows8
         /// <param name="callback">
         /// The callback.
         /// </param>
-        internal void SetDurableCommitCallback(
-            NATIVE_JET_PFNDURABLECOMMITCALLBACK callback)
+        internal void SetDurableCommitCallback(NATIVE_JET_PFNDURABLECOMMITCALLBACK callback)
         {
             IntPtr nativeDelegate;
             if (callback != null)

@@ -4,12 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+
 namespace EsentLib
 {
-    using System;
-
     /// <summary>
-    /// Flags for ESENT objects (tables).  Used in <see cref="JET_OBJECTINFO"/>.
+    /// Flags for ESENT objects (tables).  Used in <see cref="EsentLib.Jet.JET_OBJECTINFO"/>.
     /// </summary>
     [Flags]
     public enum ObjectInfoFlags

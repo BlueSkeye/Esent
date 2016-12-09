@@ -21,7 +21,7 @@ namespace EsentLib.Platform.Windows10
         public const JET_sesparam TransactionLevel = (JET_sesparam)(JET_sesparam.Base + 3);
 
         /// <summary>
-        /// A client context of type <see cref="JET_OPERATIONCONTEXT"/> that the engine uses to track and trace operations (such as IOs).
+        /// A client context of type <see cref="EsentLib.Jet.Windows10.JET_OPERATIONCONTEXT"/> that the engine uses to track and trace operations (such as IOs).
         /// </summary>
         public const JET_sesparam OperationContext = (JET_sesparam)(JET_sesparam.Base + 4);
 

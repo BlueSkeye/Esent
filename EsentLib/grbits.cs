@@ -4,11 +4,13 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+
+using EsentLib.Jet;
+
 namespace EsentLib
 {
-    using System;
-    using System.Collections.Generic;
-
     /// <summary>
     /// Options for <see cref="Api.JetCreateInstance2"/>.
     /// </summary>
@@ -24,12 +26,12 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetInit2"/>.
     /// </summary>
-    /// <seealso cref="Vista.VistaGrbits.RecoveryWithoutUndo"/>
-    /// <seealso cref="Vista.VistaGrbits.TruncateLogsAfterRecovery"/>
-    /// <seealso cref="Vista.VistaGrbits.ReplayMissingMapEntryDB"/>
-    /// <seealso cref="Vista.VistaGrbits.LogStreamMustExist"/>
-    /// <seealso cref="Windows7.Windows7Grbits.ReplayIgnoreLostLogs"/>
-    /// <seealso cref="Windows8.Windows8Grbits.KeepDbAttachedAtEndOfRecovery"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.RecoveryWithoutUndo"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.TruncateLogsAfterRecovery"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.ReplayMissingMapEntryDB"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.LogStreamMustExist"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ReplayIgnoreLostLogs"/>
+    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.KeepDbAttachedAtEndOfRecovery"/>
     [Flags]
     public enum InitGrbit
     {
@@ -42,7 +44,7 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetTerm2"/>.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.Dirty"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Dirty"/>
     [Flags]
     public enum TermGrbit
     {
@@ -69,7 +71,7 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetCreateDatabase"/>.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.EnableCreateDbBackgroundMaintenance"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnableCreateDbBackgroundMaintenance"/>
     [Flags]
     public enum CreateDatabaseGrbit
     {
@@ -126,8 +128,8 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetAttachDatabase"/>.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.EnableAttachDbBackgroundMaintenance"/>
-    /// <seealso cref="Windows8.Windows8Grbits.PurgeCacheOnAttach"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnableAttachDbBackgroundMaintenance"/>
+    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.PurgeCacheOnAttach"/>
     [Flags]
     public enum AttachDatabaseGrbit
     {
@@ -236,8 +238,8 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetOSSnapshotPrepare"/>.
     /// </summary>
-    /// <seealso cref="Vista.VistaGrbits.ContinueAfterThaw"/>
-    /// <seealso cref="Windows7.Windows7Grbits.ExplicitPrepare"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.ContinueAfterThaw"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ExplicitPrepare"/>
     [Flags]
     public enum SnapshotPrepareGrbit
     {
@@ -316,7 +318,7 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetEndExternalBackupInstance"/>.
     /// </summary>
-    /// <seealso cref="Vista.VistaGrbits.TruncateDone"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.TruncateDone"/>
     [Flags]
     public enum EndExternalBackupGrbit
     {
@@ -360,7 +362,7 @@ namespace EsentLib
     /// <summary>
     /// Options for JetCommitTransaction.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.ForceNewLog"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ForceNewLog"/>
     [Flags]
     public enum CommitTransactionGrbit
     {
@@ -601,8 +603,8 @@ namespace EsentLib
     /// Options for the <see cref="Api.JetSetColumn(JET_SESID, JET_TABLEID, JET_COLUMNID, byte[], int, int, SetColumnGrbit, JET_SETINFO)"/>
     /// and its associated overloads.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.Compressed"/>
-    /// <seealso cref="Windows7.Windows7Grbits.Uncompressed"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Compressed"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Uncompressed"/>
     [Flags]
     public enum SetColumnGrbit
     {
@@ -748,8 +750,8 @@ namespace EsentLib
     /// Options for <see cref="Api.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
     /// and its associated overloads.
     /// </summary>
-    /// <seealso cref="Server2003.Server2003Grbits.EnumerateIgnoreUserDefinedDefault"/>
-    /// <seealso cref="Windows7.Windows7Grbits.EnumerateInRecordOnly"/>
+    /// <seealso cref="EsentLib.Platform.Windows2003.Server2003Grbits.EnumerateIgnoreUserDefinedDefault"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnumerateInRecordOnly"/>
     [Flags]
     public enum EnumerateColumnsGrbit
     {
@@ -820,7 +822,7 @@ namespace EsentLib
 
 #if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
     /// <summary>
-    /// Options for <see cref="Vista.VistaApi.JetGetRecordSize"/>.
+    /// Options for <see cref="EsentLib.Platform.Vista.VistaApi.JetGetRecordSize"/>.
     /// </summary>
     [Flags]
     public enum GetRecordSizeGrbit
@@ -1137,7 +1139,7 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetSetTableSequential"/>.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.Backward"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Backward"/>
     [Flags]
     public enum SetTableSequentialGrbit
     {
@@ -1202,7 +1204,7 @@ namespace EsentLib
     /// <summary>
     /// Options for the <see cref="JET_COLUMNDEF"/> structure.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.ColumnCompressed"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ColumnCompressed"/>
     [Flags]
     public enum ColumndefGrbit
     {
@@ -1328,7 +1330,7 @@ namespace EsentLib
     /// Options for the <see cref="JET_TABLECREATE"/> parameter used by
     /// <see cref="Api.JetCreateTableColumnIndex3"/>.
     /// </summary>
-    /// <seealso cref="Windows10.Windows10Grbits.TableCreateImmutableStructure"/>
+    /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.TableCreateImmutableStructure"/>
     [Flags]
     public enum CreateTableColumnIndexGrbit
     {
@@ -1356,13 +1358,13 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetCreateIndex"/> and <see cref="JET_INDEXCREATE"/>.
     /// </summary>
-    /// <seealso cref="Vista.VistaGrbits.IndexCrossProduct"/>
-    /// <seealso cref="Vista.VistaGrbits.IndexDisallowTruncation"/>
-    /// <seealso cref="Vista.VistaGrbits.IndexNestedTable"/>
-    /// <seealso cref="Vista.VistaGrbits.IndexUnicode"/>
-    /// <seealso cref="Vista.VistaGrbits.IndexKeyMost"/>
-    /// <seealso cref="Windows8.Windows8Grbits.IndexDotNetGuid"/>
-    /// <seealso cref="Windows10.Windows10Grbits.IndexCreateImmutableStructure"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexCrossProduct"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexDisallowTruncation"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexNestedTable"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexUnicode"/>
+    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexKeyMost"/>
+    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.IndexDotNetGuid"/>
+    /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.IndexCreateImmutableStructure"/>
     [Flags]
     public enum CreateIndexGrbit
     {        
@@ -1478,9 +1480,9 @@ namespace EsentLib
     /// Options for temporary table creation, with <see cref="Api.JetOpenTempTable"/>,
     /// Api.JetOpenTempTable2, and <see cref="Api.JetOpenTempTable3"/>.
     /// </summary>
-    /// <seealso cref="Server2003.Server2003Grbits.ForwardOnly"/>
-    /// <seealso cref="Windows7.Windows7Grbits.IntrinsicLVsOnly"/>
-    /// <seealso cref="Windows8.Windows8Grbits.TTDotNetGuid"/>
+    /// <seealso cref="EsentLib.Platform.Windows2003.Server2003Grbits.ForwardOnly"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.IntrinsicLVsOnly"/>
+    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.TTDotNetGuid"/>
     [Flags]
     public enum TempTableGrbit
     {
@@ -1506,7 +1508,7 @@ namespace EsentLib
         /// option to be in effect due to the fact that all clustered indexes must 
         /// also be a primary key and thus must be unique. As of Windows Server 
         /// 2003, it is now possible to create a temporary table that does NOT 
-        /// remove duplicates when the <see cref="Server2003.Server2003Grbits.ForwardOnly"/>
+        /// remove duplicates when the <see cref="EsentLib.Platform.Windows2003.Server2003Grbits.ForwardOnly"/>
         /// option is also specified. 
         /// It is not possible to know which duplicate will win and which duplicates 
         /// will be discarded in general. However, when the 
@@ -1637,8 +1639,8 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetDefragment"/>.
     /// </summary>
-    /// <seealso cref="Windows7.Windows7Grbits.NoPartialMerges"/>
-    /// <seealso cref="Windows7.Windows7Grbits.DefragmentBTree"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.NoPartialMerges"/>
+    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>
     [Flags]
     public enum DefragGrbit
     {
