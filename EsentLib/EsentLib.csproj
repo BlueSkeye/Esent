@@ -105,7 +105,6 @@
     <Compile Include="IndexInfo.cs" />
     <Compile Include="IndexInfoEnumerator.cs" />
     <Compile Include="IndexSegment.cs" />
-    <Compile Include="Instance.cs" />
     <Compile Include="InstanceParameters.cs" />
     <Compile Include="Int16ColumnValue.cs" />
     <Compile Include="Int32ColumnValue.cs" />

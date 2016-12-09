@@ -10,8 +10,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading;
+using Microsoft.Win32.SafeHandles;
 
 using EsentLib.Jet;
 using EsentLib.Jet.Types;
@@ -27,7 +29,10 @@ namespace EsentLib.Implementation
 {
     /// <summary>Calls to the ESENT interop layer. These calls take the managed types
     /// (e.g. JET_SESID) and return errors.</summary>
-    internal sealed partial class JetEngine : IJetApi, IDisposable
+    internal sealed partial class JetEngine :
+        // TODO
+        // SafeHandleZeroOrMinusOneIsInvalid,
+        IJetApi, IDisposable
     {
         /// <summary>Initializes static members of the JetApi class.</summary>
         static JetEngine()
@@ -66,6 +71,12 @@ namespace EsentLib.Implementation
         /// <summary>Gets the capabilities of this implementation of ESENT.</summary>
         public JetCapabilities Capabilities { get; private set; }
 
+        public string DisplayName { get; private set; }
+
+        public string Name { get; private set; }
+
+        public TermGrbit TerminationBits { get; private set; }
+
         internal TraceSwitch Tracer
         {
             get { return TraceSwitch; }
@@ -94,17 +105,71 @@ namespace EsentLib.Implementation
 
         /// <summary>Allocates a new instance of the database engine.</summary>
         /// <param name="name">The name of the instance. Names must be unique.</param>
+        /// <param name="displayName">A display name for the instance to be created. This
+        /// will be used in eventlog entries.</param>
+        /// <param name="grbit">Creation options.</param>
         /// <returns>The new instance, otherwise throw an exception.</returns>
-        public static JetEngine Create(string name)
+        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+        public static JetEngine Create(string name, string displayName = null,
+            CreateInstanceGrbit grbit = CreateInstanceGrbit.None)
         {
-            JetEngine result = new JetEngine();
+            // TOOD : Add TerminationBits initializer and associated parameter.
+
+            TraceFunctionCall("Create");
+            JetEngine result = new JetEngine() {
+                DisplayName = displayName,
+                Name = name
+            };
             result._instance.Value = IntPtr.Zero;
-            int nativeResult = (result.Capabilities.SupportsUnicodePaths)
-                ? NativeMethods.JetCreateInstanceW(out result._instance.Value, name)
-                : NativeMethods.JetCreateInstance(out result._instance.Value, name);
+            RuntimeHelpers.PrepareConstrainedRegions();
+            int nativeResult = 0;
+            if (string.IsNullOrEmpty(displayName)
+                && (CreateInstanceGrbit.None == grbit))
+            {
+                nativeResult = (result.Capabilities.SupportsUnicodePaths)
+                    ? NativeMethods.JetCreateInstanceW(out result._instance.Value, name)
+                    : NativeMethods.JetCreateInstance(out result._instance.Value, name);
+            }
+            else {
+                nativeResult = (result.Capabilities.SupportsUnicodePaths)
+                    ? NativeMethods.JetCreateInstance2W(out result._instance.Value, name,
+                        displayName, (uint)grbit)
+                    : NativeMethods.JetCreateInstance2(out result._instance.Value, name,
+                        displayName, (uint)grbit);
+            }
             TraceResult(nativeResult);
             EsentExceptionHelper.Check(nativeResult);
             return result;
+        }
+
+        /// <summary>
+        /// Allocate a new instance of the database engine for use in a single
+        /// process, with a display name specified.
+        /// </summary>
+        /// <param name="instance">Returns the newly create instance.</param>
+        /// <param name="name">
+        /// Specifies a unique string identifier for the instance to be created.
+        /// This string must be unique within a given process hosting the
+        /// database engine.
+        /// </param>
+        /// <param name="displayName">
+        /// A display name for the instance to be created. This will be used
+        /// in eventlog entries.
+        /// </param>
+        /// <param name="grbit">Creation options.</param>
+        /// <returns>An error if the call fails.</returns>
+        public int JetCreateInstance2(out JET_INSTANCE instance, string name, string displayName, CreateInstanceGrbit grbit)
+        {
+            instance.Value = IntPtr.Zero;
+
+            if (this.Capabilities.SupportsUnicodePaths)
+            {
+                return TraceResult(NativeMethods.JetCreateInstance2W(out instance.Value, name, displayName, (uint)grbit));
+            }
+            else
+            {
+                return TraceResult(NativeMethods.JetCreateInstance2(out instance.Value, name, displayName, (uint)grbit));
+            }
         }
 
         /// <summary>Allocate and immediately initialize an ESENT database engine. The instance
@@ -136,36 +201,35 @@ namespace EsentLib.Implementation
             uint version = this.versionOverride;
             if (0 == version) { version = JetEngine.GetInstalledVersion(); }
             int buildNumber = (int)((version & 0xFFFFFF) >> 8);
-            Trace.WriteLineIf(TraceSwitch.TraceVerbose,
-                string.Format(CultureInfo.InvariantCulture, "Version = {0}, BuildNumber = {1}", version, buildNumber));
+            TraceVerboseLine(string.Format(CultureInfo.InvariantCulture, "Version = {0}, BuildNumber = {1}", version, buildNumber));
             if (buildNumber >= Server2003BuildNumber) {
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports Server 2003 features");
+                TraceVerboseLine("Supports Server 2003 features");
                 this.Capabilities.SupportsServer2003Features = true;
             }
             if (buildNumber >= VistaBuildNumber) {
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports Vista features");
+                TraceVerboseLine("Supports Vista features");
                 this.Capabilities.SupportsVistaFeatures = true;
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports Unicode paths");
+                TraceVerboseLine("Supports Unicode paths");
                 this.Capabilities.SupportsUnicodePaths = true;
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports large keys");
+                TraceVerboseLine("Supports large keys");
                 this.Capabilities.SupportsLargeKeys = true;
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports 16-column keys");
+                TraceVerboseLine("Supports 16-column keys");
                 this.Capabilities.ColumnsKeyMost = 16;
             }
             if (buildNumber >= Windows7BuildNumber) {
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports Windows 7 features");
+                TraceVerboseLine("Supports Windows 7 features");
                 this.Capabilities.SupportsWindows7Features = true;
             }
             if (buildNumber >= Windows8BuildNumber) {
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports Windows 8 features");
+                TraceVerboseLine("Supports Windows 8 features");
                 this.Capabilities.SupportsWindows8Features = true;
             }
             if (buildNumber >= Windows81BuildNumber) {
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports Windows 8.1 features");
+                TraceVerboseLine("Supports Windows 8.1 features");
                 this.Capabilities.SupportsWindows81Features = true;
             }
             if (buildNumber >= Windows10BuildNumber) {
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "Supports Windows 10 features");
+                TraceVerboseLine("Supports Windows 10 features");
                 this.Capabilities.SupportsWindows10Features = true;
             }
         }
@@ -285,6 +349,26 @@ namespace EsentLib.Implementation
             }
         }
 
+        internal static void TraceErrorLine(string message)
+        {
+            Trace.WriteLineIf(TraceSwitch.TraceError, message);
+        }
+
+        internal static void TraceInfoLine(string message)
+        {
+            Trace.WriteLineIf(TraceSwitch.TraceInfo, message);
+        }
+
+        internal static void TraceVerboseLine(string message)
+        {
+            Trace.WriteLineIf(TraceSwitch.TraceVerbose, message);
+        }
+
+        internal static void TraceWarnningLine(string message)
+        {
+            Trace.WriteLineIf(TraceSwitch.TraceWarning, message);
+        }
+
         /// <summary>Allocates a new instance of the database engine.</summary>
         /// <param name="instance">Returns the new instance.</param>
         /// <param name="name">The name of the instance. Names must be unique.</param>
@@ -297,37 +381,6 @@ namespace EsentLib.Implementation
                 return TraceResult(NativeMethods.JetCreateInstanceW(out instance.Value, name));
             }
             return TraceResult(NativeMethods.JetCreateInstance(out instance.Value, name));
-        }
-
-        /// <summary>
-        /// Allocate a new instance of the database engine for use in a single
-        /// process, with a display name specified.
-        /// </summary>
-        /// <param name="instance">Returns the newly create instance.</param>
-        /// <param name="name">
-        /// Specifies a unique string identifier for the instance to be created.
-        /// This string must be unique within a given process hosting the
-        /// database engine.
-        /// </param>
-        /// <param name="displayName">
-        /// A display name for the instance to be created. This will be used
-        /// in eventlog entries.
-        /// </param>
-        /// <param name="grbit">Creation options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetCreateInstance2(out JET_INSTANCE instance, string name, string displayName, CreateInstanceGrbit grbit)
-        {
-            TraceFunctionCall("JetCreateInstance2");
-            instance.Value = IntPtr.Zero;
-
-            if (this.Capabilities.SupportsUnicodePaths)
-            {
-                return TraceResult(NativeMethods.JetCreateInstance2W(out instance.Value, name, displayName, (uint)grbit));
-            }
-            else
-            {
-                return TraceResult(NativeMethods.JetCreateInstance2(out instance.Value, name, displayName, (uint)grbit));
-            }
         }
 
         /// <summary>
@@ -514,8 +567,8 @@ namespace EsentLib.Implementation
             return TraceResult(NativeMethods.JetStopServiceInstance2(instance.Value, unchecked((uint)grbit)));
         }
 
-        /// <summary>Terminate an instance that was created with <see cref="JetEngine.Create(string)"/>.
-        /// </summary>
+        /// <summary>Terminate an instance that was created with
+        /// <see cref="JetEngine.Create(string,string,CreateInstanceGrbit)"/>.</summary>
         /// <param name="instance">The instance to terminate.</param>
         /// <param name="grbit">Termination options.</param>
         /// <returns>An error or warning.</returns>
@@ -5184,19 +5237,15 @@ namespace EsentLib.Implementation
 
             if ((null == data && 0 != dataOffset) || (null != data && dataOffset > data.Count))
             {
-                Trace.WriteLineIf(TraceSwitch.TraceError, "CheckDataSize failed");
-                throw new ArgumentOutOfRangeException(
-                    offsetArgumentName,
-                    dataOffset,
+                TraceErrorLine("CheckDataSize failed");
+                throw new ArgumentOutOfRangeException(offsetArgumentName, dataOffset,
                     "cannot be greater than the length of the buffer");
             }
 
             if ((null == data && 0 != dataSize) || (null != data && dataSize > data.Count - dataOffset))
             {
-                Trace.WriteLineIf(TraceSwitch.TraceError, "CheckDataSize failed");
-                throw new ArgumentOutOfRangeException(
-                    sizeArgumentName,
-                    dataSize,
+                TraceErrorLine("CheckDataSize failed");
+                throw new ArgumentOutOfRangeException(sizeArgumentName, dataSize,
                     "cannot be greater than the length of the buffer");
             }
         }
@@ -5221,9 +5270,8 @@ namespace EsentLib.Implementation
         /// <param name="paramName">The name of the parameter.</param>
         private static void CheckNotNull(object o, string paramName)
         {
-            if (null == o)
-            {
-                Trace.WriteLineIf(TraceSwitch.TraceError, "CheckNotNull failed");
+            if (null == o) {
+                TraceErrorLine("CheckNotNull failed");
                 throw new ArgumentNullException(paramName);
             }
         }
@@ -5236,9 +5284,8 @@ namespace EsentLib.Implementation
         /// <param name="paramName">The name of the parameter.</param>
         private static void CheckNotNegative(int i, string paramName)
         {
-            if (i < 0)
-            {
-                Trace.WriteLineIf(TraceSwitch.TraceError, "CheckNotNegative failed");
+            if (i < 0) {
+                TraceErrorLine("CheckNotNegative failed");
                 throw new ArgumentOutOfRangeException(paramName, i, "cannot be negative");
             }
         }
@@ -5252,7 +5299,7 @@ namespace EsentLib.Implementation
         private static Exception UnsupportedApiException(string method)
         {
             string error = string.Format(CultureInfo.InvariantCulture, "Method {0} is not supported by this version of ESENT", method);
-            Trace.WriteLineIf(TraceSwitch.TraceError, error);
+            TraceErrorLine(error);
             return new InvalidOperationException(error);
         }
 
@@ -5290,13 +5337,9 @@ namespace EsentLib.Implementation
         [Conditional("TRACE")]
         private static void TraceError(int err)
         {
-            if (0 == err) {
-                Trace.WriteLineIf(TraceSwitch.TraceVerbose, "JET_err.Success");
-            }
-            else if (err > 0){
-                Trace.WriteLineIf(TraceSwitch.TraceWarning, unchecked((JET_wrn)err));
-            }
-            else { Trace.WriteLineIf(TraceSwitch.TraceError, unchecked((JET_err)err)); }
+            if (0 == err) { TraceVerboseLine("JET_err.Success"); }
+            else if (err > 0){ TraceWarnningLine(unchecked((JET_wrn)err).ToString()); }
+            else { TraceErrorLine(unchecked((JET_err)err).ToString()); }
         }
 
         #endregion Parameter Checking and Tracing
@@ -6038,3 +6081,299 @@ namespace EsentLib.Implementation
         private readonly uint versionOverride;
     }
 }
+
+// TODO : Have this code included in the above class. This is MANDATORY for safety.
+//using System;
+//using System.Diagnostics.CodeAnalysis;
+//using System.Globalization;
+//using System.Runtime.CompilerServices;
+//using System.Security.Permissions;
+
+//using EsentLib.Jet;
+//using EsentLib.Jet.Types;
+//using EsentLib.Platform.Vista;
+//using Microsoft.Win32.SafeHandles;
+
+//namespace EsentLib
+//{
+//    /// <summary>
+//    /// A class that encapsulates a <see cref="JET_INSTANCE"/> in a disposable object. The
+//    /// instance must be closed last and closing the instance releases all other
+//    /// resources for the instance.
+//    /// </summary>
+//    public class Instance : SafeHandleZeroOrMinusOneIsInvalid
+//    {
+//        /// <summary>
+//        /// Parameters for the instance.
+//        /// </summary>
+//        private readonly EsentLib.Platform.Windows8.InstanceParameters parameters;
+
+//        /// <summary>
+//        /// The name of the instance.
+//        /// </summary>
+//        private readonly string name;
+
+//        /// <summary>The display name of the instance.</summary>
+//        private readonly string displayName;
+
+//        /// <summary>The TermGrbit to be used at JetTerm time.</summary>
+//        private TermGrbit termGrbit;
+
+//        /// <summary>
+//        /// Initializes a new instance of the Instance class. The underlying
+//        /// JET_INSTANCE is allocated, but not initialized.
+//        /// </summary>
+//        /// <param name="name">
+//        /// The name of the instance. This string must be unique within a
+//        /// given process hosting the database engine.
+//        /// </param>
+//        /// <param name="displayName">
+//        /// A display name for the instance. This will be used in eventlog
+//        /// entries.
+//        /// </param>
+//        /// <param name="termGrbit">
+//        /// The TermGrbit to be used at JetTerm time.
+//        /// </param>
+//        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//        public Instance(string name, string displayName, TermGrbit termGrbit) : base(true)
+//        {
+//            this.name = name;
+//            this.displayName = displayName;
+//            this.termGrbit = termGrbit;
+
+//            JET_INSTANCE instance;
+//            RuntimeHelpers.PrepareConstrainedRegions();
+//            try { this.SetHandle(JET_INSTANCE.Nil.Value); }
+//            finally
+//            {
+//                // This is the code that we want in a constrained execution region.
+//                // We need to avoid the situation where JetCreateInstance2 is called
+//                // but the handle isn't set, so the instance is never terminated.
+//                // This would happen, for example, if there was a ThreadAbortException
+//                // between the call to JetCreateInstance2 and the call to SetHandle.
+//                // If an Esent exception is generated we do not want to call SetHandle
+//                // because the instance isn't valid. On the other hand if a different 
+//                // exception (out of memory or thread abort) is generated we still need
+//                // to set the handle to avoid losing track of the instance. The call to
+//                // JetCreateInstance2 is in the CER to make sure that the only exceptions
+//                // which can be generated are from ESENT failures.
+//                Api.JetCreateInstance2(out instance, this.name, this.displayName, CreateInstanceGrbit.None);
+//                this.SetHandle(instance.Value);
+//            }
+//            this.parameters = new EsentLib.Platform.Windows8.InstanceParameters(instance);
+//        }
+
+//        /// <summary>
+//        /// Gets the JET_INSTANCE that this instance contains.
+//        /// </summary>
+//        public JET_INSTANCE JetInstance
+//        {
+//            [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//            get
+//            {
+//                this.CheckObjectIsNotDisposed();
+//                return this.CreateInstanceFromHandle();
+//            }
+//        }
+
+//        /// <summary>
+//        /// Gets the InstanceParameters for this instance. 
+//        /// </summary>
+//        public EsentLib.Platform.Windows8.InstanceParameters Parameters
+//        {
+//            [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//            get
+//            {
+//                this.CheckObjectIsNotDisposed();
+//                return this.parameters;
+//            }
+//        }
+
+//        /// <summary>
+//        /// Gets or sets the TermGrbit for this instance. 
+//        /// </summary>
+//        public TermGrbit TermGrbit
+//        {
+//            [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//            get
+//            {
+//                this.CheckObjectIsNotDisposed();
+//                return this.termGrbit;
+//            }
+
+//            [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//            set
+//            {
+//                this.CheckObjectIsNotDisposed();
+//                this.termGrbit = value;
+//            }
+//        }
+
+//        /// <summary>
+//        /// Provide implicit conversion of an Instance object to a JET_INSTANCE
+//        /// structure. This is done so that an Instance can be used anywhere a
+//        /// JET_INSTANCE is required.
+//        /// </summary>
+//        /// <param name="instance">The instance to convert.</param>
+//        /// <returns>The JET_INSTANCE wrapped by the instance.</returns>
+//        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//        public static implicit operator JET_INSTANCE(Instance instance)
+//        {
+//            return instance.JetInstance;
+//        }
+
+//        /// <summary>
+//        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="Instance"/>.
+//        /// </summary>
+//        /// <returns>
+//        /// A <see cref="T:System.String"/> that represents the current <see cref="Instance"/>.
+//        /// </returns>
+//        public override string ToString()
+//        {
+//            return string.Format(CultureInfo.InvariantCulture, "{0} ({1})", this.displayName, this.name);
+//        }
+
+//        /// <summary>
+//        /// Initialize the JET_INSTANCE.
+//        /// </summary>
+//        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//        public void Init()
+//        {
+//            this.Init(InitGrbit.None);
+//        }
+
+//        /// <summary>
+//        /// Initialize the JET_INSTANCE.
+//        /// </summary>
+//        /// <param name="grbit">
+//        /// Initialization options.
+//        /// </param>
+//        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//        public void Init(InitGrbit grbit)
+//        {
+//            this.CheckObjectIsNotDisposed();
+//            JET_INSTANCE instance = this.JetInstance;
+
+//            // Use a constrained region so that the handle is
+//            // always set after JetInit2 is called.
+//            RuntimeHelpers.PrepareConstrainedRegions();
+//            try
+//            {
+//                // Remember that a failure in JetInit can zero the handle
+//                // and that JetTerm should not be called in that case.
+//                Api.JetInit2(ref instance, grbit);
+//            }
+//            finally
+//            {
+//                this.SetHandle(instance.Value);
+//            }
+//        }
+
+//        /// <summary>
+//        /// Initialize the JET_INSTANCE. This API requires at least the
+//        /// Vista version of ESENT.
+//        /// </summary>
+//        /// <param name="recoveryOptions">
+//        /// Additional recovery parameters for remapping databases during
+//        /// recovery, position where to stop recovery at, or recovery status.
+//        /// </param>
+//        /// <param name="grbit">
+//        /// Initialization options.
+//        /// </param>
+//        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//        public void Init(JET_RSTINFO recoveryOptions, InitGrbit grbit)
+//        {
+//            this.CheckObjectIsNotDisposed();
+//            JET_INSTANCE instance = this.JetInstance;
+
+//            // Use a constrained region so that the handle is
+//            // always set after JetInit3 is called.
+//            RuntimeHelpers.PrepareConstrainedRegions();
+//            try
+//            {
+//                // Remember that a failure in JetInit can zero the handle
+//                // and that JetTerm should not be called in that case.
+//                VistaApi.JetInit3(ref instance, recoveryOptions, grbit);
+//            }
+//            finally
+//            {
+//                this.SetHandle(instance.Value);
+//            }
+//        }
+
+//        /// <summary>
+//        /// Terminate the JET_INSTANCE.
+//        /// </summary>
+//        [SuppressMessage(
+//            "Microsoft.StyleCop.CSharp.MaintainabilityRules",
+//            "SA1409:RemoveUnnecessaryCode",
+//            Justification = "CER code belongs in the finally block, so the try clause is empty")]
+//        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//        public void Term()
+//        {
+//            // Use a constrained region so that the handle is
+//            // always set as invalid after JetTerm is called.
+//            RuntimeHelpers.PrepareConstrainedRegions();
+//            try
+//            {
+//                // This try block deliberately left blank.
+//            }
+//            finally
+//            {
+//                // This is the code that we want in a constrained execution region.
+//                // We need to avoid the situation where JetTerm is called
+//                // but the handle isn't invalidated, so the instance is terminated again.
+//                // This would happen, for example, if there was a ThreadAbortException
+//                // between the call to JetTerm and the call to SetHandle.
+//                //
+//                // If an Esent exception is generated we do not want to invalidate the handle
+//                // because the instance isn't necessarily terminated. On the other hand if a 
+//                // different exception (out of memory or thread abort) is generated we still need
+//                // to invalidate the handle.
+//                try
+//                {
+//                    Api.JetTerm2(this.JetInstance, this.termGrbit);
+//                }
+//                catch (EsentDirtyShutdownException)
+//                {
+//                    this.SetHandleAsInvalid();
+//                    throw;
+//                }
+
+//                this.SetHandleAsInvalid();
+//            }
+//        }
+
+//        /// <summary>
+//        /// Release the handle for this instance.
+//        /// </summary>
+//        /// <returns>True if the handle could be released.</returns>
+//        protected override bool ReleaseHandle()
+//        {
+//            // The object is already marked as invalid so don't check
+//            var instance = this.CreateInstanceFromHandle();
+//            return (int)JET_err.Success == Api.Impl.JetTerm2(instance, this.termGrbit);
+//        }
+
+//        /// <summary>
+//        /// Create a JET_INSTANCE from the internal handle value.
+//        /// </summary>
+//        /// <returns>A JET_INSTANCE containing the internal handle.</returns>
+//        private JET_INSTANCE CreateInstanceFromHandle()
+//        {
+//            return new JET_INSTANCE { Value = this.handle };
+//        }
+
+//        /// <summary>
+//        /// Check to see if this instance is invalid or closed.
+//        /// </summary>
+//        [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
+//        private void CheckObjectIsNotDisposed()
+//        {
+//            if (this.IsInvalid || this.IsClosed)
+//            {
+//                throw new ObjectDisposedException("Instance");
+//            }
+//        }
+//    }
+//}

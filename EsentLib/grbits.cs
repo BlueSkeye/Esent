@@ -11,21 +11,16 @@ using EsentLib.Jet;
 
 namespace EsentLib
 {
-    /// <summary>
-    /// Options for <see cref="Api.JetCreateInstance2"/>.
-    /// </summary>
+    /// <summary>Options for
+    /// <see cref="EsentLib.Implementation.JetEngine.Create(string,string,CreateInstanceGrbit)"/>.</summary>
     [Flags]
     public enum CreateInstanceGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetInit2"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="Api.JetInit2"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.RecoveryWithoutUndo"/>
     /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.TruncateLogsAfterRecovery"/>
     /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.ReplayMissingMapEntryDB"/>
@@ -35,36 +30,24 @@ namespace EsentLib
     [Flags]
     public enum InitGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetTerm2"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="Api.JetTerm2"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Dirty"/>
     [Flags]
     public enum TermGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
-        
-        /// <summary>
-        /// Requests that the instance be shut down cleanly. Any optional
-        /// cleanup work that would ordinarily be done in the background at
-        /// run time is completed immediately.
-        /// </summary>
+        /// <summary>Requests that the instance be shut down cleanly. Any optional cleanup
+        /// work that would ordinarily be done in the background at run time is completed
+        /// immediately.</summary>
         Complete = 1,
-
-        /// <summary>
-        /// Requests that the instance be shut down as quickly as possible.
-        /// Any optional work that would ordinarily be done in the
-        /// background at run time is abandoned. 
-        /// </summary>
+        /// <summary>Requests that the instance be shut down as quickly as possible. Any
+        /// optional work that would ordinarily be done in the background at run time is
+        /// abandoned.</summary>
         Abrupt = 2,
     }
 
