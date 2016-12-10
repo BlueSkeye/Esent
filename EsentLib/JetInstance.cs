@@ -29,17 +29,16 @@ namespace EsentLib.Implementation
 {
     /// <summary>Calls to the ESENT interop layer. These calls take the managed types
     /// (e.g. JET_SESID) and return errors.</summary>
-    internal sealed partial class JetEngine :
-        // TODO
-        // SafeHandleZeroOrMinusOneIsInvalid,
+    internal sealed partial class JetInstance :
+        // TODO : SafeHandleZeroOrMinusOneIsInvalid,
         IJetApi, IDisposable
     {
         /// <summary>Initializes static members of the JetApi class.</summary>
-        static JetEngine()
+        static JetInstance()
         {
             // TODO : Most of these methods have been removed by IDispose implementation.
             // Find hat to prepare now.
-            Type thisType = typeof(JetEngine);
+            Type thisType = typeof(JetInstance);
             // Prepare these methods for inclusion in a constrained execution region (CER).
             // This is needed by the Instance class. Instance accesses these methods
             // virtually so RemoveUnnecessaryCode won't be able to prepare them.
@@ -54,33 +53,24 @@ namespace EsentLib.Implementation
         /// to be set.</summary>
         /// <param name="version">The version of Esent. This is used to override the results
         /// of JetGetVersion.</param>
-        public JetEngine(uint version)
+        public JetInstance(uint version)
         {
             this.versionOverride = version;
-            this.DetermineCapabilities();
+            _capabilities = JetEnvironment.DetermineCapabilities(version);
         }
 
         /// <summary>Initializes a new instance of the JetEngine class.</summary>
-        public JetEngine()
+        public JetInstance()
         {
-            // JetGetVersion isn't available in new Windows UI, so we'll pretend it's always Win8:
             this.versionOverride = 8250 << 8;
-            this.DetermineCapabilities();
+            _capabilities = JetEnvironment.DefaultCapabilities;
         }
-
-        /// <summary>Gets the capabilities of this implementation of ESENT.</summary>
-        public JetCapabilities Capabilities { get; private set; }
 
         public string DisplayName { get; private set; }
 
         public string Name { get; private set; }
 
         public TermGrbit TerminationBits { get; private set; }
-
-        internal TraceSwitch Tracer
-        {
-            get { return TraceSwitch; }
-        }
 
         internal uint OverridenVersion
         {
@@ -95,10 +85,10 @@ namespace EsentLib.Implementation
         /// <seealso cref="Api.BeginSession"/>
         public JetSession BeginSession(string username, string password)
         {
-            TraceFunctionCall("BeginSession");
+            Tracing.TraceFunctionCall("BeginSession");
             JET_SESID sessionId = JET_SESID.Nil;
             int returnCode = NativeMethods.JetBeginSession(_instance.Value, out sessionId.Value, username, password);
-            TraceResult(returnCode);
+            Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return new JetSession(this, sessionId);
         }
@@ -110,13 +100,13 @@ namespace EsentLib.Implementation
         /// <param name="grbit">Creation options.</param>
         /// <returns>The new instance, otherwise throw an exception.</returns>
         [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
-        public static JetEngine Create(string name, string displayName = null,
+        public static JetInstance Create(string name, string displayName = null,
             CreateInstanceGrbit grbit = CreateInstanceGrbit.None)
         {
             // TOOD : Add TerminationBits initializer and associated parameter.
 
-            TraceFunctionCall("Create");
-            JetEngine result = new JetEngine() {
+            Tracing.TraceFunctionCall("Create");
+            JetInstance result = new JetInstance() {
                 DisplayName = displayName,
                 Name = name
             };
@@ -126,112 +116,33 @@ namespace EsentLib.Implementation
             if (string.IsNullOrEmpty(displayName)
                 && (CreateInstanceGrbit.None == grbit))
             {
-                nativeResult = (result.Capabilities.SupportsUnicodePaths)
+                nativeResult = (JetEnvironment.TrueCapabilities.SupportsUnicodePaths)
                     ? NativeMethods.JetCreateInstanceW(out result._instance.Value, name)
                     : NativeMethods.JetCreateInstance(out result._instance.Value, name);
             }
             else {
-                nativeResult = (result.Capabilities.SupportsUnicodePaths)
+                nativeResult = (JetEnvironment.TrueCapabilities.SupportsUnicodePaths)
                     ? NativeMethods.JetCreateInstance2W(out result._instance.Value, name,
                         displayName, (uint)grbit)
                     : NativeMethods.JetCreateInstance2(out result._instance.Value, name,
                         displayName, (uint)grbit);
             }
-            TraceResult(nativeResult);
+            Tracing.TraceResult(nativeResult);
             EsentExceptionHelper.Check(nativeResult);
             return result;
-        }
-
-        /// <summary>
-        /// Allocate a new instance of the database engine for use in a single
-        /// process, with a display name specified.
-        /// </summary>
-        /// <param name="instance">Returns the newly create instance.</param>
-        /// <param name="name">
-        /// Specifies a unique string identifier for the instance to be created.
-        /// This string must be unique within a given process hosting the
-        /// database engine.
-        /// </param>
-        /// <param name="displayName">
-        /// A display name for the instance to be created. This will be used
-        /// in eventlog entries.
-        /// </param>
-        /// <param name="grbit">Creation options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetCreateInstance2(out JET_INSTANCE instance, string name, string displayName, CreateInstanceGrbit grbit)
-        {
-            instance.Value = IntPtr.Zero;
-
-            if (this.Capabilities.SupportsUnicodePaths)
-            {
-                return TraceResult(NativeMethods.JetCreateInstance2W(out instance.Value, name, displayName, (uint)grbit));
-            }
-            else
-            {
-                return TraceResult(NativeMethods.JetCreateInstance2(out instance.Value, name, displayName, (uint)grbit));
-            }
         }
 
         /// <summary>Allocate and immediately initialize an ESENT database engine. The instance
         /// will opérate in single instance mode.</summary>
         /// <returns>An error if the call fails.</returns>
-        public static JetEngine CreateSingleInstanceMode()
+        public static JetInstance CreateSingleInstanceMode()
         {
-            TraceFunctionCall("CreateSingleInstanceMode");
+            Tracing.TraceFunctionCall("CreateSingleInstanceMode");
             JET_INSTANCE hInstance = new JET_INSTANCE();
             int returnCode = NativeMethods.JetInit(ref hInstance.Value);
-            TraceResult(returnCode);
+            Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetEngine() { _instance = hInstance };
-        }
-
-        /// <summary>Calculates the capabilities of the current Esent version.</summary>
-        private void DetermineCapabilities()
-        {
-            const int Server2003BuildNumber = 2700;
-            const int VistaBuildNumber = 6000;
-            const int Windows7BuildNumber = 7000; // includes beta as well as RTM (RTM is 7600)
-            const int Windows8BuildNumber = 8000; // includes beta as well as RTM (RTM is 9200)
-            const int Windows81BuildNumber = 9300; // includes beta as well as RTM (RTM is 9600)
-            const int Windows10BuildNumber = 9900; // includes beta as well as RTM (RTM is TBD)
-
-            // Create new capabilities, set as all false. This will allow us to call into Esent.
-            this.Capabilities = new JetCapabilities { ColumnsKeyMost = 12 };
-
-            uint version = this.versionOverride;
-            if (0 == version) { version = JetEngine.GetInstalledVersion(); }
-            int buildNumber = (int)((version & 0xFFFFFF) >> 8);
-            TraceVerboseLine(string.Format(CultureInfo.InvariantCulture, "Version = {0}, BuildNumber = {1}", version, buildNumber));
-            if (buildNumber >= Server2003BuildNumber) {
-                TraceVerboseLine("Supports Server 2003 features");
-                this.Capabilities.SupportsServer2003Features = true;
-            }
-            if (buildNumber >= VistaBuildNumber) {
-                TraceVerboseLine("Supports Vista features");
-                this.Capabilities.SupportsVistaFeatures = true;
-                TraceVerboseLine("Supports Unicode paths");
-                this.Capabilities.SupportsUnicodePaths = true;
-                TraceVerboseLine("Supports large keys");
-                this.Capabilities.SupportsLargeKeys = true;
-                TraceVerboseLine("Supports 16-column keys");
-                this.Capabilities.ColumnsKeyMost = 16;
-            }
-            if (buildNumber >= Windows7BuildNumber) {
-                TraceVerboseLine("Supports Windows 7 features");
-                this.Capabilities.SupportsWindows7Features = true;
-            }
-            if (buildNumber >= Windows8BuildNumber) {
-                TraceVerboseLine("Supports Windows 8 features");
-                this.Capabilities.SupportsWindows8Features = true;
-            }
-            if (buildNumber >= Windows81BuildNumber) {
-                TraceVerboseLine("Supports Windows 8.1 features");
-                this.Capabilities.SupportsWindows81Features = true;
-            }
-            if (buildNumber >= Windows10BuildNumber) {
-                TraceVerboseLine("Supports Windows 10 features");
-                this.Capabilities.SupportsWindows10Features = true;
-            }
+            return new JetInstance() { _instance = hInstance };
         }
 
         /// <summary></summary>
@@ -246,46 +157,69 @@ namespace EsentLib.Implementation
         {
             if (disposing) { GC.SuppressFinalize(this); }
             if (!_instance.IsNil) {
-                TraceFunctionCall("JetTerm");
+                Tracing.TraceFunctionCall("JetTerm");
                 this.callbackWrappers.Collect();
                 if (!_instance.IsInvalid) {
                     int returnCode = NativeMethods.JetTerm(_instance.Value);
-                    TraceResult(returnCode);
-                }
-            }
-        }
-
-        /// <summary>Create an instance and get the current version of Esent.</summary>
-        /// <returns>The current version of Esent.</returns>
-        private static uint GetInstalledVersion()
-        {
-            // Create a unique name so that multiple threads can call this simultaneously.
-            // This can happen if there are multiple AppDomains.
-            string instanceName = string.Format(CultureInfo.InvariantCulture, "GettingEsentVersion{0}", LibraryHelpers.GetCurrentManagedThreadId());
-            JET_INSTANCE instance = JET_INSTANCE.Nil;
-            RuntimeHelpers.PrepareConstrainedRegions();
-            using (JetEngine engine = Create(instanceName)) {
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.Recovery, new IntPtr(0), "off");
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.NoInformationEvent, new IntPtr(1), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxTemporaryTables, new IntPtr(0), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxCursors, new IntPtr(16), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxOpenTables, new IntPtr(16), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxVerPages, new IntPtr(4), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxSessions, new IntPtr(1), null);
-                engine.Initialize();
-                using (JetSession session = engine.BeginSession(string.Empty, string.Empty)) {
-                    return session.GetVersion();
+                    Tracing.TraceResult(returnCode);
                 }
             }
         }
 
         /// <summary>Initialize the ESENT database engine.</summary>
+        /// <param name="grbit">Initialization options.</param>
+        /// <param name="recoveryOptions">Additional recovery parameters for remapping
+        /// databases during recovery, position where to stop recovery at, or recovery
+        /// status.</param>
         /// <returns>An error if the call fails.</returns>
-        public void Initialize()
+        public void Initialize(InitGrbit grbit = InitGrbit.None,
+            JET_RSTINFO recoveryOptions = null)
         {
-            TraceFunctionCall("Initialize");
-            int returnCode = NativeMethods.JetInit(ref _instance.Value);
-            TraceResult(returnCode);
+            Tracing.TraceFunctionCall("Initialize");
+            int returnCode;
+            if (null == recoveryOptions) {
+                returnCode = (InitGrbit.None == grbit)
+                    ? NativeMethods.JetInit(ref _instance.Value)
+                    : NativeMethods.JetInit2(ref _instance.Value, (uint)grbit);
+            }
+            else {
+                _capabilities.CheckSupportsVistaFeatures("JetInit3");
+                if (null != recoveryOptions) {
+                    StatusCallbackWrapper callbackWrapper =
+                        new StatusCallbackWrapper(recoveryOptions.pfnStatus);
+                    NATIVE_RSTINFO rstinfo = recoveryOptions.GetNativeRstinfo();
+                    unsafe {
+                        int numMaps = (null == recoveryOptions.rgrstmap)
+                            ? 0
+                            : recoveryOptions.rgrstmap.Length;
+                        try {
+                            NATIVE_RSTMAP* maps = stackalloc NATIVE_RSTMAP[numMaps];
+                            if (0 < numMaps) {
+                                rstinfo.rgrstmap = maps;
+                                for (int i = 0; i < numMaps; ++i) {
+                                    rstinfo.rgrstmap[i] = recoveryOptions.rgrstmap[i].GetNativeRstmap();
+                                }
+                            }
+                            rstinfo.pfnStatus = callbackWrapper.NativeCallback;
+                            returnCode = NativeMethods.JetInit3W(ref _instance.Value,
+                                ref rstinfo, (uint)grbit);
+                            callbackWrapper.ThrowSavedException();
+                        }
+                        finally {
+                            if (null != rstinfo.rgrstmap) {
+                                for (int i = 0; i < numMaps; ++i) {
+                                    rstinfo.rgrstmap[i].FreeHGlobal();
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    returnCode = NativeMethods.JetInit3W(ref _instance.Value, IntPtr.Zero,
+                        (uint)grbit);
+                }
+            }
+            Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
         }
 
@@ -332,11 +266,11 @@ namespace EsentLib.Implementation
         {
             // TODO : Make this usable without an instance to set the parameter on every
             // instance.
-            TraceFunctionCall("JetSetSystemParameter");
+            Tracing.TraceFunctionCall("SetSystemParameter");
             unsafe {
                 int returnCode = 0;
                 fixed (IntPtr* pinstance = &_instance.Value) {
-                    returnCode = (this.Capabilities.SupportsUnicodePaths)
+                    returnCode = (_capabilities.SupportsUnicodePaths)
                         ? NativeMethods.JetSetSystemParameterW(
                             (IntPtr.Zero == this._instance.Value) ? null : pinstance,
                             sesid.Value, (uint)paramid, paramValue, paramString)
@@ -344,164 +278,8 @@ namespace EsentLib.Implementation
                             (IntPtr.Zero == this._instance.Value) ? null : pinstance,
                             sesid.Value, (uint)paramid, paramValue, paramString);
                 }
-                TraceResult(returnCode);
+                Tracing.TraceResult(returnCode);
                 EsentExceptionHelper.Check(returnCode);
-            }
-        }
-
-        internal static void TraceErrorLine(string message)
-        {
-            Trace.WriteLineIf(TraceSwitch.TraceError, message);
-        }
-
-        internal static void TraceInfoLine(string message)
-        {
-            Trace.WriteLineIf(TraceSwitch.TraceInfo, message);
-        }
-
-        internal static void TraceVerboseLine(string message)
-        {
-            Trace.WriteLineIf(TraceSwitch.TraceVerbose, message);
-        }
-
-        internal static void TraceWarnningLine(string message)
-        {
-            Trace.WriteLineIf(TraceSwitch.TraceWarning, message);
-        }
-
-        /// <summary>Allocates a new instance of the database engine.</summary>
-        /// <param name="instance">Returns the new instance.</param>
-        /// <param name="name">The name of the instance. Names must be unique.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetCreateInstance(out JET_INSTANCE instance, string name)
-        {
-            TraceFunctionCall("JetCreateInstance");
-            instance.Value = IntPtr.Zero;
-            if (this.Capabilities.SupportsUnicodePaths) {
-                return TraceResult(NativeMethods.JetCreateInstanceW(out instance.Value, name));
-            }
-            return TraceResult(NativeMethods.JetCreateInstance(out instance.Value, name));
-        }
-
-        /// <summary>
-        /// Initialize the ESENT database engine.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to initialize. If an instance hasn't been
-        /// allocated then a new one is created and the engine
-        /// will operate in single-instance mode.
-        /// </param>
-        /// <param name="grbit">
-        /// Initialization options.
-        /// </param>
-        /// <returns>An error or a warning.</returns>
-        public int JetInit2(ref JET_INSTANCE instance, InitGrbit grbit)
-        {
-            TraceFunctionCall("JetInit2");
-            return TraceResult(NativeMethods.JetInit2(ref instance.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Initialize the ESENT database engine.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to initialize. If an instance hasn't been
-        /// allocated then a new one is created and the engine
-        /// will operate in single-instance mode.
-        /// </param>
-        /// <param name="recoveryOptions">
-        /// Additional recovery parameters for remapping databases during
-        /// recovery, position where to stop recovery at, or recovery status.
-        /// </param>
-        /// <param name="grbit">
-        /// Initialization options.
-        /// </param>
-        /// <returns>An error code or warning.</returns>
-        public int JetInit3(ref JET_INSTANCE instance, JET_RSTINFO recoveryOptions, InitGrbit grbit)
-        {
-            TraceFunctionCall("JetInit3");
-            this.CheckSupportsVistaFeatures("JetInit3");
-
-            if (null != recoveryOptions)
-            {
-                var callbackWrapper = new StatusCallbackWrapper(recoveryOptions.pfnStatus);
-                NATIVE_RSTINFO rstinfo = recoveryOptions.GetNativeRstinfo();
-
-                unsafe
-                {
-                    int numMaps = (null == recoveryOptions.rgrstmap) ? 0 : recoveryOptions.rgrstmap.Length;
-                    try
-                    {
-                        NATIVE_RSTMAP* maps = stackalloc NATIVE_RSTMAP[numMaps];
-
-                        if (numMaps > 0)
-                        {
-                            rstinfo.rgrstmap = maps;
-                            for (int i = 0; i < numMaps; ++i)
-                            {
-                                rstinfo.rgrstmap[i] = recoveryOptions.rgrstmap[i].GetNativeRstmap();
-                            }
-                        }
-
-                        rstinfo.pfnStatus = callbackWrapper.NativeCallback;
-                        int err = TraceResult(NativeMethods.JetInit3W(ref instance.Value, ref rstinfo, (uint)grbit));
-                        callbackWrapper.ThrowSavedException();
-                        return err;
-                    }
-                    finally
-                    {
-                        if (null != rstinfo.rgrstmap)
-                        {
-                            for (int i = 0; i < numMaps; ++i)
-                            {
-                                rstinfo.rgrstmap[i].FreeHGlobal();
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                return TraceResult(NativeMethods.JetInit3W(ref instance.Value, IntPtr.Zero, (uint)grbit));
-            }
-        }
-
-        /// <summary>
-        /// Retrieves information about the instances that are running.
-        /// </summary>
-        /// <param name="numInstances">
-        /// Returns the number of instances.
-        /// </param>
-        /// <param name="instances">
-        /// Returns an array of instance info objects, one for each running
-        /// instance.
-        /// </param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetGetInstanceInfo(out int numInstances, out JET_INSTANCE_INFO[] instances)
-        {
-            TraceFunctionCall("JetGetInstanceInfo");
-
-            unsafe
-            {
-                uint nativeNumInstance = 0;
-
-                // Esent will allocate memory which will be freed by the ConvertInstanceInfos call.
-                NATIVE_INSTANCE_INFO* nativeInstanceInfos = null;
-                int err;
-                if (this.Capabilities.SupportsUnicodePaths)
-                {
-                    err = NativeMethods.JetGetInstanceInfoW(out nativeNumInstance, out nativeInstanceInfos);
-                    instances = this.ConvertInstanceInfosUnicode(nativeNumInstance, nativeInstanceInfos);
-                }
-                else
-                {
-                    err = NativeMethods.JetGetInstanceInfo(out nativeNumInstance, out nativeInstanceInfos);
-                    instances = this.ConvertInstanceInfosAscii(nativeNumInstance, nativeInstanceInfos);
-                }
-
-                numInstances = instances.Length;
-
-                return TraceResult(err);
             }
         }
 
@@ -514,8 +292,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetGetInstanceMiscInfo(JET_INSTANCE instance, out JET_SIGNATURE signature, JET_InstanceMiscInfo infoLevel)
         {
-            TraceFunctionCall("JetGetInstanceMiscInfo");
-            this.CheckSupportsVistaFeatures("JetGetInstanceMiscInfo");
+            Tracing.TraceFunctionCall("JetGetInstanceMiscInfo");
+            _capabilities.CheckSupportsVistaFeatures("JetGetInstanceMiscInfo");
 
             var nativeSignature = new NATIVE_SIGNATURE();
             int err = NativeMethods.JetGetInstanceMiscInfo(
@@ -525,7 +303,7 @@ namespace EsentLib.Implementation
                 unchecked((uint)infoLevel));
 
             signature = new JET_SIGNATURE(nativeSignature);
-            return TraceResult(err);
+            return Tracing.TraceResult(err);
         }
 
         /// <summary>
@@ -537,8 +315,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public int JetStopBackupInstance(JET_INSTANCE instance)
         {
-            TraceFunctionCall("JetStopBackupInstance");
-            return TraceResult(NativeMethods.JetStopBackupInstance(instance.Value));
+            Tracing.TraceFunctionCall("JetStopBackupInstance");
+            return Tracing.TraceResult(NativeMethods.JetStopBackupInstance(instance.Value));
         }
 
         /// <summary>
@@ -548,8 +326,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public int JetStopServiceInstance(JET_INSTANCE instance)
         {
-            TraceFunctionCall("JetStopServiceInstance");
-            return TraceResult(NativeMethods.JetStopServiceInstance(instance.Value));
+            Tracing.TraceFunctionCall("JetStopServiceInstance");
+            return Tracing.TraceResult(NativeMethods.JetStopServiceInstance(instance.Value));
         }
 
         /// <summary>
@@ -562,22 +340,22 @@ namespace EsentLib.Implementation
             JET_INSTANCE instance,
             StopServiceGrbit grbit)
         {
-            TraceFunctionCall("JetStopServiceInstance2");
-            this.CheckSupportsWindows8Features("JetStopServiceInstance2");
-            return TraceResult(NativeMethods.JetStopServiceInstance2(instance.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetStopServiceInstance2");
+            _capabilities.CheckSupportsWindows8Features("JetStopServiceInstance2");
+            return Tracing.TraceResult(NativeMethods.JetStopServiceInstance2(instance.Value, unchecked((uint)grbit)));
         }
 
         /// <summary>Terminate an instance that was created with
-        /// <see cref="JetEngine.Create(string,string,CreateInstanceGrbit)"/>.</summary>
+        /// <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
         /// <param name="instance">The instance to terminate.</param>
         /// <param name="grbit">Termination options.</param>
         /// <returns>An error or warning.</returns>
         public int JetTerm2(JET_INSTANCE instance, TermGrbit grbit)
         {
-            TraceFunctionCall("JetTerm2");
+            Tracing.TraceFunctionCall("JetTerm2");
             this.callbackWrappers.Collect();
             if (!instance.IsInvalid) {
-                return TraceResult(NativeMethods.JetTerm2(instance.Value, (uint)grbit));
+                return Tracing.TraceResult(NativeMethods.JetTerm2(instance.Value, (uint)grbit));
             }
             return (int)JET_err.Success;
         }
@@ -597,8 +375,7 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, JET_CALLBACK paramValue, string paramString)
         {
-            TraceFunctionCall("JetSetSystemParameter");
-
+            Tracing.TraceFunctionCall("JetSetSystemParameter");
             unsafe
             {
                 // We are interested in the callback, not the string so we always use the ASCII API.
@@ -607,7 +384,7 @@ namespace EsentLib.Implementation
                 if (null == paramValue)
                 {
                     return
-                        TraceResult(
+                        Tracing.TraceResult(
                             NativeMethods.JetSetSystemParameter(
                                 pinstance,
                                 sesid.Value,
@@ -622,7 +399,7 @@ namespace EsentLib.Implementation
 #if DEBUG
                 GC.Collect();
 #endif // DEBUG
-                return TraceResult(
+                return Tracing.TraceResult(
                         NativeMethods.JetSetSystemParameter(
                             pinstance,
                             sesid.Value,
@@ -649,20 +426,18 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, ref IntPtr paramValue, out string paramString, int maxParam)
         {
-            TraceFunctionCall("JetGetSystemParameter");
+            Tracing.TraceFunctionCall("JetGetSystemParameter");
             CheckNotNegative(maxParam, "maxParam");
 
-            uint bytesMax = checked((uint)(this.Capabilities.SupportsUnicodePaths ? maxParam * sizeof(char) : maxParam));
+            uint bytesMax = checked((uint)(_capabilities.SupportsUnicodePaths ? maxParam * sizeof(char) : maxParam));
 
             var sb = new StringBuilder(maxParam);
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
-            {
-                err = TraceResult(NativeMethods.JetGetSystemParameterW(instance.Value, sesid.Value, (uint)paramid, ref paramValue, sb, bytesMax));
+            if (_capabilities.SupportsUnicodePaths) {
+                err = Tracing.TraceResult(NativeMethods.JetGetSystemParameterW(instance.Value, sesid.Value, (uint)paramid, ref paramValue, sb, bytesMax));
             }
-            else
-            {
-                err = TraceResult(NativeMethods.JetGetSystemParameter(instance.Value, sesid.Value, (uint)paramid, ref paramValue, sb, bytesMax));
+            else {
+                err = Tracing.TraceResult(NativeMethods.JetGetSystemParameter(instance.Value, sesid.Value, (uint)paramid, ref paramValue, sb, bytesMax));
             }
 
             paramString = sb.ToString();
@@ -685,16 +460,14 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetCreateDatabase(JET_SESID sesid, string database, string connect, out JET_DBID dbid, CreateDatabaseGrbit grbit)
         {
-            TraceFunctionCall("JetCreateDatabase");
+            Tracing.TraceFunctionCall("JetCreateDatabase");
             CheckNotNull(database, "database");
 
             dbid = JET_DBID.Nil;
-            if (this.Capabilities.SupportsUnicodePaths)
-            {
-                return TraceResult(NativeMethods.JetCreateDatabaseW(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
+            if (_capabilities.SupportsUnicodePaths) {
+                return Tracing.TraceResult(NativeMethods.JetCreateDatabaseW(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
             }
-
-            return TraceResult(NativeMethods.JetCreateDatabase(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetCreateDatabase(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -712,18 +485,17 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetCreateDatabase2(JET_SESID sesid, string database, int maxPages, out JET_DBID dbid, CreateDatabaseGrbit grbit)
         {
-            TraceFunctionCall("JetCreateDatabase2");
+            Tracing.TraceFunctionCall("JetCreateDatabase2");
             CheckNotNull(database, "database");
             CheckNotNegative(maxPages, "maxPages");
 
             dbid = JET_DBID.Nil;
             uint cpgDatabaseSizeMax = checked((uint)maxPages);
-            if (this.Capabilities.SupportsUnicodePaths)
-            {
-                return TraceResult(NativeMethods.JetCreateDatabase2W(sesid.Value, database, cpgDatabaseSizeMax, out dbid.Value, (uint)grbit));
+            if (_capabilities.SupportsUnicodePaths) {
+                return Tracing.TraceResult(NativeMethods.JetCreateDatabase2W(sesid.Value, database, cpgDatabaseSizeMax, out dbid.Value, (uint)grbit));
             }
 
-            return TraceResult(NativeMethods.JetCreateDatabase2(sesid.Value, database, cpgDatabaseSizeMax, out dbid.Value, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetCreateDatabase2(sesid.Value, database, cpgDatabaseSizeMax, out dbid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -736,15 +508,14 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetAttachDatabase(JET_SESID sesid, string database, AttachDatabaseGrbit grbit)
         {
-            TraceFunctionCall("JetAttachDatabase");
+            Tracing.TraceFunctionCall("JetAttachDatabase");
             CheckNotNull(database, "database");
 
-            if (this.Capabilities.SupportsUnicodePaths)
-            {
-                return TraceResult(NativeMethods.JetAttachDatabaseW(sesid.Value, database, (uint)grbit));
+            if (_capabilities.SupportsUnicodePaths) {
+                return Tracing.TraceResult(NativeMethods.JetAttachDatabaseW(sesid.Value, database, (uint)grbit));
             }
 
-            return TraceResult(NativeMethods.JetAttachDatabase(sesid.Value, database, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetAttachDatabase(sesid.Value, database, (uint)grbit));
         }
 
         /// <summary>
@@ -762,16 +533,16 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetAttachDatabase2(JET_SESID sesid, string database, int maxPages, AttachDatabaseGrbit grbit)
         {
-            TraceFunctionCall("JetAttachDatabase2");
+            Tracing.TraceFunctionCall("JetAttachDatabase2");
             CheckNotNull(database, "database");
             CheckNotNegative(maxPages, "maxPages");
 
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                return TraceResult(NativeMethods.JetAttachDatabase2W(sesid.Value, database, checked((uint)maxPages), (uint)grbit));
+                return Tracing.TraceResult(NativeMethods.JetAttachDatabase2W(sesid.Value, database, checked((uint)maxPages), (uint)grbit));
             }
 
-            return TraceResult(NativeMethods.JetAttachDatabase2(sesid.Value, database, checked((uint)maxPages), (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetAttachDatabase2(sesid.Value, database, checked((uint)maxPages), (uint)grbit));
         }
 
         /// <summary>
@@ -787,16 +558,16 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetOpenDatabase(JET_SESID sesid, string database, string connect, out JET_DBID dbid, OpenDatabaseGrbit grbit)
         {
-            TraceFunctionCall("JetOpenDatabase");
+            Tracing.TraceFunctionCall("JetOpenDatabase");
             CheckNotNull(database, "database");
             dbid = JET_DBID.Nil;
 
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                return TraceResult(NativeMethods.JetOpenDatabaseW(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
+                return Tracing.TraceResult(NativeMethods.JetOpenDatabaseW(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
             }
 
-            return TraceResult(NativeMethods.JetOpenDatabase(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetOpenDatabase(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -809,8 +580,8 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetCloseDatabase(JET_SESID sesid, JET_DBID dbid, CloseDatabaseGrbit grbit)
         {
-            TraceFunctionCall("JetCloseDatabase");
-            return TraceResult(NativeMethods.JetCloseDatabase(sesid.Value, dbid.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetCloseDatabase");
+            return Tracing.TraceResult(NativeMethods.JetCloseDatabase(sesid.Value, dbid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -821,14 +592,14 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetDetachDatabase(JET_SESID sesid, string database)
         {
-            TraceFunctionCall("JetDetachDatabase");
+            Tracing.TraceFunctionCall("JetDetachDatabase");
 
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                return TraceResult(NativeMethods.JetDetachDatabaseW(sesid.Value, database));
+                return Tracing.TraceResult(NativeMethods.JetDetachDatabaseW(sesid.Value, database));
             }
 
-            return TraceResult(NativeMethods.JetDetachDatabase(sesid.Value, database));
+            return Tracing.TraceResult(NativeMethods.JetDetachDatabase(sesid.Value, database));
         }
 
         /// <summary>
@@ -840,14 +611,14 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetDetachDatabase2(JET_SESID sesid, string database, DetachDatabaseGrbit grbit)
         {
-            TraceFunctionCall("JetDetachDatabase2");
+            Tracing.TraceFunctionCall("JetDetachDatabase2");
 
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                return TraceResult(NativeMethods.JetDetachDatabase2W(sesid.Value, database, (uint)grbit));
+                return Tracing.TraceResult(NativeMethods.JetDetachDatabase2W(sesid.Value, database, (uint)grbit));
             }
 
-            return TraceResult(NativeMethods.JetDetachDatabase2(sesid.Value, database, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetDetachDatabase2(sesid.Value, database, (uint)grbit));
         }
 
         /// <summary>
@@ -878,7 +649,7 @@ namespace EsentLib.Implementation
             object ignored,
             CompactGrbit grbit)
         {
-            TraceFunctionCall("JetCompact");
+            Tracing.TraceFunctionCall("JetCompact");
             CheckNotNull(sourceDatabase, "sourceDatabase");
             CheckNotNull(destinationDatabase, "destinationDatabase");
             if (null != ignored)
@@ -893,14 +664,14 @@ namespace EsentLib.Implementation
 #endif
 
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetCompactW(
+                err = Tracing.TraceResult(NativeMethods.JetCompactW(
                             sesid.Value, sourceDatabase, destinationDatabase, functionPointer, IntPtr.Zero, (uint)grbit));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetCompact(
+                err = Tracing.TraceResult(NativeMethods.JetCompact(
                             sesid.Value, sourceDatabase, destinationDatabase, functionPointer, IntPtr.Zero, (uint)grbit));
             }
 
@@ -920,11 +691,11 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGrowDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages, out int actualPages)
         {
-            TraceFunctionCall("JetGrowDatabase");
+            Tracing.TraceFunctionCall("JetGrowDatabase");
             CheckNotNegative(desiredPages, "desiredPages");
 
             uint actualPagesNative = 0;
-            int err = TraceResult(NativeMethods.JetGrowDatabase(
+            int err = Tracing.TraceResult(NativeMethods.JetGrowDatabase(
                         sesid.Value, dbid.Value, checked((uint)desiredPages), out actualPagesNative));
             actualPages = checked((int)actualPagesNative);
             return err;
@@ -942,20 +713,20 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetDatabaseSize(JET_SESID sesid, string database, int desiredPages, out int actualPages)
         {
-            TraceFunctionCall("JetSetDatabaseSize");
+            Tracing.TraceFunctionCall("JetSetDatabaseSize");
             CheckNotNegative(desiredPages, "desiredPages");
             CheckNotNull(database, "database");
 
             uint actualPagesNative = 0;
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetSetDatabaseSizeW(
+                err = Tracing.TraceResult(NativeMethods.JetSetDatabaseSizeW(
                             sesid.Value, database, checked((uint)desiredPages), out actualPagesNative));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetSetDatabaseSize(
+                err = Tracing.TraceResult(NativeMethods.JetSetDatabaseSize(
                             sesid.Value, database, checked((uint)desiredPages), out actualPagesNative));
             }
 
@@ -977,8 +748,8 @@ namespace EsentLib.Implementation
             out int value,
             JET_DbInfo infoLevel)
         {
-            TraceFunctionCall("JetGetDatabaseInfo");
-            return TraceResult(NativeMethods.JetGetDatabaseInfo(sesid.Value, dbid.Value, out value, sizeof(int), (uint)infoLevel));
+            Tracing.TraceFunctionCall("JetGetDatabaseInfo");
+            return Tracing.TraceResult(NativeMethods.JetGetDatabaseInfo(sesid.Value, dbid.Value, out value, sizeof(int), (uint)infoLevel));
         }
 
         /// <summary>
@@ -995,7 +766,7 @@ namespace EsentLib.Implementation
             out JET_DBINFOMISC dbinfomisc,
             JET_DbInfo infoLevel)
         {
-            TraceFunctionCall("JetGetDatabaseInfo");
+            Tracing.TraceFunctionCall("JetGetDatabaseInfo");
             int err = (int)JET_err.Success;
             dbinfomisc = null;
 
@@ -1006,10 +777,10 @@ namespace EsentLib.Implementation
             {
                 // The not-yet-published function in the other file set the 'ref' parameters.
             }
-            else if (this.Capabilities.SupportsWindows7Features)
+            else if (_capabilities.SupportsWindows7Features)
             {
                 NATIVE_DBINFOMISC4 native;
-                err = TraceResult(NativeMethods.JetGetDatabaseInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfoW(
                     sesid.Value,
                     dbid.Value,
                     out native,
@@ -1019,10 +790,10 @@ namespace EsentLib.Implementation
                 dbinfomisc = new JET_DBINFOMISC();
                 dbinfomisc.SetFromNativeDbinfoMisc(ref native);
             }
-            else if (this.Capabilities.SupportsVistaFeatures)
+            else if (_capabilities.SupportsVistaFeatures)
             {
                 NATIVE_DBINFOMISC native;
-                err = TraceResult(NativeMethods.JetGetDatabaseInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfoW(
                     sesid.Value,
                     dbid.Value,
                     out native,
@@ -1035,7 +806,7 @@ namespace EsentLib.Implementation
             else
             {
                 NATIVE_DBINFOMISC native;
-                err = TraceResult(NativeMethods.JetGetDatabaseInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfo(
                     sesid.Value,
                     dbid.Value,
                     out native,
@@ -1061,18 +832,18 @@ namespace EsentLib.Implementation
             out string value,
             JET_DbInfo infoLevel)
         {
-            TraceFunctionCall("JetGetDatabaseInfo");
+            Tracing.TraceFunctionCall("JetGetDatabaseInfo");
             int err;
 
             const int MaxCharacters = 1024;
             StringBuilder sb = new StringBuilder(MaxCharacters);
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetGetDatabaseInfoW(sesid.Value, dbid.Value, sb, MaxCharacters, (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfoW(sesid.Value, dbid.Value, sb, MaxCharacters, (uint)infoLevel));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetDatabaseInfo(sesid.Value, dbid.Value, sb, MaxCharacters, (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfo(sesid.Value, dbid.Value, sb, MaxCharacters, (uint)infoLevel));
             }
 
             value = sb.ToString();
@@ -1091,16 +862,16 @@ namespace EsentLib.Implementation
             out int value,
             JET_DbInfo infoLevel)
         {
-            TraceFunctionCall("JetGetDatabaseFileInfo");
+            Tracing.TraceFunctionCall("JetGetDatabaseFileInfo");
             int err;
 
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out value, sizeof(int), (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out value, sizeof(int), (uint)infoLevel));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out value, sizeof(int), (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out value, sizeof(int), (uint)infoLevel));
             }
 
             return err;
@@ -1118,16 +889,16 @@ namespace EsentLib.Implementation
             out long value,
             JET_DbInfo infoLevel)
         {
-            TraceFunctionCall("JetGetDatabaseFileInfo");
+            Tracing.TraceFunctionCall("JetGetDatabaseFileInfo");
             int err;
 
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out value, sizeof(long), (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out value, sizeof(long), (uint)infoLevel));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out value, sizeof(long), (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out value, sizeof(long), (uint)infoLevel));
             }
 
             return err;
@@ -1145,7 +916,7 @@ namespace EsentLib.Implementation
             out JET_DBINFOMISC dbinfomisc,
             JET_DbInfo infoLevel)
         {
-            TraceFunctionCall("JetGetDatabaseFileInfo");
+            Tracing.TraceFunctionCall("JetGetDatabaseFileInfo");
             int err = (int)JET_err.Success;
             dbinfomisc = null;
 
@@ -1156,11 +927,11 @@ namespace EsentLib.Implementation
             {
                 // The not-yet-published function in the other file set the 'ref' parameters.
             }
-            else if (this.Capabilities.SupportsWindows7Features)
+            else if (_capabilities.SupportsWindows7Features)
             {
                 // Windows7 -> Unicode path support
                 NATIVE_DBINFOMISC4 native;
-                err = TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC4)), (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC4)), (uint)infoLevel));
 
                 dbinfomisc = new JET_DBINFOMISC();
                 dbinfomisc.SetFromNativeDbinfoMisc(ref native);
@@ -1168,13 +939,13 @@ namespace EsentLib.Implementation
             else
             {
                 NATIVE_DBINFOMISC native;
-                if (this.Capabilities.SupportsUnicodePaths)
+                if (_capabilities.SupportsUnicodePaths)
                 {
-                    err = TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)), (uint)infoLevel));
+                    err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)), (uint)infoLevel));
                 }
                 else
                 {
-                    err = TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)), (uint)infoLevel));
+                    err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)), (uint)infoLevel));
                 }
 
                 dbinfomisc = new JET_DBINFOMISC();
@@ -1206,7 +977,7 @@ namespace EsentLib.Implementation
         public int JetBackupInstance(
             JET_INSTANCE instance, string destination, BackupGrbit grbit, JET_PFNSTATUS statusCallback)
         {
-            TraceFunctionCall("JetBackupInstance");
+            Tracing.TraceFunctionCall("JetBackupInstance");
 
             var callbackWrapper = new StatusCallbackWrapper(statusCallback);
             IntPtr functionPointer = (null == statusCallback) ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callbackWrapper.NativeCallback);
@@ -1214,13 +985,13 @@ namespace EsentLib.Implementation
             GC.Collect();
 #endif
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetBackupInstanceW(instance.Value, destination, (uint)grbit, functionPointer));
+                err = Tracing.TraceResult(NativeMethods.JetBackupInstanceW(instance.Value, destination, (uint)grbit, functionPointer));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetBackupInstance(instance.Value, destination, (uint)grbit, functionPointer));
+                err = Tracing.TraceResult(NativeMethods.JetBackupInstance(instance.Value, destination, (uint)grbit, functionPointer));
             }
 
             callbackWrapper.ThrowSavedException();
@@ -1249,7 +1020,7 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public int JetRestoreInstance(JET_INSTANCE instance, string source, string destination, JET_PFNSTATUS statusCallback)
         {
-            TraceFunctionCall("JetRestoreInstance");
+            Tracing.TraceFunctionCall("JetRestoreInstance");
             CheckNotNull(source, "source");
 
             var callbackWrapper = new StatusCallbackWrapper(statusCallback);
@@ -1259,13 +1030,13 @@ namespace EsentLib.Implementation
 #endif
 
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetRestoreInstanceW(instance.Value, source, destination, functionPointer));
+                err = Tracing.TraceResult(NativeMethods.JetRestoreInstanceW(instance.Value, source, destination, functionPointer));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetRestoreInstance(instance.Value, source, destination, functionPointer));
+                err = Tracing.TraceResult(NativeMethods.JetRestoreInstance(instance.Value, source, destination, functionPointer));
             }
 
             callbackWrapper.ThrowSavedException();
@@ -1287,9 +1058,9 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetOSSnapshotPrepare(out JET_OSSNAPID snapid, SnapshotPrepareGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotPrepare");
+            Tracing.TraceFunctionCall("JetOSSnapshotPrepare");
             snapid = JET_OSSNAPID.Nil;
-            return TraceResult(NativeMethods.JetOSSnapshotPrepare(out snapid.Value, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetOSSnapshotPrepare(out snapid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1301,9 +1072,9 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetOSSnapshotPrepareInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotPrepareInstanceGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotPrepareInstance");
-            this.CheckSupportsVistaFeatures("JetOSSnapshotPrepareInstance");
-            return TraceResult(NativeMethods.JetOSSnapshotPrepareInstance(snapshot.Value, instance.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetOSSnapshotPrepareInstance");
+            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotPrepareInstance");
+            return Tracing.TraceResult(NativeMethods.JetOSSnapshotPrepareInstance(snapshot.Value, instance.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1323,27 +1094,14 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetOSSnapshotFreeze(JET_OSSNAPID snapshot, out int numInstances, out JET_INSTANCE_INFO[] instances, SnapshotFreezeGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotFreeze");
-
-            unsafe
-            {
+            Tracing.TraceFunctionCall("JetOSSnapshotFreeze");
+            unsafe {
                 uint nativeNumInstance = 0;
                 NATIVE_INSTANCE_INFO* nativeInstanceInfos = null;
-                int err;
-                if (this.Capabilities.SupportsUnicodePaths)
-                {
-                    err = NativeMethods.JetOSSnapshotFreezeW(snapshot.Value, out nativeNumInstance, out nativeInstanceInfos, (uint)grbit);
-                    instances = this.ConvertInstanceInfosUnicode(nativeNumInstance, nativeInstanceInfos);
-                }
-                else
-                {
-                    err = NativeMethods.JetOSSnapshotFreeze(snapshot.Value, out nativeNumInstance, out nativeInstanceInfos, (uint)grbit);
-                    instances = this.ConvertInstanceInfosAscii(nativeNumInstance, nativeInstanceInfos);
-                }
-
+                int returnCode = NativeMethods.JetOSSnapshotFreezeW(snapshot.Value, out nativeNumInstance, out nativeInstanceInfos, (uint)grbit);
+                instances = JET_INSTANCE_INFO.FromNativeCollection(nativeNumInstance, nativeInstanceInfos);
                 numInstances = instances.Length;
-
-                return TraceResult(err);
+                return Tracing.TraceResult(returnCode);
             }
         }
 
@@ -1356,25 +1114,20 @@ namespace EsentLib.Implementation
         /// <param name="instances">Returns information about the instances.</param>
         /// <param name="grbit">Options for this call.</param>
         /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotGetFreezeInfo(
-            JET_OSSNAPID snapshot,
-            out int numInstances,
-            out JET_INSTANCE_INFO[] instances,
-            SnapshotGetFreezeInfoGrbit grbit)
+        public int JetOSSnapshotGetFreezeInfo(JET_OSSNAPID snapshot, out int numInstances,
+            out JET_INSTANCE_INFO[] instances, SnapshotGetFreezeInfoGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotGetFreezeInfo");
-            this.CheckSupportsVistaFeatures("JetOSSnapshotGetFreezeInfo");
-            Debug.Assert(this.Capabilities.SupportsUnicodePaths, "JetOSSnapshotGetFreezeInfo is always Unicode");
+            Tracing.TraceFunctionCall("JetOSSnapshotGetFreezeInfo");
+            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotGetFreezeInfo");
+            Debug.Assert(_capabilities.SupportsUnicodePaths, "JetOSSnapshotGetFreezeInfo is always Unicode");
 
-            unsafe
-            {
+            unsafe {
                 uint nativeNumInstance = 0;
                 NATIVE_INSTANCE_INFO* nativeInstanceInfos = null;
-                int err = NativeMethods.JetOSSnapshotGetFreezeInfoW(snapshot.Value, out nativeNumInstance, out nativeInstanceInfos, (uint)grbit);
-                instances = this.ConvertInstanceInfosUnicode(nativeNumInstance, nativeInstanceInfos);
+                int returncode = NativeMethods.JetOSSnapshotGetFreezeInfoW(snapshot.Value, out nativeNumInstance, out nativeInstanceInfos, (uint)grbit);
+                instances = JET_INSTANCE_INFO.FromNativeCollection(nativeNumInstance, nativeInstanceInfos);
                 numInstances = instances.Length;
-
-                return TraceResult(err);
+                return Tracing.TraceResult(returncode);
             }
         }
 
@@ -1387,8 +1140,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetOSSnapshotThaw(JET_OSSNAPID snapid, SnapshotThawGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotThaw");
-            return TraceResult(NativeMethods.JetOSSnapshotThaw(snapid.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetOSSnapshotThaw");
+            return Tracing.TraceResult(NativeMethods.JetOSSnapshotThaw(snapid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1404,9 +1157,9 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetOSSnapshotTruncateLog(JET_OSSNAPID snapshot, SnapshotTruncateLogGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotTruncateLog");
-            this.CheckSupportsVistaFeatures("JetOSSnapshotTruncateLog");
-            return TraceResult(NativeMethods.JetOSSnapshotTruncateLog(snapshot.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetOSSnapshotTruncateLog");
+            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotTruncateLog");
+            return Tracing.TraceResult(NativeMethods.JetOSSnapshotTruncateLog(snapshot.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1423,9 +1176,9 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetOSSnapshotTruncateLogInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotTruncateLogGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotTruncateLogInstance");
-            this.CheckSupportsVistaFeatures("JetOSSnapshotTruncateLogInstance");
-            return TraceResult(NativeMethods.JetOSSnapshotTruncateLogInstance(snapshot.Value, instance.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetOSSnapshotTruncateLogInstance");
+            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotTruncateLogInstance");
+            return Tracing.TraceResult(NativeMethods.JetOSSnapshotTruncateLogInstance(snapshot.Value, instance.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1436,9 +1189,9 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public int JetOSSnapshotEnd(JET_OSSNAPID snapid, SnapshotEndGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotEnd");
-            this.CheckSupportsVistaFeatures("JetOSSnapshotEnd");
-            return TraceResult(NativeMethods.JetOSSnapshotEnd(snapid.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetOSSnapshotEnd");
+            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotEnd");
+            return Tracing.TraceResult(NativeMethods.JetOSSnapshotEnd(snapid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1450,9 +1203,9 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public int JetOSSnapshotAbort(JET_OSSNAPID snapid, SnapshotAbortGrbit grbit)
         {
-            TraceFunctionCall("JetOSSnapshotAbort");
+            Tracing.TraceFunctionCall("JetOSSnapshotAbort");
             this.CheckSupportsServer2003Features("JetOSSnapshotAbort");
-            return TraceResult(NativeMethods.JetOSSnapshotAbort(snapid.Value, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetOSSnapshotAbort(snapid.Value, (uint)grbit));
         }
         #endregion
 
@@ -1466,8 +1219,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetBeginExternalBackupInstance(JET_INSTANCE instance, BeginExternalBackupGrbit grbit)
         {
-            TraceFunctionCall("JetBeginExternalBackupInstance");
-            return TraceResult(NativeMethods.JetBeginExternalBackupInstance(instance.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetBeginExternalBackupInstance");
+            return Tracing.TraceResult(NativeMethods.JetBeginExternalBackupInstance(instance.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1479,8 +1232,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetCloseFileInstance(JET_INSTANCE instance, JET_HANDLE handle)
         {
-            TraceFunctionCall("JetCloseFileInstance");
-            return TraceResult(NativeMethods.JetCloseFileInstance(instance.Value, handle.Value));
+            Tracing.TraceFunctionCall("JetCloseFileInstance");
+            return Tracing.TraceResult(NativeMethods.JetCloseFileInstance(instance.Value, handle.Value));
         }
 
         /// <summary>
@@ -1492,8 +1245,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetEndExternalBackupInstance(JET_INSTANCE instance)
         {
-            TraceFunctionCall("JetEndExternalBackupInstance");
-            return TraceResult(NativeMethods.JetEndExternalBackupInstance(instance.Value));
+            Tracing.TraceFunctionCall("JetEndExternalBackupInstance");
+            return Tracing.TraceResult(NativeMethods.JetEndExternalBackupInstance(instance.Value));
         }
 
         /// <summary>
@@ -1506,8 +1259,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetEndExternalBackupInstance2(JET_INSTANCE instance, EndExternalBackupGrbit grbit)
         {
-            TraceFunctionCall("JetEndExternalBackupInstance2");
-            return TraceResult(NativeMethods.JetEndExternalBackupInstance2(instance.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetEndExternalBackupInstance2");
+            return Tracing.TraceResult(NativeMethods.JetEndExternalBackupInstance2(instance.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1540,17 +1293,17 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetGetAttachInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
         {
-            TraceFunctionCall("JetGetAttachInfoInstance");
+            Tracing.TraceFunctionCall("JetGetAttachInfoInstance");
             CheckNotNegative(maxChars, "maxChars");
 
             // These strings have embedded nulls so we can't use a StringBuilder.
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
                 uint bytesMax = checked((uint)maxChars) * sizeof(char);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
-                err = TraceResult(NativeMethods.JetGetAttachInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
+                err = Tracing.TraceResult(NativeMethods.JetGetAttachInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
                 actualChars = checked((int)bytesActual) / sizeof(char);
                 files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
@@ -1559,7 +1312,7 @@ namespace EsentLib.Implementation
                 uint bytesMax = checked((uint)maxChars);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
-                err = TraceResult(NativeMethods.JetGetAttachInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
+                err = Tracing.TraceResult(NativeMethods.JetGetAttachInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
                 actualChars = checked((int)bytesActual);
                 files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
@@ -1595,17 +1348,17 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetGetLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
         {
-            TraceFunctionCall("JetGetLogInfoInstance");
+            Tracing.TraceFunctionCall("JetGetLogInfoInstance");
             CheckNotNegative(maxChars, "maxChars");
 
             // These strings have embedded nulls so we can't use a StringBuilder.
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
                 uint bytesMax = checked((uint)maxChars) * sizeof(char);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
-                err = TraceResult(NativeMethods.JetGetLogInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
+                err = Tracing.TraceResult(NativeMethods.JetGetLogInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
                 actualChars = checked((int)bytesActual) / sizeof(char);
                 files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
@@ -1614,7 +1367,7 @@ namespace EsentLib.Implementation
                 uint bytesMax = checked((uint)maxChars);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
-                err = TraceResult(NativeMethods.JetGetLogInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
+                err = Tracing.TraceResult(NativeMethods.JetGetLogInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
                 actualChars = checked((int)bytesActual);
                 files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
@@ -1649,17 +1402,17 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetGetTruncateLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
         {
-            TraceFunctionCall("JetGetTruncateLogInfoInstance");
+            Tracing.TraceFunctionCall("JetGetTruncateLogInfoInstance");
             CheckNotNegative(maxChars, "maxChars");
 
             // These strings have embedded nulls so we can't use a StringBuilder.
             int err;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
                 uint bytesMax = checked((uint)maxChars) * sizeof(char);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
-                err = TraceResult(NativeMethods.JetGetTruncateLogInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
+                err = Tracing.TraceResult(NativeMethods.JetGetTruncateLogInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
                 actualChars = checked((int)bytesActual) / sizeof(char);
                 files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
@@ -1668,7 +1421,7 @@ namespace EsentLib.Implementation
                 uint bytesMax = checked((uint)maxChars);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
-                err = TraceResult(NativeMethods.JetGetTruncateLogInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
+                err = Tracing.TraceResult(NativeMethods.JetGetTruncateLogInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
                 actualChars = checked((int)bytesActual);
                 files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
@@ -1693,20 +1446,20 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetOpenFileInstance(JET_INSTANCE instance, string file, out JET_HANDLE handle, out long fileSizeLow, out long fileSizeHigh)
         {
-            TraceFunctionCall("JetOpenFileInstance");
+            Tracing.TraceFunctionCall("JetOpenFileInstance");
             CheckNotNull(file, "file");
             handle = JET_HANDLE.Nil;
             int err;
             uint nativeFileSizeLow;
             uint nativeFileSizeHigh;
-            if (this.Capabilities.SupportsUnicodePaths)
+            if (_capabilities.SupportsUnicodePaths)
             {
-                err = TraceResult(NativeMethods.JetOpenFileInstanceW(
+                err = Tracing.TraceResult(NativeMethods.JetOpenFileInstanceW(
                             instance.Value, file, out handle.Value, out nativeFileSizeLow, out nativeFileSizeHigh));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetOpenFileInstance(
+                err = Tracing.TraceResult(NativeMethods.JetOpenFileInstance(
                             instance.Value, file, out handle.Value, out nativeFileSizeLow, out nativeFileSizeHigh));
             }
 
@@ -1726,7 +1479,7 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetReadFileInstance(JET_INSTANCE instance, JET_HANDLE file, byte[] buffer, int bufferSize, out int bytesRead)
         {
-            TraceFunctionCall("JetReadFileInstance");
+            Tracing.TraceFunctionCall("JetReadFileInstance");
             CheckNotNull(buffer, "buffer");
             CheckDataSize(buffer, bufferSize, "bufferSize");
 
@@ -1743,7 +1496,7 @@ namespace EsentLib.Implementation
             {
                 uint nativeBytesRead = 0;
                 int err =
-                    TraceResult(
+                    Tracing.TraceResult(
                         NativeMethods.JetReadFileInstance(
                             instance.Value, file.Value, alignedBuffer, checked((uint)bufferSize), out nativeBytesRead));
                 bytesRead = checked((int)nativeBytesRead);
@@ -1768,8 +1521,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         public int JetTruncateLogInstance(JET_INSTANCE instance)
         {
-            TraceFunctionCall("JetTruncateLogInstance");
-            return TraceResult(NativeMethods.JetTruncateLogInstance(instance.Value));
+            Tracing.TraceFunctionCall("JetTruncateLogInstance");
+            return Tracing.TraceResult(NativeMethods.JetTruncateLogInstance(instance.Value));
         }
         #endregion
 
@@ -1786,8 +1539,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetSessionContext(JET_SESID sesid, IntPtr context)
         {
-            TraceFunctionCall("JetSetSessionContext");
-            return TraceResult(NativeMethods.JetSetSessionContext(sesid.Value, context));
+            Tracing.TraceFunctionCall("JetSetSessionContext");
+            return Tracing.TraceResult(NativeMethods.JetSetSessionContext(sesid.Value, context));
         }
 
         /// <summary>
@@ -1798,8 +1551,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetResetSessionContext(JET_SESID sesid)
         {
-            TraceFunctionCall("JetResetSessionContext");
-            return TraceResult(NativeMethods.JetResetSessionContext(sesid.Value));
+            Tracing.TraceFunctionCall("JetResetSessionContext");
+            return Tracing.TraceResult(NativeMethods.JetResetSessionContext(sesid.Value));
         }
 
         /// <summary>
@@ -1810,9 +1563,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetDupSession(JET_SESID sesid, out JET_SESID newSesid)
         {
-            TraceFunctionCall("JetDupSession");
+            Tracing.TraceFunctionCall("JetDupSession");
             newSesid = JET_SESID.Nil;
-            return TraceResult(NativeMethods.JetDupSession(sesid.Value, out newSesid.Value));
+            return Tracing.TraceResult(NativeMethods.JetDupSession(sesid.Value, out newSesid.Value));
         }
 
         /// <summary>
@@ -1827,8 +1580,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the operation fails.</returns>
         public int JetGetThreadStats(out JET_THREADSTATS threadstats)
         {
-            TraceFunctionCall("JetGetThreadStats");
-            this.CheckSupportsVistaFeatures("JetGetThreadStats");
+            Tracing.TraceFunctionCall("JetGetThreadStats");
+            _capabilities.CheckSupportsVistaFeatures("JetGetThreadStats");
 
             // To speed up the interop we use unsafe code to avoid initializing
             // the out parameter. We just call the interop code.
@@ -1836,7 +1589,7 @@ namespace EsentLib.Implementation
             {
                 fixed (JET_THREADSTATS* rawJetThreadstats = &threadstats)
                 {
-                    return TraceResult(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS.Size)));
+                    return Tracing.TraceResult(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS.Size)));
                 }
             }
         }
@@ -1858,12 +1611,12 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetOpenTable(JET_SESID sesid, JET_DBID dbid, string tablename, byte[] parameters, int parametersLength, OpenTableGrbit grbit, out JET_TABLEID tableid)
         {
-            TraceFunctionCall("JetOpenTable");
+            Tracing.TraceFunctionCall("JetOpenTable");
             tableid = JET_TABLEID.Nil;
             CheckNotNull(tablename, "tablename");
             CheckDataSize(parameters, parametersLength, "parametersLength");
 
-            return TraceResult(NativeMethods.JetOpenTable(sesid.Value, dbid.Value, tablename, parameters, checked((uint)parametersLength), (uint)grbit, out tableid.Value));
+            return Tracing.TraceResult(NativeMethods.JetOpenTable(sesid.Value, dbid.Value, tablename, parameters, checked((uint)parametersLength), (uint)grbit, out tableid.Value));
         }
 
         /// <summary>
@@ -1874,8 +1627,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetCloseTable(JET_SESID sesid, JET_TABLEID tableid)
         {
-            TraceFunctionCall("JetCloseTable");
-            return TraceResult(NativeMethods.JetCloseTable(sesid.Value, tableid.Value));
+            Tracing.TraceFunctionCall("JetCloseTable");
+            return Tracing.TraceResult(NativeMethods.JetCloseTable(sesid.Value, tableid.Value));
         }
 
         /// <summary>
@@ -1895,9 +1648,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetDupCursor(JET_SESID sesid, JET_TABLEID tableid, out JET_TABLEID newTableid, DupCursorGrbit grbit)
         {
-            TraceFunctionCall("JetDupCursor");
+            Tracing.TraceFunctionCall("JetDupCursor");
             newTableid = JET_TABLEID.Nil;
-            return TraceResult(NativeMethods.JetDupCursor(sesid.Value, tableid.Value, out newTableid.Value, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetDupCursor(sesid.Value, tableid.Value, out newTableid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1913,8 +1666,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetComputeStats(JET_SESID sesid, JET_TABLEID tableid)
         {
-            TraceFunctionCall("JetComputeStats");
-            return TraceResult(NativeMethods.JetComputeStats(sesid.Value, tableid.Value));
+            Tracing.TraceFunctionCall("JetComputeStats");
+            return Tracing.TraceResult(NativeMethods.JetComputeStats(sesid.Value, tableid.Value));
         }
 
         /// <summary>
@@ -1933,8 +1686,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetLS(JET_SESID sesid, JET_TABLEID tableid, JET_LS ls, LsGrbit grbit)
         {
-            TraceFunctionCall("JetSetLS");
-            return TraceResult(NativeMethods.JetSetLS(sesid.Value, tableid.Value, ls.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetSetLS");
+            return Tracing.TraceResult(NativeMethods.JetSetLS(sesid.Value, tableid.Value, ls.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -1952,11 +1705,11 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetLS(JET_SESID sesid, JET_TABLEID tableid, out JET_LS ls, LsGrbit grbit)
         {
-            TraceFunctionCall("JetGetLS");
+            Tracing.TraceFunctionCall("JetGetLS");
             IntPtr native;
             int err = NativeMethods.JetGetLS(sesid.Value, tableid.Value, out native, (uint)grbit);
             ls = new JET_LS { Value = native };
-            return TraceResult(err);
+            return Tracing.TraceResult(err);
         }
 
         /// <summary>
@@ -1972,8 +1725,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid)
         {
-            TraceFunctionCall("JetGetCursorInfo");
-            return TraceResult(NativeMethods.JetGetCursorInfo(sesid.Value, tableid.Value, IntPtr.Zero, 0, 0));
+            Tracing.TraceFunctionCall("JetGetCursorInfo");
+            return Tracing.TraceResult(NativeMethods.JetGetCursorInfo(sesid.Value, tableid.Value, IntPtr.Zero, 0, 0));
         }
 
         #endregion
@@ -1988,7 +1741,7 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetBeginTransaction(JET_SESID sesid)
         {
-            return TraceResult(NativeMethods.JetBeginTransaction(sesid.Value));
+            return Tracing.TraceResult(NativeMethods.JetBeginTransaction(sesid.Value));
         }
 
         /// <summary>
@@ -2000,8 +1753,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetBeginTransaction2(JET_SESID sesid, BeginTransactionGrbit grbit)
         {
-            TraceFunctionCall("JetBeginTransaction2");
-            return TraceResult(NativeMethods.JetBeginTransaction2(sesid.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetBeginTransaction2");
+            return Tracing.TraceResult(NativeMethods.JetBeginTransaction2(sesid.Value, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -2015,8 +1768,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetCommitTransaction(JET_SESID sesid, CommitTransactionGrbit grbit)
         {
-            TraceFunctionCall("JetCommitTransaction");
-            return TraceResult(NativeMethods.JetCommitTransaction(sesid.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetCommitTransaction");
+            return Tracing.TraceResult(NativeMethods.JetCommitTransaction(sesid.Value, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -2030,8 +1783,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetRollback(JET_SESID sesid, RollbackTransactionGrbit grbit)
         {
-            TraceFunctionCall("JetRollback");
-            return TraceResult(NativeMethods.JetRollback(sesid.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetRollback");
+            return Tracing.TraceResult(NativeMethods.JetRollback(sesid.Value, unchecked((uint)grbit)));
         }
 
         #endregion
@@ -2052,11 +1805,11 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetCreateTable(JET_SESID sesid, JET_DBID dbid, string table, int pages, int density, out JET_TABLEID tableid)
         {
-            TraceFunctionCall("JetCreateTable");
+            Tracing.TraceFunctionCall("JetCreateTable");
             tableid = JET_TABLEID.Nil;
             CheckNotNull(table, "table");
 
-            return TraceResult(NativeMethods.JetCreateTable(sesid.Value, dbid.Value, table, pages, density, out tableid.Value));
+            return Tracing.TraceResult(NativeMethods.JetCreateTable(sesid.Value, dbid.Value, table, pages, density, out tableid.Value));
         }
 
         /// <summary>
@@ -2068,10 +1821,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetDeleteTable(JET_SESID sesid, JET_DBID dbid, string table)
         {
-            TraceFunctionCall("JetDeleteTable");
+            Tracing.TraceFunctionCall("JetDeleteTable");
             CheckNotNull(table, "table");
 
-            return TraceResult(NativeMethods.JetDeleteTable(sesid.Value, dbid.Value, table));
+            return Tracing.TraceResult(NativeMethods.JetDeleteTable(sesid.Value, dbid.Value, table));
         }
 
         /// <summary>
@@ -2089,14 +1842,14 @@ namespace EsentLib.Implementation
             JET_COLUMNDEF columndef, byte[] defaultValue, int defaultValueSize,
             out JET_COLUMNID columnid)
         {
-            TraceFunctionCall("JetAddColumn");
+            Tracing.TraceFunctionCall("JetAddColumn");
             columnid = JET_COLUMNID.Nil;
             CheckNotNull(column, "column");
             CheckNotNull(columndef, "columndef");
             CheckDataSize(defaultValue, defaultValueSize, "defaultValueSize");
 
             NATIVE_COLUMNDEF nativeColumndef = columndef.GetNativeColumndef();
-            int err = TraceResult(NativeMethods.JetAddColumn(sesid.Value, tableid.Value, column,
+            int err = Tracing.TraceResult(NativeMethods.JetAddColumn(sesid.Value, tableid.Value, column,
                 ref nativeColumndef, defaultValue, checked((uint)defaultValueSize),
                 out columnid.Value));
             // esent doesn't actually set the columnid member of the passed in JET_COLUMNDEF, but we will do that here for
@@ -2114,9 +1867,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetDeleteColumn(JET_SESID sesid, JET_TABLEID tableid, string column)
         {
-            TraceFunctionCall("JetDeleteColumn");
+            Tracing.TraceFunctionCall("JetDeleteColumn");
             CheckNotNull(column, "column");
-            return TraceResult(NativeMethods.JetDeleteColumn(sesid.Value, tableid.Value, column));
+            return Tracing.TraceResult(NativeMethods.JetDeleteColumn(sesid.Value, tableid.Value, column));
         }
 
         /// <summary>
@@ -2129,9 +1882,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetDeleteColumn2(JET_SESID sesid, JET_TABLEID tableid, string column, DeleteColumnGrbit grbit)
         {
-            TraceFunctionCall("JetDeleteColumn2");
+            Tracing.TraceFunctionCall("JetDeleteColumn2");
             CheckNotNull(column, "column");
-            return TraceResult(NativeMethods.JetDeleteColumn2(sesid.Value, tableid.Value, column, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetDeleteColumn2(sesid.Value, tableid.Value, column, (uint)grbit));
         }
 
         /// <summary>
@@ -2161,7 +1914,7 @@ namespace EsentLib.Implementation
             int keyDescriptionLength,
             int density)
         {
-            TraceFunctionCall("JetCreateIndex");
+            Tracing.TraceFunctionCall("JetCreateIndex");
             CheckNotNull(indexName, "indexName");
             CheckNotNegative(keyDescriptionLength, "keyDescriptionLength");
             CheckNotNegative(density, "density");
@@ -2171,7 +1924,7 @@ namespace EsentLib.Implementation
                     "keyDescriptionLength", keyDescriptionLength, "cannot be greater than keyDescription.Length");
             }
 
-            return TraceResult(NativeMethods.JetCreateIndex(
+            return Tracing.TraceResult(NativeMethods.JetCreateIndex(
                 sesid.Value,
                 tableid.Value,
                 indexName,
@@ -2195,7 +1948,7 @@ namespace EsentLib.Implementation
             JET_INDEXCREATE[] indexcreates,
             int numIndexCreates)
         {
-            TraceFunctionCall("JetCreateIndex2");
+            Tracing.TraceFunctionCall("JetCreateIndex2");
             CheckNotNull(indexcreates, "indexcreates");
             CheckNotNegative(numIndexCreates, "numIndexCreates");
             if (numIndexCreates > indexcreates.Length)
@@ -2207,12 +1960,12 @@ namespace EsentLib.Implementation
             // NOTE: Don't call CreateIndexes3() on Win8. Unlike other APIs, CreateIndexes3() is
             // not a superset. It requires locale names, and if the user called JetCreateIndex2(),
             // the input will likely have LCIDs.
-            if (this.Capabilities.SupportsWindows7Features)
+            if (_capabilities.SupportsWindows7Features)
             {
                 return CreateIndexes2(sesid, tableid, indexcreates, numIndexCreates);
             }
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
                 return CreateIndexes1(sesid, tableid, indexcreates, numIndexCreates);
             }
@@ -2229,10 +1982,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetDeleteIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
         {
-            TraceFunctionCall("JetDeleteIndex");
+            Tracing.TraceFunctionCall("JetDeleteIndex");
             CheckNotNull(index, "index");
 
-            return TraceResult(NativeMethods.JetDeleteIndex(sesid.Value, tableid.Value, index));
+            return Tracing.TraceResult(NativeMethods.JetDeleteIndex(sesid.Value, tableid.Value, index));
         }
 
         /// <summary>
@@ -2268,7 +2021,7 @@ namespace EsentLib.Implementation
             out JET_TABLEID tableid,
             JET_COLUMNID[] columnids)
         {
-            TraceFunctionCall("JetOpenTempTable");
+            Tracing.TraceFunctionCall("JetOpenTempTable");
             CheckNotNull(columns, "columnns");
             CheckDataSize(columns, numColumns, "numColumns");
             CheckNotNull(columnids, "columnids");
@@ -2279,7 +2032,7 @@ namespace EsentLib.Implementation
             NATIVE_COLUMNDEF[] nativecolumndefs = GetNativecolumndefs(columns, numColumns);
             var nativecolumnids = new uint[numColumns];
 
-            int err = TraceResult(NativeMethods.JetOpenTempTable(
+            int err = Tracing.TraceResult(NativeMethods.JetOpenTempTable(
                 sesid.Value, nativecolumndefs, checked((uint)numColumns), (uint)grbit, out tableid.Value, nativecolumnids));
 
             SetColumnids(columns, columnids, nativecolumnids, numColumns);
@@ -2326,7 +2079,7 @@ namespace EsentLib.Implementation
             out JET_TABLEID tableid,
             JET_COLUMNID[] columnids)
         {
-            TraceFunctionCall("JetOpenTempTable2");
+            Tracing.TraceFunctionCall("JetOpenTempTable2");
             CheckNotNull(columns, "columnns");
             CheckDataSize(columns, numColumns, "numColumns");
             CheckNotNull(columnids, "columnids");
@@ -2337,7 +2090,7 @@ namespace EsentLib.Implementation
             NATIVE_COLUMNDEF[] nativecolumndefs = GetNativecolumndefs(columns, numColumns);
             var nativecolumnids = new uint[numColumns];
 
-            int err = TraceResult(NativeMethods.JetOpenTempTable2(
+            int err = Tracing.TraceResult(NativeMethods.JetOpenTempTable2(
                 sesid.Value, nativecolumndefs, checked((uint)numColumns), (uint)lcid, (uint)grbit, out tableid.Value, nativecolumnids));
 
             SetColumnids(columns, columnids, nativecolumnids, numColumns);
@@ -2384,7 +2137,7 @@ namespace EsentLib.Implementation
             out JET_TABLEID tableid,
             JET_COLUMNID[] columnids)
         {
-            TraceFunctionCall("JetOpenTempTable3");
+            Tracing.TraceFunctionCall("JetOpenTempTable3");
             CheckNotNull(columns, "columnns");
             CheckDataSize(columns, numColumns, "numColumns");
             CheckNotNull(columnids, "columnids");
@@ -2399,12 +2152,12 @@ namespace EsentLib.Implementation
             if (null != unicodeindex)
             {
                 NATIVE_UNICODEINDEX nativeunicodeindex = unicodeindex.GetNativeUnicodeIndex();
-                err = TraceResult(NativeMethods.JetOpenTempTable3(
+                err = Tracing.TraceResult(NativeMethods.JetOpenTempTable3(
                     sesid.Value, nativecolumndefs, checked((uint)numColumns), ref nativeunicodeindex, (uint)grbit, out tableid.Value, nativecolumnids));
             }
             else
             {
-                err = TraceResult(NativeMethods.JetOpenTempTable3(
+                err = Tracing.TraceResult(NativeMethods.JetOpenTempTable3(
                     sesid.Value, nativecolumndefs, checked((uint)numColumns), IntPtr.Zero, (uint)grbit, out tableid.Value, nativecolumnids));
             }
 
@@ -2433,8 +2186,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public int JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
-            TraceFunctionCall("JetOpenTemporaryTable");
-            this.CheckSupportsVistaFeatures("JetOpenTemporaryTable");
+            Tracing.TraceFunctionCall("JetOpenTemporaryTable");
+            _capabilities.CheckSupportsVistaFeatures("JetOpenTemporaryTable");
             CheckNotNull(temporarytable, "temporarytable");
 
             NATIVE_OPENTEMPORARYTABLE nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable();
@@ -2454,7 +2207,7 @@ namespace EsentLib.Implementation
                     }
 
                     // Call the interop method
-                    int err = TraceResult(NativeMethods.JetOpenTemporaryTable(sesid.Value, ref nativetemporarytable));
+                    int err = Tracing.TraceResult(NativeMethods.JetOpenTemporaryTable(sesid.Value, ref nativetemporarytable));
 
                     // Convert the return values
                     SetColumnids(temporarytable.prgcolumndef, temporarytable.prgcolumnid, nativecolumnids, temporarytable.ccolumn);
@@ -2477,10 +2230,10 @@ namespace EsentLib.Implementation
             JET_DBID dbid,
             JET_TABLECREATE tablecreate)
         {
-            TraceFunctionCall("JetCreateTableColumnIndex3");
+            Tracing.TraceFunctionCall("JetCreateTableColumnIndex3");
             CheckNotNull(tablecreate, "tablecreate");
 
-            if (this.Capabilities.SupportsWindows7Features)
+            if (_capabilities.SupportsWindows7Features)
             {
                 return CreateTableColumnIndex3(sesid, dbid, tablecreate);
             }
@@ -2504,7 +2257,7 @@ namespace EsentLib.Implementation
                 string columnName,
                 out JET_COLUMNDEF columndef)
         {
-            TraceFunctionCall("JetGetTableColumnInfo");
+            Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             columndef = new JET_COLUMNDEF();
             CheckNotNull(columnName, "columnName");
 
@@ -2512,9 +2265,9 @@ namespace EsentLib.Implementation
             nativeColumndef.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNDEF)));
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
                     sesid.Value,
                     tableid.Value,
                     columnName,
@@ -2524,7 +2277,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetTableColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
                     sesid.Value,
                     tableid.Value,
                     columnName,
@@ -2552,16 +2305,16 @@ namespace EsentLib.Implementation
                 JET_COLUMNID columnid,
                 out JET_COLUMNDEF columndef)
         {
-            TraceFunctionCall("JetGetTableColumnInfo");
+            Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             columndef = new JET_COLUMNDEF();
             int err;
 
             var nativeColumndef = new NATIVE_COLUMNDEF();
             nativeColumndef.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNDEF)));
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
                     sesid.Value,
                     tableid.Value,
                     ref columnid.Value,
@@ -2571,7 +2324,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetTableColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
                     sesid.Value,
                     tableid.Value,
                     ref columnid.Value,
@@ -2599,17 +2352,17 @@ namespace EsentLib.Implementation
                 string columnName,
                 out JET_COLUMNBASE columnbase)
         {
-            TraceFunctionCall("JetGetTableColumnInfo");
+            Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             CheckNotNull(columnName, "columnName");
 
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
                 var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
 
-                err = TraceResult(NativeMethods.JetGetTableColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
                     sesid.Value,
                     tableid.Value,
                     columnName,
@@ -2624,7 +2377,7 @@ namespace EsentLib.Implementation
                 var nativeColumnbase = new NATIVE_COLUMNBASE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE)));
 
-                err = TraceResult(NativeMethods.JetGetTableColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
                     sesid.Value,
                     tableid.Value,
                     columnName,
@@ -2652,14 +2405,14 @@ namespace EsentLib.Implementation
             JET_COLUMNID columnid,
             out JET_COLUMNBASE columnbase)
         {
-            TraceFunctionCall("JetGetTableColumnInfo");
-            this.CheckSupportsVistaFeatures("JetGetTableColumnInfo");
+            Tracing.TraceFunctionCall("JetGetTableColumnInfo");
+            _capabilities.CheckSupportsVistaFeatures("JetGetTableColumnInfo");
             int err;
 
             var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
             nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
 
-            err = TraceResult(NativeMethods.JetGetTableColumnInfoW(
+            err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
                 sesid.Value,
                 tableid.Value,
                 ref columnid.Value,
@@ -2688,7 +2441,7 @@ namespace EsentLib.Implementation
                 ColInfoGrbit grbit,
                 out JET_COLUMNLIST columnlist)
         {
-            TraceFunctionCall("JetGetTableColumnInfo");
+            Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             columnlist = new JET_COLUMNLIST();
             int err;
 
@@ -2697,9 +2450,9 @@ namespace EsentLib.Implementation
 
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            if (this.Capabilities.SupportsWindows8Features)
+            if (_capabilities.SupportsWindows8Features)
             {
-                err = TraceResult(NativeMethods.JetGetTableColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
                     sesid.Value,
                     tableid.Value,
                     ignored,
@@ -2709,7 +2462,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetTableColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
                     sesid.Value,
                     tableid.Value,
                     ignored,
@@ -2743,7 +2496,7 @@ namespace EsentLib.Implementation
                 string columnName,
                 out JET_COLUMNDEF columndef)
         {
-            TraceFunctionCall("JetGetColumnInfo");
+            Tracing.TraceFunctionCall("JetGetColumnInfo");
             columndef = new JET_COLUMNDEF();
             CheckNotNull(tablename, "tablename");
             CheckNotNull(columnName, "columnName");
@@ -2754,9 +2507,9 @@ namespace EsentLib.Implementation
 
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            if (this.Capabilities.SupportsWindows8Features)
+            if (_capabilities.SupportsWindows8Features)
             {
-                err = TraceResult(NativeMethods.JetGetColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
                         sesid.Value,
                         dbid.Value,
                         tablename,
@@ -2767,7 +2520,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -2798,7 +2551,7 @@ namespace EsentLib.Implementation
                 string ignored,
                 out JET_COLUMNLIST columnlist)
         {
-            TraceFunctionCall("JetGetColumnInfo");
+            Tracing.TraceFunctionCall("JetGetColumnInfo");
             columnlist = new JET_COLUMNLIST();
             CheckNotNull(tablename, "tablename");
             int err;
@@ -2808,9 +2561,9 @@ namespace EsentLib.Implementation
 
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            if (this.Capabilities.SupportsWindows8Features)
+            if (_capabilities.SupportsWindows8Features)
             {
-                err = TraceResult(NativeMethods.JetGetColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -2821,7 +2574,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -2852,19 +2605,19 @@ namespace EsentLib.Implementation
                 string columnName,
                 out JET_COLUMNBASE columnbase)
         {
-            TraceFunctionCall("JetGetColumnInfo");
+            Tracing.TraceFunctionCall("JetGetColumnInfo");
             CheckNotNull(tablename, "tablename");
             CheckNotNull(columnName, "columnName");
             int err;
 
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            if (this.Capabilities.SupportsWindows8Features)
+            if (_capabilities.SupportsWindows8Features)
             {
                 var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
 
-                err = TraceResult(NativeMethods.JetGetColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -2880,7 +2633,7 @@ namespace EsentLib.Implementation
                 var nativeColumnbase = new NATIVE_COLUMNBASE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE)));
 
-                err = TraceResult(NativeMethods.JetGetColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -2911,19 +2664,19 @@ namespace EsentLib.Implementation
                 JET_COLUMNID columnid,
                 out JET_COLUMNBASE columnbase)
         {
-            TraceFunctionCall("JetGetColumnInfo");
-            this.CheckSupportsVistaFeatures("JetGetColumnInfo");
+            Tracing.TraceFunctionCall("JetGetColumnInfo");
+            _capabilities.CheckSupportsVistaFeatures("JetGetColumnInfo");
             CheckNotNull(tablename, "tablename");
             int err;
 
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            if (this.Capabilities.SupportsWindows8Features)
+            if (_capabilities.SupportsWindows8Features)
             {
                 var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
 
-                err = TraceResult(NativeMethods.JetGetColumnInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -2939,7 +2692,7 @@ namespace EsentLib.Implementation
                 var nativeColumnbase = new NATIVE_COLUMNBASE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE)));
 
-                err = TraceResult(NativeMethods.JetGetColumnInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -2966,16 +2719,16 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, out JET_OBJECTLIST objectlist)
         {
-            TraceFunctionCall("JetGetObjectInfo");
+            Tracing.TraceFunctionCall("JetGetObjectInfo");
             objectlist = new JET_OBJECTLIST();
 
             var nativeObjectlist = new NATIVE_OBJECTLIST();
             nativeObjectlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_OBJECTLIST)));
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetObjectInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetObjectInfoW(
                     sesid.Value,
                     dbid.Value,
                     (uint)JET_objtyp.Table,
@@ -2987,7 +2740,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetObjectInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetObjectInfo(
                     sesid.Value,
                     dbid.Value,
                     (uint)JET_objtyp.Table,
@@ -3018,16 +2771,16 @@ namespace EsentLib.Implementation
             string objectName,
             out JET_OBJECTINFO objectinfo)
         {
-            TraceFunctionCall("JetGetObjectInfo");
+            Tracing.TraceFunctionCall("JetGetObjectInfo");
             objectinfo = new JET_OBJECTINFO();
 
             var nativeObjectinfo = new NATIVE_OBJECTINFO();
             nativeObjectinfo.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_OBJECTINFO)));
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetObjectInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetObjectInfoW(
                     sesid.Value,
                     dbid.Value,
                     (uint)objtyp,
@@ -3039,7 +2792,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetObjectInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetObjectInfo(
                     sesid.Value,
                     dbid.Value,
                     (uint)objtyp,
@@ -3073,11 +2826,11 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, out string indexName, int maxNameLength)
         {
-            TraceFunctionCall("JetGetCurrentIndex");
+            Tracing.TraceFunctionCall("JetGetCurrentIndex");
             CheckNotNegative(maxNameLength, "maxNameLength");
 
             var name = new StringBuilder(maxNameLength);
-            int err = TraceResult(NativeMethods.JetGetCurrentIndex(sesid.Value, tableid.Value, name, checked((uint)maxNameLength)));
+            int err = Tracing.TraceResult(NativeMethods.JetGetCurrentIndex(sesid.Value, tableid.Value, name, checked((uint)maxNameLength)));
             indexName = name.ToString();
             indexName = StringCache.TryToIntern(indexName);
             return err;
@@ -3098,13 +2851,13 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out JET_OBJECTINFO result, JET_TblInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableInfo");
+            Tracing.TraceFunctionCall("JetGetTableInfo");
             var nativeResult = new NATIVE_OBJECTINFO();
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(
+                err = Tracing.TraceResult(
                     NativeMethods.JetGetTableInfoW(
                         sesid.Value,
                         tableid.Value,
@@ -3117,7 +2870,7 @@ namespace EsentLib.Implementation
 #if MANAGEDESENT_ON_WSA
                 err = Err((int)JET_err.FeatureNotAvailable);
 #else
-                err = TraceResult(
+                err = Tracing.TraceResult(
                     NativeMethods.JetGetTableInfo(
                         sesid.Value,
                         tableid.Value,
@@ -3146,13 +2899,13 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out string result, JET_TblInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableInfo");
+            Tracing.TraceFunctionCall("JetGetTableInfo");
             var resultBuffer = new StringBuilder(SystemParameters.NameMost + 1);
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableInfoW(
                     sesid.Value, tableid.Value, resultBuffer, (uint)resultBuffer.Capacity * sizeof(char), (uint)infoLevel));
             }
             else
@@ -3160,7 +2913,7 @@ namespace EsentLib.Implementation
 #if MANAGEDESENT_ON_WSA
                 err = Err((int)JET_err.FeatureNotAvailable);
 #else
-                err = TraceResult(NativeMethods.JetGetTableInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableInfo(
                     sesid.Value, tableid.Value, resultBuffer, (uint)resultBuffer.Capacity, (uint)infoLevel));
 #endif
             }
@@ -3183,19 +2936,19 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out JET_DBID result, JET_TblInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableInfo");
+            Tracing.TraceFunctionCall("JetGetTableInfo");
             result = JET_DBID.Nil;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                return TraceResult(NativeMethods.JetGetTableInfoW(sesid.Value, tableid.Value, out result.Value, sizeof(uint), (uint)infoLevel));
+                return Tracing.TraceResult(NativeMethods.JetGetTableInfoW(sesid.Value, tableid.Value, out result.Value, sizeof(uint), (uint)infoLevel));
             }
             else
             {
 #if MANAGEDESENT_ON_WSA
                 return Err((int)JET_err.FeatureNotAvailable);
 #else
-                return TraceResult(NativeMethods.JetGetTableInfo(sesid.Value, tableid.Value, out result.Value, sizeof(uint), (uint)infoLevel));
+                return Tracing.TraceResult(NativeMethods.JetGetTableInfo(sesid.Value, tableid.Value, out result.Value, sizeof(uint), (uint)infoLevel));
 #endif
             }
         }
@@ -3214,20 +2967,20 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, int[] result, JET_TblInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableInfo");
+            Tracing.TraceFunctionCall("JetGetTableInfo");
             CheckNotNull(result, "result");
 
             uint bytesResult = checked((uint)(result.Length * sizeof(int)));
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                return TraceResult(NativeMethods.JetGetTableInfoW(sesid.Value, tableid.Value, result, bytesResult, (uint)infoLevel));
+                return Tracing.TraceResult(NativeMethods.JetGetTableInfoW(sesid.Value, tableid.Value, result, bytesResult, (uint)infoLevel));
             }
             else
             {
 #if MANAGEDESENT_ON_WSA
                 return Err((int)JET_err.FeatureNotAvailable);
 #else
-                return TraceResult(NativeMethods.JetGetTableInfo(sesid.Value, tableid.Value, result, bytesResult, (uint)infoLevel));
+                return Tracing.TraceResult(NativeMethods.JetGetTableInfo(sesid.Value, tableid.Value, result, bytesResult, (uint)infoLevel));
 #endif
             }
         }
@@ -3246,12 +2999,12 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out int result, JET_TblInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableInfo");
+            Tracing.TraceFunctionCall("JetGetTableInfo");
             uint nativeResult;
             int err;
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableInfoW(sesid.Value, tableid.Value, out nativeResult, sizeof(uint), (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetTableInfoW(sesid.Value, tableid.Value, out nativeResult, sizeof(uint), (uint)infoLevel));
             }
             else
             {
@@ -3259,7 +3012,7 @@ namespace EsentLib.Implementation
                 nativeResult = 0;
                 err = Err((int)JET_err.FeatureNotAvailable);
 #else
-                err = TraceResult(NativeMethods.JetGetTableInfo(sesid.Value, tableid.Value, out nativeResult, sizeof(uint), (uint)infoLevel));
+                err = Tracing.TraceResult(NativeMethods.JetGetTableInfo(sesid.Value, tableid.Value, out nativeResult, sizeof(uint), (uint)infoLevel));
 #endif
             }
 
@@ -3289,13 +3042,13 @@ namespace EsentLib.Implementation
             out ushort result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetIndexInfo");
+            Tracing.TraceFunctionCall("JetGetIndexInfo");
             CheckNotNull(tablename, "tablename");
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfoW(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -3306,7 +3059,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfo(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -3337,15 +3090,15 @@ namespace EsentLib.Implementation
             out int result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetIndexInfo");
+            Tracing.TraceFunctionCall("JetGetIndexInfo");
             CheckNotNull(tablename, "tablename");
 
             uint nativeResult;
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfoW(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -3356,7 +3109,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfo(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -3388,14 +3141,14 @@ namespace EsentLib.Implementation
             out JET_INDEXID result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetIndexInfo");
+            Tracing.TraceFunctionCall("JetGetIndexInfo");
             CheckNotNull(tablename, "tablename");
 
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfoW(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -3406,7 +3159,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfo(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -3437,15 +3190,15 @@ namespace EsentLib.Implementation
             out JET_INDEXLIST result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetIndexInfo");
+            Tracing.TraceFunctionCall("JetGetIndexInfo");
             CheckNotNull(tablename, "tablename");
             int err;
 
             var nativeIndexlist = new NATIVE_INDEXLIST();
             nativeIndexlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_INDEXLIST)));
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfoW(
                     sesid.Value,
                     dbid.Value,
                     tablename,
@@ -3456,7 +3209,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetIndexInfo(
                 sesid.Value,
                 dbid.Value,
                 tablename,
@@ -3490,7 +3243,7 @@ namespace EsentLib.Implementation
             out string result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetIndexInfo");
+            Tracing.TraceFunctionCall("JetGetIndexInfo");
             CheckNotNull(tablename, "tablename");
             int err;
 
@@ -3500,7 +3253,7 @@ namespace EsentLib.Implementation
             uint bytesMax = checked((uint)SystemParameters.LocaleNameMaxLength * sizeof(char));
 
             var stringBuilder = new StringBuilder(SystemParameters.LocaleNameMaxLength);
-            err = TraceResult(NativeMethods.JetGetIndexInfoW(
+            err = Tracing.TraceResult(NativeMethods.JetGetIndexInfoW(
                 sesid.Value,
                 dbid.Value,
                 tablename,
@@ -3534,12 +3287,12 @@ namespace EsentLib.Implementation
             out ushort result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableIndexInfo");
+            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3549,7 +3302,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3577,14 +3330,14 @@ namespace EsentLib.Implementation
             out int result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableIndexInfo");
+            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
 
             uint nativeResult;
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3594,7 +3347,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3623,12 +3376,12 @@ namespace EsentLib.Implementation
             out JET_INDEXID result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableIndexInfo");
+            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3638,7 +3391,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3666,15 +3419,15 @@ namespace EsentLib.Implementation
             out JET_INDEXLIST result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableIndexInfo");
+            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
 
             var nativeIndexlist = new NATIVE_INDEXLIST();
             nativeIndexlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_INDEXLIST)));
             int err;
 
-            if (this.Capabilities.SupportsVistaFeatures)
+            if (_capabilities.SupportsVistaFeatures)
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfoW(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3684,7 +3437,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetGetTableIndexInfo(
+                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
                     sesid.Value,
                     tableid.Value,
                     indexname,
@@ -3715,7 +3468,7 @@ namespace EsentLib.Implementation
             out string result,
             JET_IdxInfo infoLevel)
         {
-            TraceFunctionCall("JetGetTableIndexInfo");
+            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
 
             // Will need to check for Windows 8 Features.
             //
@@ -3724,7 +3477,7 @@ namespace EsentLib.Implementation
 
             var stringBuilder = new StringBuilder(SystemParameters.LocaleNameMaxLength);
             int err;
-            err = TraceResult(NativeMethods.JetGetTableIndexInfoW(
+            err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
                 sesid.Value,
                 tableid.Value,
                 indexname,
@@ -3749,10 +3502,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetRenameTable(JET_SESID sesid, JET_DBID dbid, string tableName, string newTableName)
         {
-            TraceFunctionCall("JetRenameTable");
+            Tracing.TraceFunctionCall("JetRenameTable");
             CheckNotNull(tableName, "tableName");
             CheckNotNull(newTableName, "newTableName");
-            return TraceResult(NativeMethods.JetRenameTable(sesid.Value, dbid.Value, tableName, newTableName));
+            return Tracing.TraceResult(NativeMethods.JetRenameTable(sesid.Value, dbid.Value, tableName, newTableName));
         }
 
         /// <summary>
@@ -3766,10 +3519,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetRenameColumn(JET_SESID sesid, JET_TABLEID tableid, string name, string newName, RenameColumnGrbit grbit)
         {
-            TraceFunctionCall("JetRenameColumn");
+            Tracing.TraceFunctionCall("JetRenameColumn");
             CheckNotNull(name, "name");
             CheckNotNull(newName, "newName");
-            return TraceResult(
+            return Tracing.TraceResult(
                 NativeMethods.JetRenameColumn(sesid.Value, tableid.Value, name, newName, (uint)grbit));
         }
 
@@ -3787,11 +3540,11 @@ namespace EsentLib.Implementation
         public int JetSetColumnDefaultValue(
             JET_SESID sesid, JET_DBID dbid, string tableName, string columnName, byte[] data, int dataSize, SetColumnDefaultValueGrbit grbit)
         {
-            TraceFunctionCall("JetSetColumnDefaultValue");
+            Tracing.TraceFunctionCall("JetSetColumnDefaultValue");
             CheckNotNull(tableName, "tableName");
             CheckNotNull(columnName, "columnName");
             CheckDataSize(data, dataSize, "dataSize");
-            return TraceResult(
+            return Tracing.TraceResult(
                 NativeMethods.JetSetColumnDefaultValue(
                     sesid.Value, dbid.Value, tableName, columnName, data, checked((uint)dataSize), (uint)grbit));
         }
@@ -3811,12 +3564,12 @@ namespace EsentLib.Implementation
         /// <param name="bookmarkSize">The size of the bookmark.</param>        /// <returns>An error if the call fails.</returns>
         public int JetGotoBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize)
         {
-            TraceFunctionCall("JetGotoBookmark");
+            Tracing.TraceFunctionCall("JetGotoBookmark");
             CheckNotNull(bookmark, "bookmark");
             CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
 
             return
-                TraceResult(
+                Tracing.TraceResult(
                     NativeMethods.JetGotoBookmark(
                         sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize)));
         }
@@ -3845,13 +3598,13 @@ namespace EsentLib.Implementation
             int primaryKeySize,
             GotoSecondaryIndexBookmarkGrbit grbit)
         {
-            TraceFunctionCall("JetGotoSecondaryIndexBookmark");
+            Tracing.TraceFunctionCall("JetGotoSecondaryIndexBookmark");
             CheckNotNull(secondaryKey, "secondaryKey");
             CheckDataSize(secondaryKey, secondaryKeySize, "secondaryKeySize");
             CheckDataSize(primaryKey, primaryKeySize, "primaryKeySize");
 
             return
-                TraceResult(
+                Tracing.TraceResult(
                     NativeMethods.JetGotoSecondaryIndexBookmark(
                         sesid.Value,
                         tableid.Value,
@@ -3876,9 +3629,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetMakeKey(JET_SESID sesid, JET_TABLEID tableid, IntPtr data, int dataSize, MakeKeyGrbit grbit)
         {
-            TraceFunctionCall("JetMakeKey");
+            Tracing.TraceFunctionCall("JetMakeKey");
             CheckNotNegative(dataSize, "dataSize");
-            return TraceResult(NativeMethods.JetMakeKey(sesid.Value, tableid.Value, data, checked((uint)dataSize), unchecked((uint)grbit)));
+            return Tracing.TraceResult(NativeMethods.JetMakeKey(sesid.Value, tableid.Value, data, checked((uint)dataSize), unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -3893,8 +3646,8 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning..</returns>
         public int JetSeek(JET_SESID sesid, JET_TABLEID tableid, SeekGrbit grbit)
         {
-            TraceFunctionCall("JetSeek");
-            return TraceResult(NativeMethods.JetSeek(sesid.Value, tableid.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetSeek");
+            return Tracing.TraceResult(NativeMethods.JetSeek(sesid.Value, tableid.Value, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -3909,8 +3662,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetMove(JET_SESID sesid, JET_TABLEID tableid, int numRows, MoveGrbit grbit)
         {
-            TraceFunctionCall("JetMove");
-            return TraceResult(NativeMethods.JetMove(sesid.Value, tableid.Value, numRows, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetMove");
+            return Tracing.TraceResult(NativeMethods.JetMove(sesid.Value, tableid.Value, numRows, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -3927,8 +3680,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetIndexRange(JET_SESID sesid, JET_TABLEID tableid, SetIndexRangeGrbit grbit)
         {
-            TraceFunctionCall("JetSetIndexRange");
-            return TraceResult(NativeMethods.JetSetIndexRange(sesid.Value, tableid.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetSetIndexRange");
+            return Tracing.TraceResult(NativeMethods.JetSetIndexRange(sesid.Value, tableid.Value, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -3956,7 +3709,7 @@ namespace EsentLib.Implementation
             out JET_RECORDLIST recordlist,
             IntersectIndexesGrbit grbit)
         {
-            TraceFunctionCall("JetIntersectIndexes");
+            Tracing.TraceFunctionCall("JetIntersectIndexes");
             CheckNotNull(ranges, "ranges");
             CheckDataSize(ranges, numRanges, "numRanges");
             if (numRanges < 2)
@@ -3974,7 +3727,7 @@ namespace EsentLib.Implementation
             var nativeRecordlist = new NATIVE_RECORDLIST();
             nativeRecordlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_RECORDLIST)));
 
-            int err = TraceResult(
+            int err = Tracing.TraceResult(
                         NativeMethods.JetIntersectIndexes(
                             sesid.Value,
                             indexRanges,
@@ -3998,10 +3751,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
         {
-            TraceFunctionCall("JetSetCurrentIndex");
+            Tracing.TraceFunctionCall("JetSetCurrentIndex");
 
             // A null index name is valid here -- it will set the table to the primary index
-            return TraceResult(NativeMethods.JetSetCurrentIndex(sesid.Value, tableid.Value, index));
+            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex(sesid.Value, tableid.Value, index));
         }
 
         /// <summary>
@@ -4019,10 +3772,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetCurrentIndex2(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit)
         {
-            TraceFunctionCall("JetSetCurrentIndex2");
+            Tracing.TraceFunctionCall("JetSetCurrentIndex2");
 
             // A null index name is valid here -- it will set the table to the primary index
-            return TraceResult(NativeMethods.JetSetCurrentIndex2(sesid.Value, tableid.Value, index, (uint)grbit));
+            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex2(sesid.Value, tableid.Value, index, (uint)grbit));
         }
 
         /// <summary>
@@ -4047,10 +3800,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetCurrentIndex3(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit, int itagSequence)
         {
-            TraceFunctionCall("JetSetCurrentIndex3");
+            Tracing.TraceFunctionCall("JetSetCurrentIndex3");
 
             // A null index name is valid here -- it will set the table to the primary index
-            return TraceResult(NativeMethods.JetSetCurrentIndex3(sesid.Value, tableid.Value, index, (uint)grbit, checked((uint)itagSequence)));
+            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex3(sesid.Value, tableid.Value, index, (uint)grbit, checked((uint)itagSequence)));
         }
 
         /// <summary>
@@ -4085,10 +3838,10 @@ namespace EsentLib.Implementation
             SetCurrentIndexGrbit grbit,
             int itagSequence)
         {
-            TraceFunctionCall("JetSetCurrentIndex4");
+            Tracing.TraceFunctionCall("JetSetCurrentIndex4");
 
             // A null index name is valid here -- it will set the table to the primary index
-            return TraceResult(NativeMethods.JetSetCurrentIndex4(sesid.Value, tableid.Value, index, ref indexid, (uint)grbit, checked((uint)itagSequence)));
+            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex4(sesid.Value, tableid.Value, index, ref indexid, (uint)grbit, checked((uint)itagSequence)));
         }
 
         /// <summary>
@@ -4107,10 +3860,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetIndexRecordCount(JET_SESID sesid, JET_TABLEID tableid, out int numRecords, int maxRecordsToCount)
         {
-            TraceFunctionCall("JetIndexRecordCount");
+            Tracing.TraceFunctionCall("JetIndexRecordCount");
             CheckNotNegative(maxRecordsToCount, "maxRecordsToCount");
             uint crec = 0;
-            int err = TraceResult(NativeMethods.JetIndexRecordCount(sesid.Value, tableid.Value, out crec, unchecked((uint)maxRecordsToCount))); // -1 is allowed
+            int err = Tracing.TraceResult(NativeMethods.JetIndexRecordCount(sesid.Value, tableid.Value, out crec, unchecked((uint)maxRecordsToCount))); // -1 is allowed
             numRecords = checked((int)crec);
             return err;
         }
@@ -4127,8 +3880,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetTableSequential(JET_SESID sesid, JET_TABLEID tableid, SetTableSequentialGrbit grbit)
         {
-            TraceFunctionCall("JetSetTableSequential");
-            return TraceResult(NativeMethods.JetSetTableSequential(sesid.Value, tableid.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetSetTableSequential");
+            return Tracing.TraceResult(NativeMethods.JetSetTableSequential(sesid.Value, tableid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -4142,8 +3895,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetResetTableSequential(JET_SESID sesid, JET_TABLEID tableid, ResetTableSequentialGrbit grbit)
         {
-            TraceFunctionCall("JetResetTableSequential");
-            return TraceResult(NativeMethods.JetResetTableSequential(sesid.Value, tableid.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetResetTableSequential");
+            return Tracing.TraceResult(NativeMethods.JetResetTableSequential(sesid.Value, tableid.Value, (uint)grbit));
         }
 
         /// <summary>
@@ -4156,10 +3909,10 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetRecordPosition(JET_SESID sesid, JET_TABLEID tableid, out JET_RECPOS recpos)
         {
-            TraceFunctionCall("JetGetRecordPosition");
+            Tracing.TraceFunctionCall("JetGetRecordPosition");
             recpos = new JET_RECPOS();
             NATIVE_RECPOS native = recpos.GetNativeRecpos();
-            int err = TraceResult(NativeMethods.JetGetRecordPosition(sesid.Value, tableid.Value, out native, native.cbStruct));
+            int err = Tracing.TraceResult(NativeMethods.JetGetRecordPosition(sesid.Value, tableid.Value, out native, native.cbStruct));
             recpos.SetFromNativeRecpos(native);
             return err;
         }
@@ -4174,9 +3927,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGotoPosition(JET_SESID sesid, JET_TABLEID tableid, JET_RECPOS recpos)
         {
-            TraceFunctionCall("JetGotoPosition");
+            Tracing.TraceFunctionCall("JetGotoPosition");
             NATIVE_RECPOS native = recpos.GetNativeRecpos();
-            return TraceResult(NativeMethods.JetGotoPosition(sesid.Value, tableid.Value, ref native));
+            return Tracing.TraceResult(NativeMethods.JetGotoPosition(sesid.Value, tableid.Value, ref native));
         }
 
         /// <summary>
@@ -4213,8 +3966,8 @@ namespace EsentLib.Implementation
             out int keysPreread,
             PrereadKeysGrbit grbit)
         {
-            TraceFunctionCall("JetPrereadKeys");
-            this.CheckSupportsWindows7Features("JetPrereadKeys");
+            Tracing.TraceFunctionCall("JetPrereadKeys");
+            _capabilities.CheckSupportsWindows7Features("JetPrereadKeys");
             CheckDataSize(keys, keyIndex, "keyIndex", keyCount, "keyCount");
             CheckDataSize(keyLengths, keyIndex, "keyIndex", keyCount, "keyCount");
             CheckNotNull(keys, "keys");
@@ -4235,7 +3988,7 @@ namespace EsentLib.Implementation
                         rgcbKeys[i] = checked((uint)keyLengths[keyIndex + i]);
                     }
 
-                    err = TraceResult(NativeMethods.JetPrereadKeys(
+                    err = Tracing.TraceResult(NativeMethods.JetPrereadKeys(
                                 sesid.Value, tableid.Value, rgpvKeys, rgcbKeys, keyCount, out keysPreread, (uint)grbit));
                 }
             }
@@ -4262,11 +4015,11 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
         {
-            TraceFunctionCall("JetGetBookmark");
+            Tracing.TraceFunctionCall("JetGetBookmark");
             CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
 
             uint bytesActual = 0;
-            int err = TraceResult(
+            int err = Tracing.TraceResult(
                 NativeMethods.JetGetBookmark(
                     sesid.Value,
                     tableid.Value,
@@ -4307,13 +4060,13 @@ namespace EsentLib.Implementation
             out int actualPrimaryKeySize,
             GetSecondaryIndexBookmarkGrbit grbit)
         {
-            TraceFunctionCall("JetGetSecondaryIndexBookmark");
+            Tracing.TraceFunctionCall("JetGetSecondaryIndexBookmark");
             CheckDataSize(secondaryKey, secondaryKeySize, "secondaryKeySize");
             CheckDataSize(primaryKey, primaryKeySize, "primaryKeySize");
 
             uint bytesSecondaryKey = 0;
             uint bytesPrimaryKey = 0;
-            int err = TraceResult(
+            int err = Tracing.TraceResult(
                 NativeMethods.JetGetSecondaryIndexBookmark(
                     sesid.Value,
                     tableid.Value,
@@ -4343,11 +4096,11 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetRetrieveKey(JET_SESID sesid, JET_TABLEID tableid, byte[] data, int dataSize, out int actualDataSize, RetrieveKeyGrbit grbit)
         {
-            TraceFunctionCall("JetRetrieveKey");
+            Tracing.TraceFunctionCall("JetRetrieveKey");
             CheckDataSize(data, dataSize, "dataSize");
 
             uint bytesActual = 0;
-            int err = TraceResult(NativeMethods.JetRetrieveKey(sesid.Value, tableid.Value, data, checked((uint)dataSize), out bytesActual, unchecked((uint)grbit)));
+            int err = Tracing.TraceResult(NativeMethods.JetRetrieveKey(sesid.Value, tableid.Value, data, checked((uint)dataSize), out bytesActual, unchecked((uint)grbit)));
 
             actualDataSize = GetActualSize(bytesActual);
             return err;
@@ -4382,7 +4135,7 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         public int JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, IntPtr data, int dataSize, out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
         {
-            TraceFunctionCall("JetRetrieveColumn");
+            Tracing.TraceFunctionCall("JetRetrieveColumn");
             CheckNotNegative(dataSize, "dataSize");
 
             int err;
@@ -4390,7 +4143,7 @@ namespace EsentLib.Implementation
             if (null != retinfo)
             {
                 NATIVE_RETINFO nativeRetinfo = retinfo.GetNativeRetinfo();
-                err = TraceResult(NativeMethods.JetRetrieveColumn(
+                err = Tracing.TraceResult(NativeMethods.JetRetrieveColumn(
                         sesid.Value,
                         tableid.Value,
                         columnid.Value,
@@ -4403,7 +4156,7 @@ namespace EsentLib.Implementation
             }
             else
             {
-                err = TraceResult(NativeMethods.JetRetrieveColumn(
+                err = Tracing.TraceResult(NativeMethods.JetRetrieveColumn(
                         sesid.Value,
                         tableid.Value,
                         columnid.Value,
@@ -4440,8 +4193,8 @@ namespace EsentLib.Implementation
         /// </returns>
         public unsafe int JetRetrieveColumns(JET_SESID sesid, JET_TABLEID tableid, NATIVE_RETRIEVECOLUMN* retrievecolumns, int numColumns)
         {
-            TraceFunctionCall("JetRetrieveColumns");
-            return TraceResult(NativeMethods.JetRetrieveColumns(sesid.Value, tableid.Value, retrievecolumns, checked((uint)numColumns)));
+            Tracing.TraceFunctionCall("JetRetrieveColumns");
+            return Tracing.TraceResult(NativeMethods.JetRetrieveColumns(sesid.Value, tableid.Value, retrievecolumns, checked((uint)numColumns)));
         }
 
         /// <summary>
@@ -4498,7 +4251,7 @@ namespace EsentLib.Implementation
             int maxDataSize,
             EnumerateColumnsGrbit grbit)
         {
-            TraceFunctionCall("JetEnumerateColumns");
+            Tracing.TraceFunctionCall("JetEnumerateColumns");
             CheckNotNull(allocator, "allocator");
             CheckNotNegative(maxDataSize, "maxDataSize");
             CheckDataSize(columnids, numColumnids, "numColumnids");
@@ -4536,7 +4289,7 @@ namespace EsentLib.Implementation
 
                 ConvertEnumerateColumnsResult(allocator, allocatorContext, numEnumColumn, nativeenumcolumns, out numColumnValues, out columnValues);
 
-                return TraceResult(err);
+                return Tracing.TraceResult(err);
             }
         }
 
@@ -4658,7 +4411,7 @@ namespace EsentLib.Implementation
                 }
 
                 enumeratedColumns = columns;
-                return TraceResult(err);
+                return Tracing.TraceResult(err);
             }
         }
 
@@ -4675,12 +4428,12 @@ namespace EsentLib.Implementation
         /// <returns>A warning, error or success.</returns>
         public int JetGetRecordSize(JET_SESID sesid, JET_TABLEID tableid, ref JET_RECSIZE recsize, GetRecordSizeGrbit grbit)
         {
-            TraceFunctionCall("JetGetRecordSize");
-            this.CheckSupportsVistaFeatures("JetGetRecordSize");
+            Tracing.TraceFunctionCall("JetGetRecordSize");
+            _capabilities.CheckSupportsVistaFeatures("JetGetRecordSize");
             int err;
 
             // Use JetGetRecordSize2 if available, otherwise JetGetRecordSize.
-            if (this.Capabilities.SupportsWindows7Features)
+            if (_capabilities.SupportsWindows7Features)
             {
                 var native = recsize.GetNativeRecsize2();
                 err = NativeMethods.JetGetRecordSize2(sesid.Value, tableid.Value, ref native, (uint)grbit);
@@ -4693,7 +4446,7 @@ namespace EsentLib.Implementation
                 recsize.SetFromNativeRecsize(native);
             }
 
-            return TraceResult(err);
+            return Tracing.TraceResult(err);
         }
 
         #endregion
@@ -4708,8 +4461,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetDelete(JET_SESID sesid, JET_TABLEID tableid)
         {
-            TraceFunctionCall("JetDelete");
-            return TraceResult(NativeMethods.JetDelete(sesid.Value, tableid.Value));
+            Tracing.TraceFunctionCall("JetDelete");
+            return Tracing.TraceResult(NativeMethods.JetDelete(sesid.Value, tableid.Value));
         }
 
         /// <summary>
@@ -4721,8 +4474,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetPrepareUpdate(JET_SESID sesid, JET_TABLEID tableid, JET_prep prep)
         {
-            TraceFunctionCall("JetPrepareUpdate");
-            return TraceResult(NativeMethods.JetPrepareUpdate(sesid.Value, tableid.Value, unchecked((uint)prep)));
+            Tracing.TraceFunctionCall("JetPrepareUpdate");
+            return Tracing.TraceResult(NativeMethods.JetPrepareUpdate(sesid.Value, tableid.Value, unchecked((uint)prep)));
         }
 
         /// <summary>
@@ -4745,11 +4498,11 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetUpdate(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
         {
-            TraceFunctionCall("JetUpdate");
+            Tracing.TraceFunctionCall("JetUpdate");
             CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
 
             uint bytesActual;
-            int err = TraceResult(NativeMethods.JetUpdate(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual));
+            int err = Tracing.TraceResult(NativeMethods.JetUpdate(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual));
             actualBookmarkSize = GetActualSize(bytesActual);
 
             return err;
@@ -4775,12 +4528,12 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize, UpdateGrbit grbit)
         {
-            TraceFunctionCall("JetUpdate2");
+            Tracing.TraceFunctionCall("JetUpdate2");
             CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
             this.CheckSupportsServer2003Features("JetUpdate2");
 
             uint bytesActual;
-            int err = TraceResult(NativeMethods.JetUpdate2(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual, (uint)grbit));
+            int err = Tracing.TraceResult(NativeMethods.JetUpdate2(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual, (uint)grbit));
             actualBookmarkSize = GetActualSize(bytesActual);
 
             return err;
@@ -4806,7 +4559,7 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetSetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, IntPtr data, int dataSize, SetColumnGrbit grbit, JET_SETINFO setinfo)
         {
-            TraceFunctionCall("JetSetColumn");
+            Tracing.TraceFunctionCall("JetSetColumn");
             CheckNotNegative(dataSize, "dataSize");
             if (IntPtr.Zero == data)
             {
@@ -4822,10 +4575,10 @@ namespace EsentLib.Implementation
             if (null != setinfo)
             {
                 NATIVE_SETINFO nativeSetinfo = setinfo.GetNativeSetinfo();
-                return TraceResult(NativeMethods.JetSetColumn(sesid.Value, tableid.Value, columnid.Value, data, checked((uint)dataSize), unchecked((uint)grbit), ref nativeSetinfo));
+                return Tracing.TraceResult(NativeMethods.JetSetColumn(sesid.Value, tableid.Value, columnid.Value, data, checked((uint)dataSize), unchecked((uint)grbit), ref nativeSetinfo));
             }
 
-            return TraceResult(NativeMethods.JetSetColumn(sesid.Value, tableid.Value, columnid.Value, data, checked((uint)dataSize), unchecked((uint)grbit), IntPtr.Zero));
+            return Tracing.TraceResult(NativeMethods.JetSetColumn(sesid.Value, tableid.Value, columnid.Value, data, checked((uint)dataSize), unchecked((uint)grbit), IntPtr.Zero));
         }
 
         /// <summary>
@@ -4846,8 +4599,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code or warning.</returns>
         public unsafe int JetSetColumns(JET_SESID sesid, JET_TABLEID tableid, NATIVE_SETCOLUMN* setcolumns, int numColumns)
         {
-            TraceFunctionCall("JetSetColumns");
-            return TraceResult(NativeMethods.JetSetColumns(sesid.Value, tableid.Value, setcolumns, checked((uint)numColumns)));
+            Tracing.TraceFunctionCall("JetSetColumns");
+            return Tracing.TraceResult(NativeMethods.JetSetColumns(sesid.Value, tableid.Value, setcolumns, checked((uint)numColumns)));
         }
 
         /// <summary>
@@ -4863,8 +4616,8 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetGetLock(JET_SESID sesid, JET_TABLEID tableid, GetLockGrbit grbit)
         {
-            TraceFunctionCall("JetGetLock");
-            return TraceResult(NativeMethods.JetGetLock(sesid.Value, tableid.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("JetGetLock");
+            return Tracing.TraceResult(NativeMethods.JetGetLock(sesid.Value, tableid.Value, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -4897,13 +4650,13 @@ namespace EsentLib.Implementation
             out int actualPreviousValueLength,
             EscrowUpdateGrbit grbit)
         {
-            TraceFunctionCall("JetEscrowUpdate");
+            Tracing.TraceFunctionCall("JetEscrowUpdate");
             CheckNotNull(delta, "delta");
             CheckDataSize(delta, deltaSize, "deltaSize");
             CheckDataSize(previousValue, previousValueLength, "previousValueLength");
 
             uint bytesOldActual = 0;
-            int err = TraceResult(NativeMethods.JetEscrowUpdate(
+            int err = Tracing.TraceResult(NativeMethods.JetEscrowUpdate(
                                   sesid.Value,
                                   tableid.Value,
                                   columnid.Value,
@@ -4941,11 +4694,11 @@ namespace EsentLib.Implementation
         public int JetRegisterCallback(JET_SESID sesid, JET_TABLEID tableid, JET_cbtyp cbtyp,
             JET_CALLBACK callback, IntPtr context, out JET_HANDLE callbackId)
         {
-            TraceFunctionCall("JetRegisterCallback");
+            Tracing.TraceFunctionCall("JetRegisterCallback");
             CheckNotNull(callback, "callback");
 
             callbackId = JET_HANDLE.Nil;
-            return TraceResult(NativeMethods.JetRegisterCallback(sesid.Value, tableid.Value,
+            return Tracing.TraceResult(NativeMethods.JetRegisterCallback(sesid.Value, tableid.Value,
                 unchecked((uint)cbtyp), this.callbackWrappers.Add(callback).NativeCallback,
                 context, out callbackId.Value));
         }
@@ -4963,9 +4716,9 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         public int JetUnregisterCallback(JET_SESID sesid, JET_TABLEID tableid, JET_cbtyp cbtyp, JET_HANDLE callbackId)
         {
-            TraceFunctionCall("JetUnregisterCallback");
+            Tracing.TraceFunctionCall("JetUnregisterCallback");
             this.callbackWrappers.Collect();
-            return TraceResult(NativeMethods.JetUnregisterCallback(
+            return Tracing.TraceResult(NativeMethods.JetUnregisterCallback(
                 sesid.Value,
                 tableid.Value,
                 unchecked((uint)cbtyp),
@@ -5000,14 +4753,14 @@ namespace EsentLib.Implementation
         /// </param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code.</returns>
-        /// <seealso cref="JetEngine.Defragment"/>.
-        /// <seealso cref="JetEngine.JetDefragment2"/>.
+        /// <seealso cref="JetInstance.Defragment"/>.
+        /// <seealso cref="JetInstance.JetDefragment2"/>.
         public int JetDefragment(JET_SESID sesid, JET_DBID dbid, string tableName, ref int passes, ref int seconds, DefragGrbit grbit)
         {
-            TraceFunctionCall("JetDefragment");
+            Tracing.TraceFunctionCall("JetDefragment");
             uint nativePasses = unchecked((uint)passes);
             uint nativeSeconds = unchecked((uint)seconds);
-            int err = TraceResult(NativeMethods.JetDefragment(
+            int err = Tracing.TraceResult(NativeMethods.JetDefragment(
                 sesid.Value, dbid.Value, tableName, ref nativePasses, ref nativeSeconds, (uint)grbit));
             passes = unchecked((int)nativePasses);
             seconds = unchecked((int)nativeSeconds);
@@ -5027,15 +4780,15 @@ namespace EsentLib.Implementation
         /// </param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code.</returns>
-        /// <seealso cref="JetEngine.JetDefragment"/>.
+        /// <seealso cref="JetInstance.JetDefragment"/>.
         public int Defragment(
             JET_SESID sesid,
             JET_DBID dbid,
             string tableName,
             DefragGrbit grbit)
         {
-            TraceFunctionCall("Defragment");
-            int err = TraceResult(NativeMethods.JetDefragment(
+            Tracing.TraceFunctionCall("Defragment");
+            int err = Tracing.TraceResult(NativeMethods.JetDefragment(
                 sesid.Value, dbid.Value, tableName, IntPtr.Zero, IntPtr.Zero, (uint)grbit));
             return err;
         }
@@ -5065,7 +4818,7 @@ namespace EsentLib.Implementation
         /// <param name="callback">Callback function that defrag uses to report progress.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code or warning.</returns>
-        /// <seealso cref="JetEngine.JetDefragment"/>.
+        /// <seealso cref="JetInstance.JetDefragment"/>.
         public int JetDefragment2(
             JET_SESID sesid,
             JET_DBID dbid,
@@ -5075,7 +4828,7 @@ namespace EsentLib.Implementation
             JET_CALLBACK callback,
             DefragGrbit grbit)
         {
-            TraceFunctionCall("JetDefragment2");
+            Tracing.TraceFunctionCall("JetDefragment2");
             uint nativePasses = unchecked((uint)passes);
             uint nativeSeconds = unchecked((uint)seconds);
 
@@ -5093,7 +4846,7 @@ namespace EsentLib.Implementation
 #endif
             }
 
-            int err = TraceResult(NativeMethods.JetDefragment2(
+            int err = Tracing.TraceResult(NativeMethods.JetDefragment2(
                 sesid.Value, dbid.Value, tableName, ref nativePasses, ref nativeSeconds, functionPointer, (uint)grbit));
             passes = unchecked((int)nativePasses);
             seconds = unchecked((int)nativeSeconds);
@@ -5125,7 +4878,7 @@ namespace EsentLib.Implementation
             JET_CALLBACK callback,
             DefragGrbit grbit)
         {
-            TraceFunctionCall("Defragment2");
+            Tracing.TraceFunctionCall("Defragment2");
 
             IntPtr functionPointer;
             if (null == callback)
@@ -5156,8 +4909,8 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the operation fails.</returns>
         public int JetIdle(JET_SESID sesid, IdleGrbit grbit)
         {
-            TraceFunctionCall("JetIdle");
-            return TraceResult(NativeMethods.JetIdle(sesid.Value, (uint)grbit));
+            Tracing.TraceFunctionCall("JetIdle");
+            return Tracing.TraceResult(NativeMethods.JetIdle(sesid.Value, (uint)grbit));
         }
 
         #endregion
@@ -5171,23 +4924,9 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public int JetConfigureProcessForCrashDump(CrashDumpGrbit grbit)
         {
-            TraceFunctionCall("JetConfigureProcessForCrashDump");
-            this.CheckSupportsWindows7Features("JetConfigureProcessForCrashDump");
-            return TraceResult(NativeMethods.JetConfigureProcessForCrashDump((uint)grbit));
-        }
-
-        /// <summary>
-        /// Frees memory that was allocated by a database engine call.
-        /// </summary>
-        /// <param name="buffer">
-        /// The buffer allocated by a call to the database engine.
-        /// <see cref="IntPtr.Zero"/> is acceptable, and will be ignored.
-        /// </param>
-        /// <returns>An error code.</returns>
-        public int JetFreeBuffer(IntPtr buffer)
-        {
-            TraceFunctionCall("JetFreeBuffer");
-            return TraceResult(NativeMethods.JetFreeBuffer(buffer));
+            Tracing.TraceFunctionCall("JetConfigureProcessForCrashDump");
+            _capabilities.CheckSupportsWindows7Features("JetConfigureProcessForCrashDump");
+            return Tracing.TraceResult(NativeMethods.JetConfigureProcessForCrashDump((uint)grbit));
         }
 
         #endregion
@@ -5237,14 +4976,14 @@ namespace EsentLib.Implementation
 
             if ((null == data && 0 != dataOffset) || (null != data && dataOffset > data.Count))
             {
-                TraceErrorLine("CheckDataSize failed");
+                Tracing.TraceErrorLine("CheckDataSize failed");
                 throw new ArgumentOutOfRangeException(offsetArgumentName, dataOffset,
                     "cannot be greater than the length of the buffer");
             }
 
             if ((null == data && 0 != dataSize) || (null != data && dataSize > data.Count - dataOffset))
             {
-                TraceErrorLine("CheckDataSize failed");
+                Tracing.TraceErrorLine("CheckDataSize failed");
                 throw new ArgumentOutOfRangeException(sizeArgumentName, dataSize,
                     "cannot be greater than the length of the buffer");
             }
@@ -5271,7 +5010,7 @@ namespace EsentLib.Implementation
         private static void CheckNotNull(object o, string paramName)
         {
             if (null == o) {
-                TraceErrorLine("CheckNotNull failed");
+                Tracing.TraceErrorLine("CheckNotNull failed");
                 throw new ArgumentNullException(paramName);
             }
         }
@@ -5285,61 +5024,9 @@ namespace EsentLib.Implementation
         private static void CheckNotNegative(int i, string paramName)
         {
             if (i < 0) {
-                TraceErrorLine("CheckNotNegative failed");
+                Tracing.TraceErrorLine("CheckNotNegative failed");
                 throw new ArgumentOutOfRangeException(paramName, i, "cannot be negative");
             }
-        }
-
-        /// <summary>
-        /// Used when an unsupported API method is called. This
-        /// logs an error and returns an InvalidOperationException.
-        /// </summary>
-        /// <param name="method">The name of the method.</param>
-        /// <returns>The exception to throw.</returns>
-        private static Exception UnsupportedApiException(string method)
-        {
-            string error = string.Format(CultureInfo.InvariantCulture, "Method {0} is not supported by this version of ESENT", method);
-            TraceErrorLine(error);
-            return new InvalidOperationException(error);
-        }
-
-        /// <summary>Trace a call to an ESENT function.</summary>
-        /// <param name="function">The name of the function being called.</param>
-        [Conditional("TRACE")]
-#if DEBUG
-        // Disallow inlining so we can always get the name of the calling function.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-#endif
-        internal static void TraceFunctionCall(string function)
-        {
-#if DEBUG
-            // Make sure the name of the calling function is correct.
-            var stackTrace = new StackTrace();
-            Debug.Assert(
-                stackTrace.GetFrame(1).GetMethod().Name == function,
-                "Incorrect function name",
-                function);
-#endif // DEBUG
-            Trace.WriteLineIf(TraceSwitch.TraceInfo, function);
-        }
-
-        /// <summary>Can be used to trap ESENT errors.</summary>
-        /// <param name="err">The error being returned.</param>
-        /// <returns>The error.</returns>
-        internal static int TraceResult(int err)
-        {
-            TraceError(err);
-            return err;
-        }
-
-        /// <summary>Trace an error generated by a call to ESENT.</summary>
-        /// <param name="err">The error to trace.</param>
-        [Conditional("TRACE")]
-        private static void TraceError(int err)
-        {
-            if (0 == err) { TraceVerboseLine("JET_err.Success"); }
-            else if (err > 0){ TraceWarnningLine(unchecked((JET_wrn)err).ToString()); }
-            else { TraceErrorLine(unchecked((JET_err)err).ToString()); }
         }
 
         #endregion Parameter Checking and Tracing
@@ -5685,7 +5372,7 @@ namespace EsentLib.Implementation
             try
             {
                 JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndexcreates = GetNativeIndexCreates(indexcreates, ref handles);
-                return TraceResult(NativeMethods.JetCreateIndex2(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
+                return Tracing.TraceResult(NativeMethods.JetCreateIndex2(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
             }
             finally
             {
@@ -5708,7 +5395,7 @@ namespace EsentLib.Implementation
             try
             {
                 JET_INDEXCREATE.NATIVE_INDEXCREATE1[] nativeIndexcreates = GetNativeIndexCreate1s(indexcreates, ref handles);
-                return TraceResult(NativeMethods.JetCreateIndex2W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
+                return Tracing.TraceResult(NativeMethods.JetCreateIndex2W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
             }
             finally
             {
@@ -5731,7 +5418,7 @@ namespace EsentLib.Implementation
             try
             {
                 JET_INDEXCREATE.NATIVE_INDEXCREATE2[] nativeIndexcreates = GetNativeIndexCreate2s(indexcreates, ref handles);
-                return TraceResult(NativeMethods.JetCreateIndex3W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
+                return Tracing.TraceResult(NativeMethods.JetCreateIndex3W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
             }
             finally
             {
@@ -5804,65 +5491,13 @@ namespace EsentLib.Implementation
                         }
                     }
 
-                    return TraceResult(err);
+                    return Tracing.TraceResult(err);
                 }
                 finally
                 {
                     handles.Dispose();
                 }
             }
-        }
-
-        /// <summary>
-        /// Convert native instance info structures to managed, treating the
-        /// unmanaged strings as Unicode.
-        /// </summary>
-        /// <param name="nativeNumInstance">The number of native structures.</param>
-        /// <param name="nativeInstanceInfos">
-        /// A pointer to the native structures. This pointer will be freed with JetFreeBuffer.
-        /// </param>
-        /// <returns>
-        /// An array of JET_INSTANCE_INFO structures created from the unmanaged.
-        /// </returns>
-        private unsafe JET_INSTANCE_INFO[] ConvertInstanceInfosUnicode(uint nativeNumInstance, NATIVE_INSTANCE_INFO* nativeInstanceInfos)
-        {
-            int numInstances = checked((int)nativeNumInstance);
-            var instances = new JET_INSTANCE_INFO[numInstances];
-            for (int i = 0; i < numInstances; ++i)
-            {
-                instances[i] = new JET_INSTANCE_INFO();
-                instances[i].SetFromNativeUnicode(nativeInstanceInfos[i]);
-            }
-
-            this.JetFreeBuffer(new IntPtr(nativeInstanceInfos));
-
-            return instances;
-        }
-
-        /// <summary>
-        /// Convert native instance info structures to managed, treating the
-        /// unmanaged string as Unicode.
-        /// </summary>
-        /// <param name="nativeNumInstance">The number of native structures.</param>
-        /// <param name="nativeInstanceInfos">
-        /// A pointer to the native structures. This pointer will be freed with JetFreeBuffer.
-        /// </param>
-        /// <returns>
-        /// An array of JET_INSTANCE_INFO structures created from the unmanaged.
-        /// </returns>
-        private unsafe JET_INSTANCE_INFO[] ConvertInstanceInfosAscii(uint nativeNumInstance, NATIVE_INSTANCE_INFO* nativeInstanceInfos)
-        {
-            int numInstances = checked((int)nativeNumInstance);
-            var instances = new JET_INSTANCE_INFO[numInstances];
-            for (int i = 0; i < numInstances; ++i)
-            {
-                instances[i] = new JET_INSTANCE_INFO();
-                instances[i].SetFromNativeAscii(nativeInstanceInfos[i]);
-            }
-
-            this.JetFreeBuffer(new IntPtr(nativeInstanceInfos));
-
-            return instances;
         }
 
         #endregion
@@ -5876,61 +5511,9 @@ namespace EsentLib.Implementation
         /// <param name="api">The API that is being called.</param>
         private void CheckSupportsServer2003Features(string api)
         {
-            if (!this.Capabilities.SupportsServer2003Features)
+            if (!_capabilities.SupportsServer2003Features)
             {
-                throw UnsupportedApiException(api);
-            }
-        }
-
-        /// <summary>
-        /// Check that ESENT supports Vista features. Throws an exception if Vista features
-        /// aren't supported.
-        /// </summary>
-        /// <param name="api">The API that is being called.</param>
-        private void CheckSupportsVistaFeatures(string api)
-        {
-            if (!this.Capabilities.SupportsVistaFeatures)
-            {
-                throw UnsupportedApiException(api);
-            }
-        }
-
-        /// <summary>
-        /// Check that ESENT supports Windows7 features. Throws an exception if Windows7 features
-        /// aren't supported.
-        /// </summary>
-        /// <param name="api">The API that is being called.</param>
-        private void CheckSupportsWindows7Features(string api)
-        {
-            if (!this.Capabilities.SupportsWindows7Features)
-            {
-                throw UnsupportedApiException(api);
-            }
-        }
-
-        /// <summary>
-        /// Check that ESENT supports Windows8 features. Throws an exception if Windows8 features
-        /// aren't supported.
-        /// </summary>
-        /// <param name="api">The API that is being called.</param>
-        private void CheckSupportsWindows8Features(string api)
-        {
-            if (!this.Capabilities.SupportsWindows8Features)
-            {
-                throw UnsupportedApiException(api);
-            }
-        }
-
-        /// <summary>
-        /// Check that ESENT supports Windows10 features. Throws an exception if Windows10 features
-        /// aren't supported.
-        /// </summary>
-        /// <param name="api">The API that is being called.</param>
-        private void CheckSupportsWindows10Features(string api)
-        {
-            if (!this.Capabilities.SupportsWindows10Features)
-            {
-                throw UnsupportedApiException(api);
+                throw JetEnvironment.UnsupportedApiException(api);
             }
         }
 
@@ -5964,7 +5547,7 @@ namespace EsentLib.Implementation
                     JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndexCreates = null;
                     int err;
 
-                    if (this.Capabilities.SupportsVistaFeatures)
+                    if (_capabilities.SupportsVistaFeatures)
                     {
                         // Convert/pin the column definitions.
                         nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, true, ref handles);
@@ -6016,7 +5599,7 @@ namespace EsentLib.Implementation
                         }
                     }
 
-                    return TraceResult(err);
+                    return Tracing.TraceResult(err);
                 }
                 finally
                 {
@@ -6072,10 +5655,8 @@ namespace EsentLib.Implementation
         /// (callbacks which can be called after the API call returns). Create a wrapper
         /// here and occasionally clean them up.</summary>
         private readonly CallbackWrappers callbackWrappers = new CallbackWrappers();
+        private JetCapabilities _capabilities;
         private JET_INSTANCE _instance;
-        /// <summary>API call tracing.</summary>
-        private static readonly TraceSwitch TraceSwitch =
-            new TraceSwitch("ESENT P/Invoke", "P/Invoke calls to ESENT");
         /// <summary>The version of esent. If this is zero then it is looked up with
         /// JetGetVersion.</summary>
         private readonly uint versionOverride;
@@ -6157,6 +5738,7 @@ namespace EsentLib.Implementation
 //                // to set the handle to avoid losing track of the instance. The call to
 //                // JetCreateInstance2 is in the CER to make sure that the only exceptions
 //                // which can be generated are from ESENT failures.
+//                // JetCreateInstance2 is included in ::Create
 //                Api.JetCreateInstance2(out instance, this.name, this.displayName, CreateInstanceGrbit.None);
 //                this.SetHandle(instance.Value);
 //            }
@@ -6293,6 +5875,7 @@ namespace EsentLib.Implementation
 //            {
 //                // Remember that a failure in JetInit can zero the handle
 //                // and that JetTerm should not be called in that case.
+//                // Replaced by Iitialize
 //                VistaApi.JetInit3(ref instance, recoveryOptions, grbit);
 //            }
 //            finally

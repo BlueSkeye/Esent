@@ -164,6 +164,26 @@ namespace EsentLib.Jet
             return this.Equals((JET_INSTANCE_INFO)obj);
         }
 
+        /// <summary>Convert native instance info structures to managed, treating the unmanaged
+        /// strings as Unicode.</summary>
+        /// <param name="nativeNumInstance">The number of native structures.</param>
+        /// <param name="nativeInstanceInfos">A pointer to the native structures. This pointer
+        /// will be freed with JetEnvironment.FreeJetBuffer.</param>
+        /// <returns>An array of JET_INSTANCE_INFO structures created from the unmanaged.</returns>
+        internal unsafe static JET_INSTANCE_INFO[] FromNativeCollection(uint nativeNumInstance, NATIVE_INSTANCE_INFO* nativeInstanceInfos)
+        {
+            try {
+                int numInstances = checked((int)nativeNumInstance);
+                JET_INSTANCE_INFO[] result = new JET_INSTANCE_INFO[numInstances];
+                for (int i = 0; i < numInstances; ++i) {
+                    result[i] = new JET_INSTANCE_INFO();
+                    result[i].SetFromNativeUnicode(nativeInstanceInfos[i]);
+                }
+                return result;
+            }
+            finally { JetEnvironment.FreeJetBuffer(new IntPtr(nativeInstanceInfos)); }
+        }
+
         /// <summary>
         /// Generate a string representation of the instance.
         /// </summary>

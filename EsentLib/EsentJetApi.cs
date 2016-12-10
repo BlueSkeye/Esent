@@ -20,7 +20,7 @@ namespace EsentLib.Implementation
     /// <summary>
     /// JetApi code that is specific to ESENT.
     /// </summary>
-    internal sealed partial class JetEngine
+    internal sealed partial class JetInstance
     {
         /// <summary>
         /// Reports the exception to a central authority.

@@ -112,9 +112,10 @@
     <Compile Include="InternalApi.cs" />
     <Compile Include="IntersectIndexesEnumerator.cs" />
     <Compile Include="INullableJetStruct.cs" />
-    <Compile Include="JetEngine.cs" />
+    <Compile Include="JetInstance.cs" />
     <Compile Include="JetCallbackWrapper.cs" />
     <Compile Include="JetCapabilities.cs" />
+    <Compile Include="JetEnvironment.cs" />
     <Compile Include="JetSession.cs" />
     <Compile Include="Jet\JetEngineException.cs" />
     <Compile Include="Jet\jet_bkinfo.cs" />
@@ -223,6 +224,7 @@
     <Compile Include="TableidIndexInfoEnumerator.cs" />
     <Compile Include="TableIndexInfoEnumerator.cs" />
     <Compile Include="TableNameEnumerator.cs" />
+    <Compile Include="Tracing.cs" />
     <Compile Include="Transaction.cs" />
     <Compile Include="Types.cs" />
     <Compile Include="UInt16ColumnValue.cs" />

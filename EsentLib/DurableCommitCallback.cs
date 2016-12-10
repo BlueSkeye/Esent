@@ -164,7 +164,7 @@ namespace EsentLib.Platform.Windows8
                 Trace.WriteLineIf(
                     TraceSwitch.TraceWarning, string.Format(CultureInfo.InvariantCulture, "Caught Exception {0}", ex));
 
-                JetEngine.ReportUnhandledException(ex, "Unhandled exception during NativeDurableCommitCallback");
+                JetInstance.ReportUnhandledException(ex, "Unhandled exception during NativeDurableCommitCallback");
 
                 // This should never be executed, but the compiler doesn't know it.
                 return JET_err.CallbackFailed;

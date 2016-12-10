@@ -171,29 +171,6 @@ namespace EsentLib.Platform.Vista
         }
 
         /// <summary>
-        /// Initialize the ESENT database engine.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to initialize. If an instance hasn't been
-        /// allocated then a new one is created and the engine
-        /// will operate in single-instance mode.
-        /// </param>
-        /// <param name="recoveryOptions">
-        /// Additional recovery parameters for remapping databases during
-        /// recovery, position where to stop recovery at, or recovery status.
-        /// </param>
-        /// <param name="grbit">
-        /// Initialization options.
-        /// </param>
-        /// <returns>
-        /// A warning code.
-        /// </returns>
-        public static JET_wrn JetInit3(ref JET_INSTANCE instance, JET_RSTINFO recoveryOptions, InitGrbit grbit)
-        {
-            return EsentExceptionHelper.Check(Api.Impl.JetInit3(ref instance, recoveryOptions, grbit));
-        }
-
-        /// <summary>
         /// Retrieves record size information from the desired location.
         /// </summary>
         /// <param name="sesid">The session to use.</param>

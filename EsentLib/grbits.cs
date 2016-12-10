@@ -12,7 +12,7 @@ using EsentLib.Jet;
 namespace EsentLib
 {
     /// <summary>Options for
-    /// <see cref="EsentLib.Implementation.JetEngine.Create(string,string,CreateInstanceGrbit)"/>.</summary>
+    /// <see cref="EsentLib.Implementation.JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
     [Flags]
     public enum CreateInstanceGrbit
     {
@@ -20,7 +20,7 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>Options for <see cref="Api.JetInit2"/>.</summary>
+    /// <summary>Options for <see cref="EsentLib.Implementation.JetInstance.Initialize"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.RecoveryWithoutUndo"/>
     /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.TruncateLogsAfterRecovery"/>
     /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.ReplayMissingMapEntryDB"/>

@@ -6,3 +6,4 @@
   are not a priority. Framework 4.6.2 will be the main targeted framework. Older versions
   may be workable.
 - Metro/Windows Store Apps support is expressely unsupported. Related code is being removed.
+- Platforms without Unicode support (pre Vista) are out of scope. Ascii related code is removed. 

@@ -16,8 +16,8 @@ namespace EsentLib.Jet
     /// introduced later are in different classes, such as <see cref="VistaParam"/>,
     /// <see cref="Windows7Param"/>, or <see cref="Windows8Param"/>.
     /// <para>
-    /// <see cref="JET_param"/> is usually used with <see cref="EsentLib.Implementation.JetEngine.SetSystemParameter(JET_SESID,JET_param,int,string)"/>,
-    /// <see cref="EsentLib.Implementation.JetEngine.SetSystemParameter(JET_SESID,JET_param,IntPtr,string)"/>,
+    /// <see cref="JET_param"/> is usually used with <see cref="EsentLib.Implementation.JetInstance.SetSystemParameter(JET_SESID,JET_param,int,string)"/>,
+    /// <see cref="EsentLib.Implementation.JetInstance.SetSystemParameter(JET_SESID,JET_param,IntPtr,string)"/>,
     /// <see cref="Api.JetGetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE,JET_SESID,JET_param,ref int, out string, int)"/>, and
     /// <see cref="Api.JetGetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE,JET_SESID,JET_param,ref IntPtr, out string, int)"/>.
     /// Some of these parameters are exposed with the helper classes <see cref="SystemParameters"/>
@@ -369,7 +369,7 @@ namespace EsentLib.Jet
         /// This parameter controls the outcome of JetInit when the database
         /// engine is configured to start using transaction log files on disk
         /// that are of a different size than what is configured. Normally,
-        /// <see cref="EsentLib.Implementation.JetEngine.Initialize"/> will successfully recover the databases
+        /// <see cref="EsentLib.Implementation.JetInstance.Initialize"/> will successfully recover the databases
         /// but will fail with <see cref="JET_err.LogFileSizeMismatchDatabasesConsistent"/>
         /// to indicate that the log file size is misconfigured. However, when
         /// this parameter is set to true then the database engine will silently

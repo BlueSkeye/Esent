@@ -26,33 +26,13 @@ namespace EsentLib
         /// <summary>Initializes static members of the Api class.</summary>
         static Api()
         {
-            Api.Impl = new JetEngine();
+            Api.Impl = new JetInstance();
         }
         
         /// <summary>Gets or sets the IJetApi this is called for all functions.</summary>
         internal static IJetApi Impl { get; set; }
 
         #region Init/Term
-
-        /// <summary>Initialize the ESENT database engine.</summary>
-        /// <param name="instance">The instance to initialize. If an instance hasn't been
-        /// allocated then a new one is created and the engine will operate in single-instance
-        /// mode.</param>
-        /// <param name="grbit">Initialization options.</param>
-        /// <returns>A warning code.</returns>
-        public static JET_wrn JetInit2(ref JET_INSTANCE instance, InitGrbit grbit)
-        {
-            return EsentExceptionHelper.Check(Impl.JetInit2(ref instance, grbit));
-        }
-
-        /// <summary>Retrieves information about the instances that are running.</summary>
-        /// <param name="numInstances">Returns the number of instances.</param>
-        /// <param name="instances">Returns an array of instance info objects, one for each
-        /// running instance. </param>
-        public static void JetGetInstanceInfo(out int numInstances, out JET_INSTANCE_INFO[] instances)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetInstanceInfo(out numInstances, out instances));
-        }
 
         /// <summary>
         /// Prevents streaming backup-related activity from continuing on a
@@ -75,7 +55,7 @@ namespace EsentLib
         }
 
         /// <summary>Terminate an instance that was created with
-        /// <see cref="JetEngine.Create(string,string,CreateInstanceGrbit)"/>.</summary>
+        /// <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
         /// <param name="instance">The instance to terminate.</param>
         /// <param name="grbit">Termination options.</param>
         public static void JetTerm2(JET_INSTANCE instance, TermGrbit grbit)
@@ -2551,22 +2531,6 @@ namespace EsentLib
         #endregion
 
         #region Misc
-
-        /// <summary>
-        /// Frees memory that was allocated by a database engine call.
-        /// </summary>
-        /// <remarks>
-        /// This method is internal because we never expose the memory
-        /// allocated by ESENT to our callers.
-        /// </remarks>
-        /// <param name="buffer">
-        /// The buffer allocated by a call to the database engine.
-        /// <see cref="IntPtr.Zero"/> is acceptable, and will be ignored.
-        /// </param>
-        public static void JetFreeBuffer(IntPtr buffer)
-        {
-            EsentExceptionHelper.Check(Impl.JetFreeBuffer(buffer));
-        }
 
         #endregion
 
