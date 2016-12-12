@@ -10,35 +10,31 @@ using EsentLib.Jet.Windows10;
 
 namespace EsentLib.Platform.Windows10
 {
-    /// <summary>
-    /// An extension class to provide Values of <see cref="EsentLib.Jet.Windows8.JET_sesparam"/> that were introduced in Windows 10.
-    /// </summary>
+    /// <summary>An extension class to provide Values of <see cref="EsentLib.Jet.Windows8.JET_sesparam"/>
+    /// that were introduced in Windows 10.</summary>
     /// <seealso cref="JET_sesparam"/>
     public static class Windows10Session
     {
-        /// <summary>
-        /// Gets the current number of nested levels of transactions begun. A value of zero indicates that
-        /// the session is not currently in a transaction. This parameter is read-only.
-        /// </summary>
-        /// <param name="session">The <see cref="Session"/> to query.</param>
+        /// <summary>Gets the current number of nested levels of transactions begun. A value
+        /// of zero indicates that the session is not currently in a transaction. This
+        /// parameter is read-only.</summary>
+        /// <param name="session">The <see cref="EsentLib.Implementation.JetSession"/> to query.</param>
         /// <returns>The current transaction level of the specified database session.</returns>
-        public static int GetTransactionLevel(this Session session)
+        public static int GetTransactionLevel(this EsentLib.Implementation.JetSession session)
         {
             int output;
-            Windows8Api.JetGetSessionParameter(session.JetSesid, Windows10Sesparam.TransactionLevel, out output);
+            Windows8Api.JetGetSessionParameter(session.JetSesid, EsentLib.Jet.JET_sesparam.TransactionLevel, out output);
             return output;
         }
 
-        /// <summary>
-        /// A client context of type <see cref="JET_OPERATIONCONTEXT"/> that the engine uses to track
-        /// and trace operations (such as IOs).
-        /// </summary>
-        /// <param name="session">The <see cref="Session"/> to query.</param>
+        /// <summary>A client context of type <see cref="JET_OPERATIONCONTEXT"/> that the engine
+        /// uses to track and trace operations (such as IOs).</summary>
+        /// <param name="session">The <see cref="EsentLib.Implementation.JetSession"/> to query.</param>
         /// <returns>The operation context of the specified database session.</returns>
-        public static JET_OPERATIONCONTEXT GetOperationContext(this Session session)
+        public static JET_OPERATIONCONTEXT GetOperationContext(this EsentLib.Implementation.JetSession session)
         {
             JET_OPERATIONCONTEXT output;
-            Windows10Api.JetGetSessionParameter(session.JetSesid, Windows10Sesparam.OperationContext, out output);
+            Windows10Api.JetGetSessionParameter(session.JetSesid, EsentLib.Jet.JET_sesparam.OperationContext, out output);
             return output;
         }
 
@@ -46,25 +42,24 @@ namespace EsentLib.Platform.Windows10
         /// A client context of type <see cref="JET_OPERATIONCONTEXT"/> that the engine uses to track
         /// and trace operations (such as IOs).
         /// </summary>
-        /// <param name="session">The <see cref="Session"/> to query.</param>
+        /// <param name="session">The <see cref="EsentLib.Implementation.JetSession"/> to query.</param>
         /// <param name="operationcontext">The operation context to set.</param>
-        public static void SetOperationContext(
-            this Session session,
+        public static void SetOperationContext(this EsentLib.Implementation.JetSession session,
             JET_OPERATIONCONTEXT operationcontext)
         {
-            Windows10Api.JetSetSessionParameter(session.JetSesid, Windows10Sesparam.OperationContext, operationcontext);
+            Windows10Api.JetSetSessionParameter(session.JetSesid, EsentLib.Jet.JET_sesparam.OperationContext, operationcontext);
         }
 
         /// <summary>
         /// A 32-bit integer ID that is logged in traces and can be used by clients to
         /// correlate ESE actions with their activity.
         /// </summary>
-        /// <param name="session">The <see cref="Session"/> to query.</param>
+        /// <param name="session">The <see cref="EsentLib.Implementation.JetSession"/> to query.</param>
         /// <returns>The corrlation identifer of the specified database session.</returns>
-        public static int GetCorrelationID(this Session session)
+        public static int GetCorrelationID(this EsentLib.Implementation.JetSession session)
         {
             int output;
-            Windows8Api.JetGetSessionParameter(session.JetSesid, Windows10Sesparam.CorrelationID, out output);
+            Windows8Api.JetGetSessionParameter(session.JetSesid, EsentLib.Jet.JET_sesparam.CorrelationID, out output);
             return output;
         }
 
@@ -72,11 +67,11 @@ namespace EsentLib.Platform.Windows10
         /// A 32-bit integer ID that is logged in traces and can be used by clients to
         /// correlate ESE actions with their activity.
         /// </summary>
-        /// <param name="session">The <see cref="Session"/> to set.</param>
+        /// <param name="session">The <see cref="EsentLib.Implementation.JetSession"/> to set.</param>
         /// <param name="correlationId">The value to set. Internally, this is a 32-bit unsigned integer.</param>
-        public static void SetCorrelationID(this Session session, int correlationId)
+        public static void SetCorrelationID(this EsentLib.Implementation.JetSession session, int correlationId)
         {
-            Windows8Api.JetSetSessionParameter(session.JetSesid, Windows10Sesparam.CorrelationID, correlationId);
+            Windows8Api.JetSetSessionParameter(session.JetSesid, EsentLib.Jet.JET_sesparam.CorrelationID, correlationId);
         }
     }
 }

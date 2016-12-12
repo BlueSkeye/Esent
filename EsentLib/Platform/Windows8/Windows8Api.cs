@@ -186,16 +186,13 @@ namespace EsentLib.Platform.Windows8
 
         #region Session Parameters
 
-        /// <summary>
-        /// Gets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        /// </summary>
+        /// <summary>Gets a parameter on the provided session state, used for the lifetime of this
+        /// session or until reset.</summary>
         /// <param name="sesid">The session to set the parameter on.</param>
         /// <param name="sesparamid">The ID of the session parameter to set, see
-        /// <see cref="JET_sesparam"/> and <see cref="Windows10.Windows10Sesparam"/>.</param>
+        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
         /// <param name="value">A 32-bit integer to retrieve.</param>
-        public static void JetGetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
+        public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
             out int value)
         {
             EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out value));
@@ -206,7 +203,7 @@ namespace EsentLib.Platform.Windows8
         /// </summary>
         /// <param name="sesid">The session to set the parameter on.</param>
         /// <param name="sesparamid">The ID of the session parameter to set, see
-        /// <see cref="JET_sesparam"/> and <see cref="Windows10.Windows10Sesparam"/>.</param>
+        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
         /// <param name="data">A byte array to retrieve.</param>
         /// <param name="length">AThe length of the data array.</param>
         /// <param name="actualDataSize">The actual size of the data field.</param>

@@ -48,9 +48,8 @@ namespace EsentLib
                 int transactionLevel = -1;
                 if (EsentVersion.SupportsWindows10Features)
                 {
-                    Windows8Api.JetGetSessionParameter(
-                        this.sesid,
-                        Windows10Sesparam.TransactionLevel,
+                    Windows8Api.JetGetSessionParameter(this.sesid,
+                        EsentLib.Jet.JET_sesparam.TransactionLevel,
                         out transactionLevel);
                 }
 

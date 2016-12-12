@@ -66,15 +66,302 @@ namespace EsentLib.Implementation
             _capabilities = JetEnvironment.DefaultCapabilities;
         }
 
+        /// <summary>
+        /// Gets or sets the three letter prefix used for many of the files used by
+        /// the database engine. For example, the checkpoint file is called EDB.CHK by
+        /// default because EDB is the default base name.
+        /// </summary>
+        public string BaseName
+        {
+            get { return this.GetStringParameter(JET_param.BaseName); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.BaseName, value); }
+        }
+
+        /// <summary>Gets or sets a value giving the number of B+ Tree resources cached by the
+        /// instance after the tables they represent have been closed by the application.
+        /// Large values for this parameter will cause the database engine to use more
+        /// memory but will increase the speed with which a large number of tables can be
+        /// opened randomly by the application. This is useful for applications that have a
+        /// schema with a very large number of tables.<para>
+        /// Supported on Windows Vista and up. Ignored on Windows XP and Windows Server 2003.</para>
+        /// </summary>
+        public int CachedClosedTables
+        {
+            get
+            {
+                return (EsentVersion.SupportsVistaFeatures)
+                    : this.GetIntegerParameter(VistaParam.CachedClosedTables)
+                    ? 0;
+            }
+            set
+            {
+                if (EsentVersion.SupportsVistaFeatures) {
+                    NativeHelpers.SetParameter(_instance, VistaParam.CachedClosedTables, value);
+                }
+            }
+        }
+
+        /// <summary>Gets a description of the capabilities of the current version
+        /// of ESENT.</summary>
+        public JetCapabilities Capabilities
+        {
+            get { return _capabilities ?? JetEnvironment.DefaultCapabilities; }
+        }
+
+        /// <summary>Gets or sets the threshold in bytes for about how many transaction log
+        /// files will need to be replayed after a crash. If circular logging is enabled using
+        /// CircularLog then this parameter will also control the approximate amount of
+        /// transaction log files that will be retained on disk.</summary>
+        public int CheckpointDepthMax
+        {
+            get { return this.GetIntegerParameter(JET_param.CheckpointDepthMax); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.CheckpointDepthMax, value); }
+        }
+
+        /// <summary>Gets or sets a value indicating whether circular logging is on. When circular
+        /// logging is off, all transaction log files that are generated are retained on disk until
+        /// they are no longer needed because a full backup of the database has been performed.
+        /// When circular logging is on, only transaction log files that are younger than the
+        /// current checkpoint are retained on disk. The benefit of this mode is that backups are
+        /// not required to retire old transaction log files.</summary>
+        public bool CircularLog
+        {
+            get { return this.GetBoolParameter(JET_param.CircularLog); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.CircularLog, value); }
+        }
+
+        /// <summary>Gets or sets a value indicating whether JetInit fails when the database
+        /// engine is configured to start using transaction log files on disk that are of a
+        /// different size than what is configured. Normally,
+        /// <see cref="EsentLib.Implementation.JetInstance.Initialize(InitGrbit, JET_RSTINFO)"/>
+        /// will successfully recover the databases but will fail with <see cref="JET_err.LogFileSizeMismatchDatabasesConsistent"/>
+        /// to indicate that the log file size is misconfigured. However, when this parameter
+        /// is set to true then the database engine will silently delete all the old log
+        /// files, start a new set of transaction log files using the configured log file
+        /// size. This parameter is useful when the application wishes to transparently
+        /// change its transaction log file size yet still work transparently in upgrade and
+        /// restore scenarios.</summary>
+        public bool CleanupMismatchedLogFiles
+        {
+            get { return this.GetBoolParameter(JET_param.CleanupMismatchedLogFiles); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.CleanupMismatchedLogFiles, value); }
+        }
+
+        /// <summary>Gets or sets a value indicating whether ESENT will silently create
+        /// folders that are missing in its filesystem paths.</summary>
+        public bool CreatePathIfNotExist
+        {
+            get { return this.GetBoolParameter(JET_param.CreatePathIfNotExist); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.CreatePathIfNotExist, value); }
+        }
+
+        /// <summary>Gets or sets the number of pages that are added to a database file each
+        /// time it needs to grow to accommodate more data.</summary>
+        public int DbExtensionSize
+        {
+            get { return this.GetIntegerParameter(JET_param.DbExtensionSize); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.DbExtensionSize, value); }
+        }
+
         public string DisplayName { get; private set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether online defragmentation is enabled.
+        /// </summary>
+        public bool EnableOnlineDefrag
+        {
+            get { return this.GetBoolParameter(JET_param.EnableOnlineDefrag); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.EnableOnlineDefrag, value); }
+        }
+
+        /// <summary>Gets or sets a value indicating whether <see cref="JetSession.AttachDatabase"/>
+        /// will check for indexes that were build using an older version of the NLS library
+        /// in the operating system.</summary>
+        public bool EnableIndexChecking
+        {
+            get { return this.GetBoolParameter(JET_param.EnableIndexChecking); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.EnableIndexChecking, value); }
+        }
+
+        /// <summary>Gets or sets the detail level of eventlog messages that are emitted to the
+        /// eventlog by the database engine. Higher numbers will result in more detailed eventlog
+        /// messages.</summary>
+        public EventLoggingLevels EventLoggingLevel
+        {
+            get { return (EventLoggingLevels)this.GetIntegerParameter(JET_param.EventLoggingLevel); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.EventLoggingLevel, (int)value); }
+        }
+
+        /// <summary>Gets or sets an application specific string that will be added to any event
+        /// log messages that are emitted by the database engine. This allows easy correlation of
+        /// event log messages with the source application. By default the host application
+        /// executable name will be used.</summary>
+        public string EventSource
+        {
+            get { return this.GetStringParameter(JET_param.EventSource); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.EventSource, value); }
+        }
+
+        /// <summary>Gets or sets the name of the event log the database engine uses for its
+        /// event log messages. By default, all event log messages will go to the Application
+        /// event log. If the registry key name for another event log is configured then the
+        /// event log messages will go there instead.</summary>  
+        public string EventSourceKey
+        {
+            get { return this.GetStringParameter(JET_param.EventSourceKey); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.EventSourceKey, value); }
+        }
+
+        /// <summary>Gets or sets the amount of memory used to cache log records before they
+        /// are written to the transaction log file. The unit for this parameter is the sector
+        /// size of the volume that holds the transaction log files. The sector size is almost
+        /// always 512 bytes, so it is safe to assume that size for the unit. This parameter
+        /// has an impact on performance. When the database engine is under heavy update load,
+        /// this buffer can become full very rapidly. A larger cache size for the transaction
+        /// log file is critical for good update performance under such a high load condition.
+        /// The default is known to be too small for this case.
+        /// Do not set this parameter to a number of buffers that is larger (in bytes) than
+        /// half the size of a transaction log file.</summary>
+        public int LogBuffers
+        {
+            get { return this.GetIntegerParameter(JET_param.LogBuffers); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.LogBuffers, value); }
+        }
+
+        /// <summary>Gets or sets the size of the transaction log files. This parameter should be
+        /// set in units of 1024 bytes (e.g. a setting of 2048 will give 2MB logfiles).</summary>
+        public int LogFileSize
+        {
+            get { return this.GetIntegerParameter(JET_param.LogFileSize); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.LogFileSize, value); }
+        }
+
+        /// <summary>Gets or sets the number of cursor resources reserved for this instance.
+        /// A cursor resource directly corresponds to a JET_TABLEID.</summary>
+        public int MaxCursors
+        {
+            get { return this.GetIntegerParameter(JET_param.MaxCursors); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.MaxCursors, value); }
+        }
+
+        /// <summary>Gets or sets the number of B+ Tree resources reserved for this instance.</summary>
+        public int MaxOpenTables
+        {
+            get { return this.GetIntegerParameter(JET_param.MaxOpenTables); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.MaxOpenTables, value); }
+        }
+
+        /// <summary>Gets or sets the number of sessions resources reserved for this instance.
+        /// A session resource directly corresponds to a JET_SESID.</summary>
+        public int MaxSessions
+        {
+            get { return this.GetIntegerParameter(JET_param.MaxSessions); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.MaxSessions, value); }
+        }
+
+        /// <summary>Gets or sets the number of temporary table resources for use by an instance.
+        /// This setting will affect how many temporary tables can be used at the same time. If
+        /// this system parameter is set to zero then no temporary database will be created and
+        /// any activity that requires use of the temporary database will fail. This setting can
+        /// be useful to avoid the I/O required to create the temporary database if it is known
+        /// that it will not be used.</summary>
+        /// <remarks>The use of a temporary table also requires a cursor resource.</remarks>
+        public int MaxTemporaryTables
+        {
+            get { return this.GetIntegerParameter(JET_param.MaxTemporaryTables); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.MaxTemporaryTables, value); }
+        }
+
+        /// <summary>Gets or sets the maximum number of version store pages reserved for this
+        /// instance. </summary>
+        public int MaxVerPages
+        {
+            get { return this.GetIntegerParameter(JET_param.MaxVerPages); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.MaxVerPages, value); }
+        }
 
         public string Name { get; private set; }
 
-        public TermGrbit TerminationBits { get; private set; }
+        /// <summary>Gets or sets a value indicating whether informational event log messages
+        /// that would ordinarily be generated by the database engine will be suppressed.</summary>
+        public bool NoInformationEvent
+        {
+            get { return this.GetBoolParameter(JET_param.NoInformationEvent); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.NoInformationEvent, value); }
+        }
+
+        /// <summary>Gets or sets a value indicating whether only one database is allowed to
+        /// be opened using JetOpenDatabase by a given session at one time. The temporary
+        /// database is excluded from this restriction.</summary>
+        public bool OneDatabasePerSession
+        {
+            get { return this.GetBoolParameter(JET_param.OneDatabasePerSession); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.OneDatabasePerSession, value); }
+        }
 
         internal uint OverridenVersion
         {
             get { return versionOverride; }
+        }
+
+        /// <summary>Gets or sets the initial size of the temporary database. The size is in
+        /// database pages. A size of zero indicates that the default size of an ordinary
+        /// database should be used. It is often desirable for small applications to configure
+        /// the temporary database to be as small as possible. Setting this parameter to
+        /// <see cref="Constants.PageTempDBSmallest"/> will achieve the smallest temporary
+        /// database possible.</summary>
+        public int PageTempDBMin
+        {
+            get { return this.GetIntegerParameter(JET_param.PageTempDBMin); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.PageTempDBMin, value); }
+        }
+
+        /// <summary>Gets or sets the preferred number of version store pages reserved for this
+        /// instance. If the size of the version store exceeds this threshold then any information
+        /// that is only used for optional background tasks, such as reclaiming deleted space in
+        /// the database, is instead sacrificed to preserve room for transactional information.</summary>
+        public int PreferredVerPages
+        {
+            get { return this.GetIntegerParameter(JET_param.PreferredVerPages); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.PreferredVerPages, value); }
+        }
+
+        /// <summary>Gets or sets a value indicating whether crash recovery is on.</summary>
+        public bool Recovery
+        {
+            get { return 0 == string.Compare(this.GetStringParameter(JET_param.Recovery), "on", StringComparison.OrdinalIgnoreCase); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.Recovery, (value) ? "on" : "off"); }
+        }
+
+        public TermGrbit TerminationBits { get; private set; }
+
+        /// <summary>Gets or sets the the number of background cleanup work items that can be
+        /// queued to the database engine thread pool at any one time.</summary>
+        public int VersionStoreTaskQueueMax
+        {
+            get { return this.GetIntegerParameter(JET_param.VersionStoreTaskQueueMax); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.VersionStoreTaskQueueMax, value); }
+        }
+
+        /// <summary>Gets or sets a the number of logs that esent will defer database flushes for.
+        /// This can be used to increase database recoverability if failures cause logfiles to be
+        /// lost.<para>
+        /// Supported on Windows 7 and up. Ignored on Windows XP, Windows Server 2003, Windows Vista
+        /// and Windows Server 2008.</para></summary>
+        public int WaypointLatency
+        {
+            get
+            {
+                return (EsentVersion.SupportsWindows7Features) 
+                    ? this.GetIntegerParameter(Windows7Param.WaypointLatency)
+                    : 0;
+            }
+            set
+            {
+                if (EsentVersion.SupportsWindows7Features) {
+                    this.SetIntegerParameter(Windows7Param.WaypointLatency, value);
+                }
+            }
         }
 
         #region Init/Term
@@ -82,7 +369,7 @@ namespace EsentLib.Implementation
         /// <param name="username">The parameter is not used.</param>
         /// <param name="password">The parameter is not used.</param>
         /// <returns>A new session.</returns>
-        /// <seealso cref="Api.BeginSession"/>
+        /* <seealso cref="Api.BeginSession"/> */
         public JetSession BeginSession(string username, string password)
         {
             Tracing.TraceFunctionCall("BeginSession");
@@ -270,13 +557,9 @@ namespace EsentLib.Implementation
             unsafe {
                 int returnCode = 0;
                 fixed (IntPtr* pinstance = &_instance.Value) {
-                    returnCode = (_capabilities.SupportsUnicodePaths)
-                        ? NativeMethods.JetSetSystemParameterW(
-                            (IntPtr.Zero == this._instance.Value) ? null : pinstance,
-                            sesid.Value, (uint)paramid, paramValue, paramString)
-                        : NativeMethods.JetSetSystemParameter(
-                            (IntPtr.Zero == this._instance.Value) ? null : pinstance,
-                            sesid.Value, (uint)paramid, paramValue, paramString);
+                    returnCode = NativeMethods.JetSetSystemParameterW(
+                        (IntPtr.Zero == this._instance.Value) ? null : pinstance,
+                        sesid.Value, (uint)paramid, paramValue, paramString);
                 }
                 Tracing.TraceResult(returnCode);
                 EsentExceptionHelper.Check(returnCode);
@@ -360,14 +643,10 @@ namespace EsentLib.Implementation
             return (int)JET_err.Success;
         }
 
-        /// <summary>
-        /// Sets database configuration options. This overload is used when the
-        /// parameter being set is of type JET_CALLBACK.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
-        /// to set the option on all instances.
-        /// </param>
+        /// <summary>Sets database configuration options. This overload is used when the
+        /// parameter being set is of type JET_CALLBACK.</summary>
+        /// <param name="instance">The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
+        /// to set the option on all instances.</param>
         /// <param name="sesid">The session to use.</param>
         /// <param name="paramid">The parameter to set.</param>
         /// <param name="paramValue">The value of the parameter to set.</param>
@@ -376,23 +655,14 @@ namespace EsentLib.Implementation
         public int JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, JET_CALLBACK paramValue, string paramString)
         {
             Tracing.TraceFunctionCall("JetSetSystemParameter");
-            unsafe
-            {
+            unsafe {
                 // We are interested in the callback, not the string so we always use the ASCII API.
                 IntPtr* pinstance = (IntPtr.Zero == instance.Value) ? null : &instance.Value;
-
-                if (null == paramValue)
-                {
-                    return
-                        Tracing.TraceResult(
-                            NativeMethods.JetSetSystemParameter(
-                                pinstance,
-                                sesid.Value,
-                                (uint)paramid,
-                                IntPtr.Zero,
-                                paramString));
+                if (null == paramValue) {
+                    return Tracing.TraceResult(
+                        NativeMethods.JetSetSystemParameter(pinstance, sesid.Value, (uint)paramid,
+                        IntPtr.Zero, paramString));
                 }
-
                 JetCallbackWrapper wrapper = this.callbackWrappers.Add(paramValue);
                 this.callbackWrappers.Collect();
                 IntPtr functionPointer = Marshal.GetFunctionPointerForDelegate(wrapper.NativeCallback);
@@ -400,18 +670,12 @@ namespace EsentLib.Implementation
                 GC.Collect();
 #endif // DEBUG
                 return Tracing.TraceResult(
-                        NativeMethods.JetSetSystemParameter(
-                            pinstance,
-                            sesid.Value,
-                            (uint)paramid,
-                            functionPointer,
-                            paramString));
+                    NativeMethods.JetSetSystemParameter(pinstance, sesid.Value, (uint)paramid,
+                    functionPointer, paramString));
             }
         }
 
-        /// <summary>
-        /// Gets database configuration options.
-        /// </summary>
+        /// <summary>Gets database configuration options.</summary>
         /// <param name="instance">The instance to retrieve the options from.</param>
         /// <param name="sesid">The session to use.</param>
         /// <param name="paramid">The parameter to get.</param>
@@ -449,26 +713,6 @@ namespace EsentLib.Implementation
 
         #region Databases
 
-        /// <summary>
-        /// Creates and attaches a database file.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The path to the database file to create.</param>
-        /// <param name="connect">The parameter is not used.</param>
-        /// <param name="dbid">Returns the dbid of the new database.</param>
-        /// <param name="grbit">Database creation options.</param>
-        /// <returns>An error or warning.</returns>
-        public int JetCreateDatabase(JET_SESID sesid, string database, string connect, out JET_DBID dbid, CreateDatabaseGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetCreateDatabase");
-            CheckNotNull(database, "database");
-
-            dbid = JET_DBID.Nil;
-            if (_capabilities.SupportsUnicodePaths) {
-                return Tracing.TraceResult(NativeMethods.JetCreateDatabaseW(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
-            }
-            return Tracing.TraceResult(NativeMethods.JetCreateDatabase(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
-        }
 
         /// <summary>
         /// Creates and attaches a database file with a maximum database size specified.
@@ -486,7 +730,7 @@ namespace EsentLib.Implementation
         public int JetCreateDatabase2(JET_SESID sesid, string database, int maxPages, out JET_DBID dbid, CreateDatabaseGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetCreateDatabase2");
-            CheckNotNull(database, "database");
+            Helpers.CheckNotNull(database, "database");
             CheckNotNegative(maxPages, "maxPages");
 
             dbid = JET_DBID.Nil;
@@ -500,27 +744,7 @@ namespace EsentLib.Implementation
 
         /// <summary>
         /// Attaches a database file for use with a database instance. In order to use the
-        /// database, it will need to be subsequently opened with <see cref="IJetApi.JetOpenDatabase"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The database to attach.</param>
-        /// <param name="grbit">Attach options.</param>
-        /// <returns>An error or warning.</returns>
-        public int JetAttachDatabase(JET_SESID sesid, string database, AttachDatabaseGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetAttachDatabase");
-            CheckNotNull(database, "database");
-
-            if (_capabilities.SupportsUnicodePaths) {
-                return Tracing.TraceResult(NativeMethods.JetAttachDatabaseW(sesid.Value, database, (uint)grbit));
-            }
-
-            return Tracing.TraceResult(NativeMethods.JetAttachDatabase(sesid.Value, database, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Attaches a database file for use with a database instance. In order to use the
-        /// database, it will need to be subsequently opened with <see cref="JetOpenDatabase"/>.
+        /// database, it will need to be subsequently opened with <see cref="JetSession.OpenDatabase"/>.
         /// <seealso cref="JetCreateDatabase2"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
@@ -534,7 +758,7 @@ namespace EsentLib.Implementation
         public int JetAttachDatabase2(JET_SESID sesid, string database, int maxPages, AttachDatabaseGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetAttachDatabase2");
-            CheckNotNull(database, "database");
+            Helpers.CheckNotNull(database, "database");
             CheckNotNegative(maxPages, "maxPages");
 
             if (_capabilities.SupportsUnicodePaths)
@@ -546,32 +770,7 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>
-        /// Opens a database previously attached with <see cref="IJetApi.JetAttachDatabase"/>,
-        /// for use with a database session. This function can be called multiple times
-        /// for the same database.
-        /// </summary>
-        /// <param name="sesid">The session that is opening the database.</param>
-        /// <param name="database">The database to open.</param>
-        /// <param name="connect">Reserved for future use.</param>
-        /// <param name="dbid">Returns the dbid of the attached database.</param>
-        /// <param name="grbit">Open database options.</param>
-        /// <returns>An error or warning.</returns>
-        public int JetOpenDatabase(JET_SESID sesid, string database, string connect, out JET_DBID dbid, OpenDatabaseGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOpenDatabase");
-            CheckNotNull(database, "database");
-            dbid = JET_DBID.Nil;
-
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                return Tracing.TraceResult(NativeMethods.JetOpenDatabaseW(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
-            }
-
-            return Tracing.TraceResult(NativeMethods.JetOpenDatabase(sesid.Value, database, connect, out dbid.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Closes a database file that was previously opened with <see cref="IJetApi.JetOpenDatabase"/> or
+        /// Closes a database file that was previously opened with <see cref="IJetSession.OpenDatabase"/> or
         /// created with <see cref="IJetApi.JetCreateDatabase"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
@@ -650,8 +849,8 @@ namespace EsentLib.Implementation
             CompactGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetCompact");
-            CheckNotNull(sourceDatabase, "sourceDatabase");
-            CheckNotNull(destinationDatabase, "destinationDatabase");
+            Helpers.CheckNotNull(sourceDatabase, "sourceDatabase");
+            Helpers.CheckNotNull(destinationDatabase, "destinationDatabase");
             if (null != ignored)
             {
                 throw new ArgumentException("must be null", "ignored");
@@ -715,7 +914,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetSetDatabaseSize");
             CheckNotNegative(desiredPages, "desiredPages");
-            CheckNotNull(database, "database");
+            Helpers.CheckNotNull(database, "database");
 
             uint actualPagesNative = 0;
             int err;
@@ -1021,7 +1220,7 @@ namespace EsentLib.Implementation
         public int JetRestoreInstance(JET_INSTANCE instance, string source, string destination, JET_PFNSTATUS statusCallback)
         {
             Tracing.TraceFunctionCall("JetRestoreInstance");
-            CheckNotNull(source, "source");
+            Helpers.CheckNotNull(source, "source");
 
             var callbackWrapper = new StatusCallbackWrapper(statusCallback);
             IntPtr functionPointer = (null == statusCallback) ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callbackWrapper.NativeCallback);
@@ -1263,33 +1462,23 @@ namespace EsentLib.Implementation
             return Tracing.TraceResult(NativeMethods.JetEndExternalBackupInstance2(instance.Value, (uint)grbit));
         }
 
-        /// <summary>
-        /// Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
-        /// to query an instance for the names of database files that should become part of
-        /// the backup file set. Only databases that are currently attached to the instance
-        /// using <see cref="JetAttachDatabase"/> will be considered. These files may
-        /// subsequently be opened using <see cref="JetOpenFileInstance"/> and read
-        /// using <see cref="JetReadFileInstance"/>.
-        /// </summary>
-        /// <remarks>
-        /// It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be
-        /// part of the backup file set.
-        /// </remarks>
+        /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// to query an instance for the names of database files that should become part of the
+        /// backup file set. Only databases that are currently attached to the instance using
+        /// <see cref="IJetSession.AttachDatabase"/> will be considered. These files may
+        /// subsequently be opened using <see cref="JetOpenFileInstance"/> and read using
+        /// <see cref="JetReadFileInstance"/>.</summary>
+        /// <remarks>It is important to note that this API does not return an error or warning if
+        /// the output buffer is too small to accept the full list of files that should be part of
+        /// the backup file set.</remarks>
         /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">
-        /// Returns a list of null terminated strings describing the set of database files
-        /// that should be a part of the backup file set. The list of strings returned in
-        /// this buffer is in the same format as a multi-string used by the registry. Each
-        /// null-terminated string is returned in sequence followed by a final null terminator.
-        /// </param>
-        /// <param name="maxChars">
-        /// Maximum number of characters to retrieve.
-        /// </param>
-        /// <param name="actualChars">
-        /// Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.
-        /// </param>
+        /// <param name="files">Returns a list of null terminated strings describing the set of
+        /// database files that should be a part of the backup file set. The list of strings
+        /// returned in this buffer is in the same format as a multi-string used by the registry.
+        /// Each null-terminated string is returned in sequence followed by a final null terminator.</param>
+        /// <param name="maxChars">Maximum number of characters to retrieve.</param>
+        /// <param name="actualChars">Actual size of the file list. If this is greater than maxChars
+        /// then the list has been truncated.</param>
         /// <returns>An error code if the call fails.</returns>
         public int JetGetAttachInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
         {
@@ -1298,8 +1487,7 @@ namespace EsentLib.Implementation
 
             // These strings have embedded nulls so we can't use a StringBuilder.
             int err;
-            if (_capabilities.SupportsUnicodePaths)
-            {
+            if (_capabilities.SupportsUnicodePaths) {
                 uint bytesMax = checked((uint)maxChars) * sizeof(char);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
@@ -1307,8 +1495,7 @@ namespace EsentLib.Implementation
                 actualChars = checked((int)bytesActual) / sizeof(char);
                 files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
-            else
-            {
+            else {
                 uint bytesMax = checked((uint)maxChars);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
@@ -1316,35 +1503,25 @@ namespace EsentLib.Implementation
                 actualChars = checked((int)bytesActual);
                 files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
-
             return err;
         }
 
-        /// <summary>
-        /// Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
-        /// to query an instance for the names of database patch files and logfiles that
-        /// should become part of the backup file set. These files may subsequently be
-        /// opened using <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.
-        /// </summary>
-        /// <remarks>
-        /// It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be
-        /// part of the backup file set.
-        /// </remarks>
+        /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// to query an instance for the names of database patch files and logfiles that should
+        /// become part of the backup file set. These files may subsequently be opened using
+        /// <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.</summary>
+        /// <remarks>It is important to note that this API does not return an error or warning if
+        /// the output buffer is too small to accept the full list of files that should be part
+        /// of the backup file set.</remarks>
         /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">
-        /// Returns a list of null terminated strings describing the set of database patch files
-        /// and log files that should be a part of the backup file set. The list of strings returned in
-        /// this buffer is in the same format as a multi-string used by the registry. Each
-        /// null-terminated string is returned in sequence followed by a final null terminator.
-        /// </param>
-        /// <param name="maxChars">
-        /// Maximum number of characters to retrieve.
-        /// </param>
-        /// <param name="actualChars">
-        /// Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.
-        /// </param>
+        /// <param name="files">Returns a list of null terminated strings describing the set of
+        /// database patch files and log files that should be a part of the backup file set.
+        /// The list of strings returned in this buffer is in the same format as a multi-string
+        /// used by the registry. Each null-terminated string is returned in sequence followed
+        /// by a final null terminator.</param>
+        /// <param name="maxChars">Maximum number of characters to retrieve.</param>
+        /// <param name="actualChars">Actual size of the file list. If this is greater than maxChars
+        /// then the list has been truncated.</param>
         /// <returns>An error code if the call fails.</returns>
         public int JetGetLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
         {
@@ -1353,8 +1530,7 @@ namespace EsentLib.Implementation
 
             // These strings have embedded nulls so we can't use a StringBuilder.
             int err;
-            if (_capabilities.SupportsUnicodePaths)
-            {
+            if (_capabilities.SupportsUnicodePaths) {
                 uint bytesMax = checked((uint)maxChars) * sizeof(char);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
@@ -1362,8 +1538,7 @@ namespace EsentLib.Implementation
                 actualChars = checked((int)bytesActual) / sizeof(char);
                 files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
-            else
-            {
+            else {
                 uint bytesMax = checked((uint)maxChars);
                 byte[] szz = new byte[bytesMax];
                 uint bytesActual = 0;
@@ -1371,7 +1546,6 @@ namespace EsentLib.Implementation
                 actualChars = checked((int)bytesActual);
                 files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
             }
-
             return err;
         }
 
@@ -1447,7 +1621,7 @@ namespace EsentLib.Implementation
         public int JetOpenFileInstance(JET_INSTANCE instance, string file, out JET_HANDLE handle, out long fileSizeLow, out long fileSizeHigh)
         {
             Tracing.TraceFunctionCall("JetOpenFileInstance");
-            CheckNotNull(file, "file");
+            Helpers.CheckNotNull(file, "file");
             handle = JET_HANDLE.Nil;
             int err;
             uint nativeFileSizeLow;
@@ -1480,7 +1654,7 @@ namespace EsentLib.Implementation
         public int JetReadFileInstance(JET_INSTANCE instance, JET_HANDLE file, byte[] buffer, int bufferSize, out int bytesRead)
         {
             Tracing.TraceFunctionCall("JetReadFileInstance");
-            CheckNotNull(buffer, "buffer");
+            Helpers.CheckNotNull(buffer, "buffer");
             CheckDataSize(buffer, bufferSize, "bufferSize");
 
             // ESENT requires that the buffer be aligned on a page allocation boundary.
@@ -1613,7 +1787,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetOpenTable");
             tableid = JET_TABLEID.Nil;
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
             CheckDataSize(parameters, parametersLength, "parametersLength");
 
             return Tracing.TraceResult(NativeMethods.JetOpenTable(sesid.Value, dbid.Value, tablename, parameters, checked((uint)parametersLength), (uint)grbit, out tableid.Value));
@@ -1807,7 +1981,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetCreateTable");
             tableid = JET_TABLEID.Nil;
-            CheckNotNull(table, "table");
+            Helpers.CheckNotNull(table, "table");
 
             return Tracing.TraceResult(NativeMethods.JetCreateTable(sesid.Value, dbid.Value, table, pages, density, out tableid.Value));
         }
@@ -1822,7 +1996,7 @@ namespace EsentLib.Implementation
         public int JetDeleteTable(JET_SESID sesid, JET_DBID dbid, string table)
         {
             Tracing.TraceFunctionCall("JetDeleteTable");
-            CheckNotNull(table, "table");
+            Helpers.CheckNotNull(table, "table");
 
             return Tracing.TraceResult(NativeMethods.JetDeleteTable(sesid.Value, dbid.Value, table));
         }
@@ -1844,8 +2018,8 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetAddColumn");
             columnid = JET_COLUMNID.Nil;
-            CheckNotNull(column, "column");
-            CheckNotNull(columndef, "columndef");
+            Helpers.CheckNotNull(column, "column");
+            Helpers.CheckNotNull(columndef, "columndef");
             CheckDataSize(defaultValue, defaultValueSize, "defaultValueSize");
 
             NATIVE_COLUMNDEF nativeColumndef = columndef.GetNativeColumndef();
@@ -1868,7 +2042,7 @@ namespace EsentLib.Implementation
         public int JetDeleteColumn(JET_SESID sesid, JET_TABLEID tableid, string column)
         {
             Tracing.TraceFunctionCall("JetDeleteColumn");
-            CheckNotNull(column, "column");
+            Helpers.CheckNotNull(column, "column");
             return Tracing.TraceResult(NativeMethods.JetDeleteColumn(sesid.Value, tableid.Value, column));
         }
 
@@ -1883,7 +2057,7 @@ namespace EsentLib.Implementation
         public int JetDeleteColumn2(JET_SESID sesid, JET_TABLEID tableid, string column, DeleteColumnGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetDeleteColumn2");
-            CheckNotNull(column, "column");
+            Helpers.CheckNotNull(column, "column");
             return Tracing.TraceResult(NativeMethods.JetDeleteColumn2(sesid.Value, tableid.Value, column, (uint)grbit));
         }
 
@@ -1915,7 +2089,7 @@ namespace EsentLib.Implementation
             int density)
         {
             Tracing.TraceFunctionCall("JetCreateIndex");
-            CheckNotNull(indexName, "indexName");
+            Helpers.CheckNotNull(indexName, "indexName");
             CheckNotNegative(keyDescriptionLength, "keyDescriptionLength");
             CheckNotNegative(density, "density");
             if (keyDescriptionLength > checked(keyDescription.Length + 1))
@@ -1949,7 +2123,7 @@ namespace EsentLib.Implementation
             int numIndexCreates)
         {
             Tracing.TraceFunctionCall("JetCreateIndex2");
-            CheckNotNull(indexcreates, "indexcreates");
+            Helpers.CheckNotNull(indexcreates, "indexcreates");
             CheckNotNegative(numIndexCreates, "numIndexCreates");
             if (numIndexCreates > indexcreates.Length)
             {
@@ -1983,7 +2157,7 @@ namespace EsentLib.Implementation
         public int JetDeleteIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
         {
             Tracing.TraceFunctionCall("JetDeleteIndex");
-            CheckNotNull(index, "index");
+            Helpers.CheckNotNull(index, "index");
 
             return Tracing.TraceResult(NativeMethods.JetDeleteIndex(sesid.Value, tableid.Value, index));
         }
@@ -2022,9 +2196,9 @@ namespace EsentLib.Implementation
             JET_COLUMNID[] columnids)
         {
             Tracing.TraceFunctionCall("JetOpenTempTable");
-            CheckNotNull(columns, "columnns");
+            Helpers.CheckNotNull(columns, "columnns");
             CheckDataSize(columns, numColumns, "numColumns");
-            CheckNotNull(columnids, "columnids");
+            Helpers.CheckNotNull(columnids, "columnids");
             CheckDataSize(columnids, numColumns, "numColumns");
 
             tableid = JET_TABLEID.Nil;
@@ -2080,9 +2254,9 @@ namespace EsentLib.Implementation
             JET_COLUMNID[] columnids)
         {
             Tracing.TraceFunctionCall("JetOpenTempTable2");
-            CheckNotNull(columns, "columnns");
+            Helpers.CheckNotNull(columns, "columnns");
             CheckDataSize(columns, numColumns, "numColumns");
-            CheckNotNull(columnids, "columnids");
+            Helpers.CheckNotNull(columnids, "columnids");
             CheckDataSize(columnids, numColumns, "numColumns");
 
             tableid = JET_TABLEID.Nil;
@@ -2138,9 +2312,9 @@ namespace EsentLib.Implementation
             JET_COLUMNID[] columnids)
         {
             Tracing.TraceFunctionCall("JetOpenTempTable3");
-            CheckNotNull(columns, "columnns");
+            Helpers.CheckNotNull(columns, "columnns");
             CheckDataSize(columns, numColumns, "numColumns");
-            CheckNotNull(columnids, "columnids");
+            Helpers.CheckNotNull(columnids, "columnids");
             CheckDataSize(columnids, numColumns, "numColumns");
 
             tableid = JET_TABLEID.Nil;
@@ -2188,7 +2362,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetOpenTemporaryTable");
             _capabilities.CheckSupportsVistaFeatures("JetOpenTemporaryTable");
-            CheckNotNull(temporarytable, "temporarytable");
+            Helpers.CheckNotNull(temporarytable, "temporarytable");
 
             NATIVE_OPENTEMPORARYTABLE nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable();
             var nativecolumnids = new uint[nativetemporarytable.ccolumn];
@@ -2231,7 +2405,7 @@ namespace EsentLib.Implementation
             JET_TABLECREATE tablecreate)
         {
             Tracing.TraceFunctionCall("JetCreateTableColumnIndex3");
-            CheckNotNull(tablecreate, "tablecreate");
+            Helpers.CheckNotNull(tablecreate, "tablecreate");
 
             if (_capabilities.SupportsWindows7Features)
             {
@@ -2259,7 +2433,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             columndef = new JET_COLUMNDEF();
-            CheckNotNull(columnName, "columnName");
+            Helpers.CheckNotNull(columnName, "columnName");
 
             var nativeColumndef = new NATIVE_COLUMNDEF();
             nativeColumndef.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNDEF)));
@@ -2353,7 +2527,7 @@ namespace EsentLib.Implementation
                 out JET_COLUMNBASE columnbase)
         {
             Tracing.TraceFunctionCall("JetGetTableColumnInfo");
-            CheckNotNull(columnName, "columnName");
+            Helpers.CheckNotNull(columnName, "columnName");
 
             int err;
 
@@ -2498,8 +2672,8 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetGetColumnInfo");
             columndef = new JET_COLUMNDEF();
-            CheckNotNull(tablename, "tablename");
-            CheckNotNull(columnName, "columnName");
+            Helpers.CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(columnName, "columnName");
             int err;
 
             var nativeColumndef = new NATIVE_COLUMNDEF();
@@ -2553,7 +2727,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetGetColumnInfo");
             columnlist = new JET_COLUMNLIST();
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
             int err;
 
             var nativeColumnlist = new NATIVE_COLUMNLIST();
@@ -2606,8 +2780,8 @@ namespace EsentLib.Implementation
                 out JET_COLUMNBASE columnbase)
         {
             Tracing.TraceFunctionCall("JetGetColumnInfo");
-            CheckNotNull(tablename, "tablename");
-            CheckNotNull(columnName, "columnName");
+            Helpers.CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(columnName, "columnName");
             int err;
 
             // Technically, this should have worked in Vista. But there was a bug, and
@@ -2666,7 +2840,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetGetColumnInfo");
             _capabilities.CheckSupportsVistaFeatures("JetGetColumnInfo");
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
             int err;
 
             // Technically, this should have worked in Vista. But there was a bug, and
@@ -2900,7 +3074,7 @@ namespace EsentLib.Implementation
         public int JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, out string result, JET_TblInfo infoLevel)
         {
             Tracing.TraceFunctionCall("JetGetTableInfo");
-            var resultBuffer = new StringBuilder(SystemParameters.NameMost + 1);
+            var resultBuffer = new StringBuilder(Constants.NameMost + 1);
             int err;
 
             if (_capabilities.SupportsVistaFeatures)
@@ -2968,7 +3142,7 @@ namespace EsentLib.Implementation
         public int JetGetTableInfo(JET_SESID sesid, JET_TABLEID tableid, int[] result, JET_TblInfo infoLevel)
         {
             Tracing.TraceFunctionCall("JetGetTableInfo");
-            CheckNotNull(result, "result");
+            Helpers.CheckNotNull(result, "result");
 
             uint bytesResult = checked((uint)(result.Length * sizeof(int)));
             if (_capabilities.SupportsVistaFeatures)
@@ -3043,7 +3217,7 @@ namespace EsentLib.Implementation
             JET_IdxInfo infoLevel)
         {
             Tracing.TraceFunctionCall("JetGetIndexInfo");
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
             int err;
 
             if (_capabilities.SupportsVistaFeatures)
@@ -3091,7 +3265,7 @@ namespace EsentLib.Implementation
             JET_IdxInfo infoLevel)
         {
             Tracing.TraceFunctionCall("JetGetIndexInfo");
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
 
             uint nativeResult;
             int err;
@@ -3142,7 +3316,7 @@ namespace EsentLib.Implementation
             JET_IdxInfo infoLevel)
         {
             Tracing.TraceFunctionCall("JetGetIndexInfo");
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
 
             int err;
 
@@ -3191,7 +3365,7 @@ namespace EsentLib.Implementation
             JET_IdxInfo infoLevel)
         {
             Tracing.TraceFunctionCall("JetGetIndexInfo");
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
             int err;
 
             var nativeIndexlist = new NATIVE_INDEXLIST();
@@ -3244,15 +3418,15 @@ namespace EsentLib.Implementation
             JET_IdxInfo infoLevel)
         {
             Tracing.TraceFunctionCall("JetGetIndexInfo");
-            CheckNotNull(tablename, "tablename");
+            Helpers.CheckNotNull(tablename, "tablename");
             int err;
 
             // Will need to check for Windows 8 Features.
             //
             // Currently only JET_IdxInfo.LocaleName is supported.
-            uint bytesMax = checked((uint)SystemParameters.LocaleNameMaxLength * sizeof(char));
+            uint bytesMax = checked((uint)Constants.LocaleNameMaxLength * sizeof(char));
 
-            var stringBuilder = new StringBuilder(SystemParameters.LocaleNameMaxLength);
+            var stringBuilder = new StringBuilder(Constants.LocaleNameMaxLength);
             err = Tracing.TraceResult(NativeMethods.JetGetIndexInfoW(
                 sesid.Value,
                 dbid.Value,
@@ -3473,18 +3647,11 @@ namespace EsentLib.Implementation
             // Will need to check for Windows 8 Features.
             //
             // Currently only JET_IdxInfo.LocaleName is supported.
-            uint bytesMax = checked((uint)SystemParameters.LocaleNameMaxLength * sizeof(char));
+            uint bytesMax = checked((uint)Constants.LocaleNameMaxLength * sizeof(char));
 
-            var stringBuilder = new StringBuilder(SystemParameters.LocaleNameMaxLength);
-            int err;
-            err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
-                sesid.Value,
-                tableid.Value,
-                indexname,
-                stringBuilder,
-                bytesMax,
-                (uint)infoLevel));
-
+            var stringBuilder = new StringBuilder(Constants.LocaleNameMaxLength);
+            int err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(sesid.Value,
+                tableid.Value, indexname, stringBuilder, bytesMax, (uint)infoLevel));
             result = stringBuilder.ToString();
             result = StringCache.TryToIntern(result);
             return err;
@@ -3503,8 +3670,8 @@ namespace EsentLib.Implementation
         public int JetRenameTable(JET_SESID sesid, JET_DBID dbid, string tableName, string newTableName)
         {
             Tracing.TraceFunctionCall("JetRenameTable");
-            CheckNotNull(tableName, "tableName");
-            CheckNotNull(newTableName, "newTableName");
+            Helpers.CheckNotNull(tableName, "tableName");
+            Helpers.CheckNotNull(newTableName, "newTableName");
             return Tracing.TraceResult(NativeMethods.JetRenameTable(sesid.Value, dbid.Value, tableName, newTableName));
         }
 
@@ -3520,8 +3687,8 @@ namespace EsentLib.Implementation
         public int JetRenameColumn(JET_SESID sesid, JET_TABLEID tableid, string name, string newName, RenameColumnGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetRenameColumn");
-            CheckNotNull(name, "name");
-            CheckNotNull(newName, "newName");
+            Helpers.CheckNotNull(name, "name");
+            Helpers.CheckNotNull(newName, "newName");
             return Tracing.TraceResult(
                 NativeMethods.JetRenameColumn(sesid.Value, tableid.Value, name, newName, (uint)grbit));
         }
@@ -3541,8 +3708,8 @@ namespace EsentLib.Implementation
             JET_SESID sesid, JET_DBID dbid, string tableName, string columnName, byte[] data, int dataSize, SetColumnDefaultValueGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetSetColumnDefaultValue");
-            CheckNotNull(tableName, "tableName");
-            CheckNotNull(columnName, "columnName");
+            Helpers.CheckNotNull(tableName, "tableName");
+            Helpers.CheckNotNull(columnName, "columnName");
             CheckDataSize(data, dataSize, "dataSize");
             return Tracing.TraceResult(
                 NativeMethods.JetSetColumnDefaultValue(
@@ -3565,7 +3732,7 @@ namespace EsentLib.Implementation
         public int JetGotoBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize)
         {
             Tracing.TraceFunctionCall("JetGotoBookmark");
-            CheckNotNull(bookmark, "bookmark");
+            Helpers.CheckNotNull(bookmark, "bookmark");
             CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
 
             return
@@ -3599,7 +3766,7 @@ namespace EsentLib.Implementation
             GotoSecondaryIndexBookmarkGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetGotoSecondaryIndexBookmark");
-            CheckNotNull(secondaryKey, "secondaryKey");
+            Helpers.CheckNotNull(secondaryKey, "secondaryKey");
             CheckDataSize(secondaryKey, secondaryKeySize, "secondaryKeySize");
             CheckDataSize(primaryKey, primaryKeySize, "primaryKeySize");
 
@@ -3710,7 +3877,7 @@ namespace EsentLib.Implementation
             IntersectIndexesGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetIntersectIndexes");
-            CheckNotNull(ranges, "ranges");
+            Helpers.CheckNotNull(ranges, "ranges");
             CheckDataSize(ranges, numRanges, "numRanges");
             if (numRanges < 2)
             {
@@ -3970,8 +4137,8 @@ namespace EsentLib.Implementation
             _capabilities.CheckSupportsWindows7Features("JetPrereadKeys");
             CheckDataSize(keys, keyIndex, "keyIndex", keyCount, "keyCount");
             CheckDataSize(keyLengths, keyIndex, "keyIndex", keyCount, "keyCount");
-            CheckNotNull(keys, "keys");
-            CheckNotNull(keyLengths, "keyLengths");
+            Helpers.CheckNotNull(keys, "keys");
+            Helpers.CheckNotNull(keyLengths, "keyLengths");
 
             int err;
             unsafe
@@ -4252,7 +4419,7 @@ namespace EsentLib.Implementation
             EnumerateColumnsGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetEnumerateColumns");
-            CheckNotNull(allocator, "allocator");
+            Helpers.CheckNotNull(allocator, "allocator");
             CheckNotNegative(maxDataSize, "maxDataSize");
             CheckDataSize(columnids, numColumnids, "numColumnids");
 
@@ -4651,7 +4818,7 @@ namespace EsentLib.Implementation
             EscrowUpdateGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetEscrowUpdate");
-            CheckNotNull(delta, "delta");
+            Helpers.CheckNotNull(delta, "delta");
             CheckDataSize(delta, deltaSize, "deltaSize");
             CheckDataSize(previousValue, previousValueLength, "previousValueLength");
 
@@ -4695,7 +4862,7 @@ namespace EsentLib.Implementation
             JET_CALLBACK callback, IntPtr context, out JET_HANDLE callbackId)
         {
             Tracing.TraceFunctionCall("JetRegisterCallback");
-            CheckNotNull(callback, "callback");
+            Helpers.CheckNotNull(callback, "callback");
 
             callbackId = JET_HANDLE.Nil;
             return Tracing.TraceResult(NativeMethods.JetRegisterCallback(sesid.Value, tableid.Value,
@@ -4999,20 +5166,6 @@ namespace EsentLib.Implementation
         private static void CheckDataSize<T>(ICollection<T> data, int dataSize, string argumentName)
         {
             CheckDataSize(data, 0, string.Empty, dataSize, argumentName);
-        }
-
-        /// <summary>
-        /// Make sure the given object isn't null. If it is
-        /// then throw an ArgumentNullException.
-        /// </summary>
-        /// <param name="o">The object to check.</param>
-        /// <param name="paramName">The name of the parameter.</param>
-        private static void CheckNotNull(object o, string paramName)
-        {
-            if (null == o) {
-                Tracing.TraceErrorLine("CheckNotNull failed");
-                throw new ArgumentNullException(paramName);
-            }
         }
 
         /// <summary>

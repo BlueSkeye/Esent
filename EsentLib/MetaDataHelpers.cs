@@ -18,13 +18,13 @@ namespace EsentLib
     public static partial class Api
     {
         #region Simpler API. Overloads that omit unused/obsolete parameters.
-        /// <summary>Initialize a new ESENT session.</summary>
-        /// <param name="instance">The initialized instance to create the session in.</param>
-        /// <param name="sesid">Returns the created session.</param>
-        public static void BeginSession(JET_INSTANCE instance, out JET_SESID sesid)
-        {
-            Api.JetBeginSession(instance, out sesid, null, null);
-        }
+        ///// <summary>Initialize a new ESENT session.</summary>
+        ///// <param name="instance">The initialized instance to create the session in.</param>
+        ///// <param name="sesid">Returns the created session.</param>
+        //public static void BeginSession(JET_INSTANCE instance, out JET_SESID sesid)
+        //{
+        //    Api.JetBeginSession(instance, out sesid, null, null);
+        //}
 
         /// <summary>Creates and attaches a database file.</summary>
         /// <param name="sesid">The session to use.</param>
@@ -36,19 +36,19 @@ namespace EsentLib
             Api.JetCreateDatabase(sesid, database, null, out dbid, grbit);
         }
 
-        /// <summary>Opens a database previously attached with <see cref="JetAttachDatabase"/>,
-        /// for use with a database session. This function can be called multiple times
-        /// for the same database.</summary>
-        /// <param name="sesid">The session that is opening the database.</param>
-        /// <param name="database">The database to open.</param>
-        /// <param name="dbid">Returns the dbid of the attached database.</param>
-        /// <param name="grbit">Open database options.</param>
-        /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn OpenDatabase(JET_SESID sesid, string database, out JET_DBID dbid,
-            OpenDatabaseGrbit grbit)
-        {
-            return Api.JetOpenDatabase(sesid, database, null, out dbid, grbit);
-        }
+        ///// <summary>Opens a database previously attached with <see cref="JetAttachDatabase"/>,
+        ///// for use with a database session. This function can be called multiple times
+        ///// for the same database.</summary>
+        ///// <param name="sesid">The session that is opening the database.</param>
+        ///// <param name="database">The database to open.</param>
+        ///// <param name="dbid">Returns the dbid of the attached database.</param>
+        ///// <param name="grbit">Open database options.</param>
+        ///// <returns>An ESENT warning code.</returns>
+        //public static JET_wrn OpenDatabase(JET_SESID sesid, string database, out JET_DBID dbid,
+        //    OpenDatabaseGrbit grbit)
+        //{
+        //    return Api.JetOpenDatabase(sesid, database, null, out dbid, grbit);
+        //}
 
         /// <summary>Opens a cursor on a previously created table.</summary>
         /// <param name="sesid">The database session to use.</param>
@@ -217,7 +217,7 @@ namespace EsentLib
         public static string JetGetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid)
         {
             string indexName;
-            Api.JetGetCurrentIndex(sesid, tableid, out indexName, SystemParameters.NameMost);
+            Api.JetGetCurrentIndex(sesid, tableid, out indexName, Constants.NameMost);
             return string.IsNullOrEmpty(indexName) ? null : indexName;
         }
     }

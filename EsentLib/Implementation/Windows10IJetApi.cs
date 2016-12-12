@@ -28,28 +28,19 @@ namespace EsentLib.Implementation
         int JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
             out JET_OPERATIONCONTEXT operationContext);
 
-        /// <summary>
-        /// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        /// </summary>
+        /// <summary>Sets a parameter on the provided session state, used for the lifetime
+        /// of this session or until reset.</summary>
         /// <param name="sesid">The session to set the parameter on.</param>
         /// <param name="sesparamid">The ID of the session parameter to set.</param>
         /// <param name="operationContext">An operation context to set.</param>
         /// <returns>An error code.</returns>
-        int JetSetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
-            JET_OPERATIONCONTEXT operationContext);
-
+        int JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, JET_OPERATIONCONTEXT operationContext);
         #endregion
 
         #region Sessions
-
-        /// <summary>
-        /// Retrieves performance information from the database engine for the
-        /// current thread. Multiple calls can be used to collect statistics
-        /// that reflect the activity of the database engine on this thread
-        /// between those calls. 
-        /// </summary>
+        /// <summary>Retrieves performance information from the database engine for the current
+        /// thread. Multiple calls can be used to collect statistics that reflect the activity
+        /// of the database engine on this thread between those calls.</summary>
         /// <param name="threadstats">
         /// Returns the thread statistics.
         /// </param>

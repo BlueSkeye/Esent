@@ -46,8 +46,7 @@ namespace EsentLib.Implementation
         public int ColumnsKeyMost { get; internal set; }
 
         /// <summary>Check that ESENT supports Vista features. Throws an exception if Vista
-        /// features aren't supported.
-        /// </summary>
+        /// features aren't supported.</summary>
         /// <param name="api">The API that is being called.</param>
         internal void CheckSupportsVistaFeatures(string api)
         {

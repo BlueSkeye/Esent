@@ -63,7 +63,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Api.cs" />
-    <Compile Include="ApiConstants.cs" />
     <Compile Include="BoolColumnValue.cs" />
     <Compile Include="BoxedValueCache.cs" />
     <Compile Include="ByteColumnValue.cs" />
@@ -86,7 +85,6 @@
     <Compile Include="EsentException.cs" />
     <Compile Include="EsentInvalidColumnException.cs" />
     <Compile Include="EsentJetApi.cs" />
-    <Compile Include="EsentNativeMethods.cs" />
     <Compile Include="EsentResource.cs" />
     <Compile Include="EsentStopwatch.cs" />
     <Compile Include="EsentVersion.cs" />
@@ -96,11 +94,15 @@
     <Compile Include="GetLockHelpers.cs" />
     <Compile Include="grbits.cs" />
     <Compile Include="GuidColumnValue.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="IContentEquatable.cs" />
     <Compile Include="IDeepCloneable.cs" />
     <Compile Include="IJetApi.cs" />
+    <Compile Include="IJetDatabase.cs" />
+    <Compile Include="IJetSession.cs" />
     <Compile Include="ijet_logtime.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Implementation\NativeHelpers.cs" />
     <Compile Include="Implementation\Windows10IJetApi.cs" />
     <Compile Include="IndexInfo.cs" />
     <Compile Include="IndexInfoEnumerator.cs" />
@@ -112,6 +114,7 @@
     <Compile Include="InternalApi.cs" />
     <Compile Include="IntersectIndexesEnumerator.cs" />
     <Compile Include="INullableJetStruct.cs" />
+    <Compile Include="JetDatabase.cs" />
     <Compile Include="JetInstance.cs" />
     <Compile Include="JetCallbackWrapper.cs" />
     <Compile Include="JetCapabilities.cs" />
@@ -242,9 +245,7 @@
     <Compile Include="Platform\Windows10\Windows10Coltyp.cs" />
     <Compile Include="Platform\Windows10\Windows10Grbits.cs" />
     <Compile Include="Platform\Windows10\Windows10JetApi.cs" />
-    <Compile Include="Platform\Windows10\Windows10NativeMethods.cs" />
     <Compile Include="Platform\Windows10\Windows10Param.cs" />
-    <Compile Include="Platform\Windows10\Windows10Sesparam.cs" />
     <Compile Include="Platform\Windows10\Windows10Session.cs" />
     <Compile Include="Platform\Windows7\Windows7Api.cs" />
     <Compile Include="Platform\Windows7\Windows7ExceptionAction.cs" />
@@ -257,7 +258,6 @@
     <Compile Include="Platform\Windows8\Windows8IJetApi.cs" />
     <Compile Include="Platform\Windows8\Windows8InstanceParameters.cs" />
     <Compile Include="Platform\Windows8\Windows8JetApi.cs" />
-    <Compile Include="Platform\Windows8\Windows8NativeMethods.cs" />
     <Compile Include="Platform\Windows8\Windows8Param.cs" />
     <Compile Include="Platform\Windows8\Windows8SystemParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

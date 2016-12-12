@@ -141,6 +141,40 @@ namespace EsentLib
             }
         }
 
+        /// <summary>Set a system parameter which is a boolean.</summary>
+        /// <param name="param">The parameter to set.</param>
+        /// <param name="value">The value to set.</param>
+        public static void SetParameter(JET_param param, bool value)
+        {
+            SetParameter(param, new IntPtr(value ? 1 : 0));
+        }
+
+        /// <summary>Set a system parameter which is a boolean.</summary>
+        /// <param name="param">The parameter to set.</param>
+        /// <param name="value">The value to set.</param>
+        public static void SetParameter(JET_param param, int value)
+        {
+            SetParameter(param, new IntPtr(value));
+        }
+
+        /// <summary>Sets database configuration options.</summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter is an integer type.</param>
+        /// <returns>An error or warning.</returns>
+        public static void SetParameter(JET_param paramid, IntPtr paramValue)
+        {
+            NativeHelpers.SetParameter(JET_INSTANCE.Nil, JET_SESID.Nil, paramid, paramValue);
+        }
+
+        /// <summary>Sets database configuration options.</summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter is a string type.</param>
+        /// <returns>An error or warning.</returns>
+        public static void SetParameter(JET_param paramid, string paramString)
+        {
+            NativeHelpers.SetParameter(JET_INSTANCE.Nil, JET_SESID.Nil, paramid, paramString);
+        }
+
         /// <summary>Used when an unsupported API method is called. This logs an error and
         /// returns an InvalidOperationException.</summary>
         /// <param name="method">The name of the method.</param>

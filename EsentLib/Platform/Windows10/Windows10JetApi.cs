@@ -25,9 +25,7 @@ namespace EsentLib.Implementation
         /// <param name="sesparamid">The ID of the session parameter to set.</param>
         /// <param name="operationContext">An operation context to set.</param>
         /// <returns>An error code.</returns>
-        public int JetGetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
+        public int JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
             out JET_OPERATIONCONTEXT operationContext)
         {
             TraceFunctionCall("JetGetSessionParameter");
@@ -38,30 +36,22 @@ namespace EsentLib.Implementation
             NATIVE_OPERATIONCONTEXT nativeContext = new NATIVE_OPERATIONCONTEXT();
             int dataSize = Marshal.SizeOf(nativeContext);
 
-            err = EsentLib.Implementation.NativeMethods.JetGetSessionParameter(
-                sesid.Value,
-                (uint)sesparamid,
-                out nativeContext,
-                dataSize,
-                out actualDataSize);
+            err = EsentLib.Implementation.NativeMethods.JetGetSessionParameter(sesid.Value,
+                (uint)sesparamid, out nativeContext, dataSize, out actualDataSize);
 
             if (err >= (int)JET_err.Success)
             {
                 if (actualDataSize != dataSize)
                 {
                     throw new ArgumentException(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
+                        string.Format(CultureInfo.InvariantCulture,
                             "Bad return value. Unexpected data size returned. Expected {0}, but received {1}.",
-                            dataSize,
-                            actualDataSize),
+                            dataSize, actualDataSize),
                         "sesparamid");
                 }
             }
-
             operationContext = new JET_OPERATIONCONTEXT(ref nativeContext);
-
-            return TraceResult(err);
+            return Tracing.TraceResult(err);
         }
 
         /// <summary>
@@ -71,9 +61,7 @@ namespace EsentLib.Implementation
         /// <param name="sesparamid">The ID of the session parameter to set.</param>
         /// <param name="operationContext">An operation context to set.</param>
         /// <returns>An error code.</returns>
-        public int JetSetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
+        public int JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
             JET_OPERATIONCONTEXT operationContext)
         {
             TraceFunctionCall("JetSetSessionParameter");
@@ -89,7 +77,7 @@ namespace EsentLib.Implementation
                 ref nativeContext,
                 checked((int)dataSize));
 
-            return TraceResult(err);
+            return Tracing.TraceResult(err);
         }
         #endregion
 
@@ -116,7 +104,7 @@ namespace EsentLib.Implementation
             {
                 fixed (JET_THREADSTATS2* rawJetThreadstats = &threadstats)
                 {
-                    return TraceResult(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS2.Size)));
+                    return Tracing.TraceResult(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS2.Size)));
                 }
             }
         }

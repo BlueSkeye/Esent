@@ -142,20 +142,7 @@ namespace EsentLib
 
         /// <summary>Attaches a database file for use with a database instance. In order
         /// to use the database, it will need to be subsequently opened with
-        /// <see cref="JetOpenDatabase"/>.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The database to attach.</param>
-        /// <param name="grbit">Attach options.</param>
-        /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn JetAttachDatabase(JET_SESID sesid, string database,
-            AttachDatabaseGrbit grbit)
-        {
-            return EsentExceptionHelper.Check(Impl.JetAttachDatabase(sesid, database, grbit));
-        }
-
-        /// <summary>Attaches a database file for use with a database instance. In order
-        /// to use the database, it will need to be subsequently opened with
-        /// <see cref="JetOpenDatabase"/>.</summary>
+        /// <see cref="IJetSession.OpenDatabase"/>.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="database">The database to attach.</param>
         /// <param name="maxPages">
@@ -170,23 +157,7 @@ namespace EsentLib
             return EsentExceptionHelper.Check(Impl.JetAttachDatabase2(sesid, database, maxPages, grbit));
         }
 
-        /// <summary>Opens a database previously attached with <see cref="JetAttachDatabase"/>,
-        /// for use with a database session. This function can be called multiple times
-        /// for the same database.</summary>
-        /// <param name="sesid">The session that is opening the database.</param>
-        /// <param name="database">The database to open.</param>
-        /// <param name="connect">Reserved for future use.</param>
-        /// <param name="dbid">Returns the dbid of the attached database.</param>
-        /// <param name="grbit">Open database options.</param>
-        /// <returns>An ESENT warning code.</returns>
-        /// <seealso cref="Api.OpenDatabase"/>
-        public static JET_wrn JetOpenDatabase(JET_SESID sesid, string database, string connect,
-            out JET_DBID dbid, OpenDatabaseGrbit grbit)
-        {
-            return EsentExceptionHelper.Check(Impl.JetOpenDatabase(sesid, database, connect, out dbid, grbit));
-        }
-
-        /// <summary>Closes a database file that was previously opened with <see cref="JetOpenDatabase"/> or
+        /// <summary>Closes a database file that was previously opened with <see cref="IJetSession.OpenDatabase"/> or
         /// created with <see cref="JetCreateDatabase"/>.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to close.</param>
@@ -440,7 +411,7 @@ namespace EsentLib
         /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
         /// to query an instance for the names of database files that should become part of
         /// the backup file set. Only databases that are currently attached to the instance
-        /// using <see cref="JetAttachDatabase"/> will be considered. These files may
+        /// using <see cref="JetSession.AttachDatabase"/> will be considered. These files may
         /// subsequently be opened using <see cref="JetOpenFileInstance"/> and read
         /// using <see cref="JetReadFileInstance"/>.</summary>
         /// <remarks>It is important to note that this API does not return an error or warning
@@ -588,9 +559,7 @@ namespace EsentLib
 
         #region Tables
 
-        /// <summary>
-        /// Opens a cursor on a previously created table.
-        /// </summary>
+        /// <summary>Opens a cursor on a previously created table.</summary>
         /// <param name="sesid">The database session to use.</param>
         /// <param name="dbid">The database to open the table in.</param>
         /// <param name="tablename">The name of the table to open.</param>
@@ -604,9 +573,7 @@ namespace EsentLib
             return EsentExceptionHelper.Check(Impl.JetOpenTable(sesid, dbid, tablename, parameters, parametersSize, grbit, out tableid));
         }
 
-        /// <summary>
-        /// Close an open table.
-        /// </summary>
+        /// <summary>Close an open table.</summary>
         /// <param name="sesid">The session which opened the table.</param>
         /// <param name="tableid">The table to close.</param>
         public static void JetCloseTable(JET_SESID sesid, JET_TABLEID tableid)
@@ -1235,7 +1202,7 @@ namespace EsentLib
         /// <param name="indexName">Returns the name of the index.</param>
         /// <param name="maxNameLength">
         /// The maximum length of the index name. Index names are no more than 
-        /// <see cref="SystemParameters.NameMost"/> characters.
+        /// <see cref="Constants.NameMost"/> characters.
         /// </param>
         public static void JetGetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, out string indexName, int maxNameLength)
         {

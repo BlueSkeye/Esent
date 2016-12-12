@@ -127,7 +127,7 @@ namespace EsentLib.Implementation
         /// </summary>
         /// <param name="sesid">The session to set the parameter on.</param>
         /// <param name="sesparamid">The ID of the session parameter to set, see
-        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Platform.Windows10.Windows10Sesparam"/>.</param>
+        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
         /// <param name="value">A 32-bit integer to retrieve.</param>
         /// <returns>An error if the call fails.</returns>
         int JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, out int value);
@@ -137,7 +137,7 @@ namespace EsentLib.Implementation
         /// </summary>
         /// <param name="sesid">The session to set the parameter on.</param>
         /// <param name="sesparamid">The ID of the session parameter to set, see
-        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Platform.Windows10.Windows10Sesparam"/>.</param>
+        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
         /// <param name="data">A byte array to retrieve.</param>
         /// <param name="length">AThe length of the data array.</param>
         /// <param name="actualDataSize">The actual size of the data field.</param>

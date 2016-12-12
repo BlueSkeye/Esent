@@ -108,9 +108,7 @@ namespace EsentLib
         ForceCloseAndDetach = (0x2 | 0x1 /*ForceDetach*/),
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetAttachDatabase"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="JetSession.AttachDatabase"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnableAttachDbBackgroundMaintenance"/>
     /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.PurgeCacheOnAttach"/>
     [Flags]

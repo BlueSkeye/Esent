@@ -59,27 +59,20 @@ namespace EsentLib.Platform.Windows8
         /// <param name="wrappedCallback">
         /// The managed code callback to call.
         /// </param>
-        public DurableCommitCallback(
-            JET_INSTANCE instance,
-            JET_PFNDURABLECOMMITCALLBACK wrappedCallback)
+        public DurableCommitCallback(JET_INSTANCE instance, JET_PFNDURABLECOMMITCALLBACK wrappedCallback)
         {
             this.instance = instance;
             this.wrappedCallback = wrappedCallback;
             this.wrapperCallback = this.NativeDurableCommitCallback;
 
-            if (this.wrappedCallback != null)
-            {
+            if (this.wrappedCallback != null) {
                 RuntimeHelpers.PrepareMethod(this.wrappedCallback.Method.MethodHandle);
             }
-
             RuntimeHelpers.PrepareMethod(typeof(DurableCommitCallback).GetMethod("NativeDurableCommitCallback", BindingFlags.NonPublic | BindingFlags.Instance).MethodHandle);
-
             EsentLib.Platform.Windows8.InstanceParameters instanceParameters =
                 new EsentLib.Platform.Windows8.InstanceParameters(this.instance);
-
             // This might be null.
             instanceParameters.SetDurableCommitCallback(this.wrapperCallback);
-
             this.ResourceWasAllocated();
         }
 

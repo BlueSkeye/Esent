@@ -26,6 +26,15 @@ namespace EsentLib.Implementation
         /// of ESENT.</summary>
         JetCapabilities Capabilities { get; }
 
+
+        /// <summary>Initialize the ESENT database engine.</summary>
+        /// <param name="grbit">Initialization options.</param>
+        /// <param name="recoveryOptions">Additional recovery parameters for remapping
+        /// databases during recovery, position where to stop recovery at, or recovery
+        /// status.</param>
+        /// <returns>An error if the call fails.</returns>
+        void Initialize(InitGrbit grbit = InitGrbit.None, JET_RSTINFO recoveryOptions = null);
+
         #region Init/Term
 
         ///// <summary>Allocates a new instance of the database engine.</summary>
@@ -33,10 +42,6 @@ namespace EsentLib.Implementation
         ///// <param name="name">The name of the instance. Names must be unique.</param>
         ///// <returns>An error if the call fails.</returns>
         //int JetCreateInstance(out JET_INSTANCE instance, string name);
-
-        /// <summary>Initialize the ESENT database engine.</summary>
-        /// <returns>An error if the call fails.</returns>
-        void Initialize();
 
         /// <summary>
         /// Retrieves information about an instance.
@@ -78,34 +83,17 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         int JetTerm2(JET_INSTANCE instance, TermGrbit grbit);
 
-        /// <summary>
-        /// Sets database configuration options.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
-        /// to set the option on all instances.
-        /// </param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to set.</param>
-        /// <param name="paramValue">The value of the parameter to set, if the parameter is an integer type.</param>
-        /// <param name="paramString">The value of the parameter to set, if the parameter is a string type.</param>
-        /// <returns>An error or warning.</returns>
-        int JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, IntPtr paramValue, string paramString);
-
-        /// <summary>
-        /// Sets database configuration options. This overload is used when the
-        /// parameter being set is of type JET_CALLBACK.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
-        /// to set the option on all instances.
-        /// </param>
+        /// <summary>Sets database configuration options. This overload is used when the
+        /// parameter being set is of type JET_CALLBACK.</summary>
+        /// <param name="instance">The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
+        /// to set the option on all instances.</param>
         /// <param name="sesid">The session to use.</param>
         /// <param name="paramid">The parameter to set.</param>
         /// <param name="paramValue">The value of the parameter to set.</param>
         /// <param name="paramString">The value of the string parameter to set.</param>
         /// <returns>An error or warning.</returns>
-        int JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, JET_CALLBACK paramValue, string paramString);
+        int JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid,
+            JET_CALLBACK paramValue, string paramString);
 
         /// <summary>
         /// Gets database configuration options.
@@ -122,10 +110,6 @@ namespace EsentLib.Implementation
         /// </remarks>
         /// <returns>An error or warning.</returns>
         int JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, ref IntPtr paramValue, out string paramString, int maxParam);
-
-        /// <summary>Retrieves the version of the database engine.</summary>
-        /// <returns>Engine implemented version.</returns>
-        uint GetVersion();
         #endregion
 
         #region Databases
@@ -158,17 +142,7 @@ namespace EsentLib.Implementation
 
         /// <summary>
         /// Attaches a database file for use with a database instance. In order to use the
-        /// database, it will need to be subsequently opened with <see cref="JetOpenDatabase"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The database to attach.</param>
-        /// <param name="grbit">Attach options.</param>
-        /// <returns>An error or warning.</returns>
-        int JetAttachDatabase(JET_SESID sesid, string database, AttachDatabaseGrbit grbit);
-
-        /// <summary>
-        /// Attaches a database file for use with a database instance. In order to use the
-        /// database, it will need to be subsequently opened with <see cref="JetOpenDatabase"/>.
+        /// database, it will need to be subsequently opened with <see cref="IJetSession.OpenDatabase"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="database">The database to attach.</param>
@@ -181,20 +155,7 @@ namespace EsentLib.Implementation
         int JetAttachDatabase2(JET_SESID sesid, string database, int maxPages, AttachDatabaseGrbit grbit);
 
         /// <summary>
-        /// Opens a database previously attached with <see cref="JetAttachDatabase"/>,
-        /// for use with a database session. This function can be called multiple times
-        /// for the same database.
-        /// </summary>
-        /// <param name="sesid">The session that is opening the database.</param>
-        /// <param name="database">The database to open.</param>
-        /// <param name="connect">Reserved for future use.</param>
-        /// <param name="dbid">Returns the dbid of the attached database.</param>
-        /// <param name="grbit">Open database options.</param>
-        /// <returns>An error or warning.</returns>
-        int JetOpenDatabase(JET_SESID sesid, string database, string connect, out JET_DBID dbid, OpenDatabaseGrbit grbit);
-
-        /// <summary>
-        /// Closes a database file that was previously opened with <see cref="JetOpenDatabase"/> or
+        /// Closes a database file that was previously opened with <see cref="IJetSession.OpenDatabase"/> or
         /// created with <see cref="JetCreateDatabase"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
@@ -690,11 +651,6 @@ namespace EsentLib.Implementation
         /// <param name="sesid">The session to use.</param>
         /// <returns>An error if the call fails.</returns>
         int JetResetSessionContext(JET_SESID sesid);
-
-        /// <summary>Ends a session.</summary>
-        /// <param name="grbit">This parameter is not used.</param>
-        /// <returns>An error if the call fails.</returns>
-        void Close(EndSessionGrbit grbit);
 
         /// <summary>
         /// Initialize a new ESE session in the same instance as the given sesid.

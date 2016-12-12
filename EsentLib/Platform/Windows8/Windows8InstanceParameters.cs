@@ -149,21 +149,15 @@ namespace EsentLib.Platform.Windows8
             }
         }
 
-        /// <summary>
-        /// Gets the callback for log flush.
-        /// </summary>
+        /// <summary>Gets the callback for log flush.</summary>
         /// <returns>The delegate that's called for log flush.</returns>
         internal NATIVE_JET_PFNDURABLECOMMITCALLBACK GetDurableCommitCallback()
         {
-            NATIVE_JET_PFNDURABLECOMMITCALLBACK pfndurablecommit = null;
-
             IntPtr rawValue = this.GetIntPtrParameter(Windows8Param.DurableCommitCallback);
-            if (rawValue != IntPtr.Zero)
-            {
-                pfndurablecommit = (NATIVE_JET_PFNDURABLECOMMITCALLBACK)Marshal.GetDelegateForFunctionPointer(rawValue, typeof(NATIVE_JET_PFNDURABLECOMMITCALLBACK));
-            }
-
-            return pfndurablecommit;
+            return (IntPtr.Zero == rawValue)
+                ? null
+                : (NATIVE_JET_PFNDURABLECOMMITCALLBACK)Marshal.GetDelegateForFunctionPointer(rawValue,
+                    typeof(NATIVE_JET_PFNDURABLECOMMITCALLBACK));
         }
 
         /// <summary>
@@ -176,16 +170,9 @@ namespace EsentLib.Platform.Windows8
         /// </param>
         internal void SetDurableCommitCallback(NATIVE_JET_PFNDURABLECOMMITCALLBACK callback)
         {
-            IntPtr nativeDelegate;
-            if (callback != null)
-            {
-                nativeDelegate = Marshal.GetFunctionPointerForDelegate(callback);
-            }
-            else
-            {
-                nativeDelegate = IntPtr.Zero;
-            }
-
+            IntPtr nativeDelegate = (null == callback)
+                ? IntPtr.Zero
+                : Marshal.GetFunctionPointerForDelegate(callback);
             this.SetIntPtrParameter(Windows8Param.DurableCommitCallback, nativeDelegate);
         }
 
