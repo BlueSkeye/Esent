@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 
+using EsentLib.Implementation;
 using EsentLib.Jet;
 
 namespace EsentLib
@@ -51,59 +52,42 @@ namespace EsentLib
         Abrupt = 2,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetCreateDatabase"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="JetSession.CreateDatabase"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnableCreateDbBackgroundMaintenance"/>
     [Flags]
     public enum CreateDatabaseGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// By default, if JetCreateDatabase is called and the database already exists,
-        /// the Api call will fail and the original database will not be overwritten.
-        /// OverwriteExisting changes this behavior, and the old database
-        /// will be overwritten with a new one.
-        /// </summary>
+        /// <summary>By default, if JetCreateDatabase is called and the database already exists,
+        /// the Api call will fail and the original database will not be overwritten. OverwriteExisting
+        /// changes this behavior, and the old database will be overwritten with a new one.</summary>
         OverwriteExisting = 0x200,
 
-        /// <summary>
-        /// Turns off logging. Setting this bit loses the ability to replay log files
-        /// and recover the database to a consistent usable state after a crash.
-        /// </summary>
+        /// <summary>Turns off logging. Setting this bit loses the ability to replay log files
+        /// and recover the database to a consistent usable state after a crash.</summary>
         RecoveryOff = 0x8,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetDetachDatabase2"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="Api.JetDetachDatabase2"/>.</summary>
     [Flags]
     public enum DetachDatabaseGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// If <see cref="ForceDetach"/> is used, <see cref="EsentForceDetachNotAllowedException"/> will be returned.
-        /// </summary>
+        /// <summary>If <see cref="ForceDetach"/> is used, <see cref="EsentForceDetachNotAllowedException"/>
+        /// will be returned.</summary>
         [Obsolete("ForceDetach is no longer used.")]
         ForceDetach = 1,
 
-        /// <summary>
-        /// <see cref="ForceClose"/> is no longer used.
-        /// </summary>
+        /// <summary><see cref="ForceClose"/> is no longer used.</summary>
         [Obsolete("ForceClose is no longer used.")]
         ForceClose = 0x2,
 
-        /// <summary>
-        /// If <see cref="ForceCloseAndDetach"/> is used, <see cref="EsentForceDetachNotAllowedException"/> will be returned.
-        /// </summary>
+        /// <summary>If <see cref="ForceCloseAndDetach"/> is used,
+        /// <see cref="EsentForceDetachNotAllowedException"/> will be returned.</summary>
         [Obsolete("ForceCloseAndDetach is no longer used.")]
         ForceCloseAndDetach = (0x2 | 0x1 /*ForceDetach*/),
     }
@@ -131,26 +115,18 @@ namespace EsentLib
         DeleteCorruptIndexes = 0x10, 
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetOpenDatabase"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="JetSession.OpenDatabase"/>.</summary>
     [Flags]
     public enum OpenDatabaseGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// Prevents modifications to the database.
-        /// </summary>
+        /// <summary>Prevents modifications to the database.</summary>
         ReadOnly = 0x1,
 
-        /// <summary>
-        /// Allows only a single session to attach a database.
-        /// Normally, several sessions can open a database.
-        /// </summary>
+        /// <summary>Allows only a single session to attach a database. Normally, several sessions can
+        /// open a database.</summary>
         Exclusive = 0x2,
     }
 
@@ -318,22 +294,16 @@ namespace EsentLib
         Abort = 0x2,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetBeginTransaction2"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="JetSession.BeginTransaction"/>.</summary>
     [Flags]
     public enum BeginTransactionGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// The transaction will not modify the database. If an update is attempted,
-        /// that operation will fail with <see cref="JET_err.TransReadOnly"/>. This
-        /// option is ignored unless it is requested when the given session is not
-        /// already in a transaction.
+        /// <summary>The transaction will not modify the database. If an update is attempted,
+        /// that operation will fail with <see cref="JET_err.TransReadOnly"/>. This option is
+        /// ignored unless it is requested when the given session is not already in a transaction.
         /// </summary>
         ReadOnly = 0x1,
     }

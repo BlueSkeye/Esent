@@ -13,8 +13,7 @@ using EsentLib.Platform.Windows8;
 namespace EsentLib.Jet
 {
     /// <summary>ESENT system parameters. This list is not extensive. Some parameters
-    /// introduced later are in different classes, such as <see cref="VistaParam"/>,
-    /// <see cref="Windows7Param"/>, or <see cref="Windows8Param"/>.
+    /// introduced later are in different classes, such as <see cref="Windows8Param"/>.
     /// <para>
     /// <see cref="JET_param"/> is usually used with <see cref="EsentLib.Implementation.JetInstance.SetSystemParameter(JET_SESID,JET_param,int,string)"/>,
     /// <see cref="EsentLib.Implementation.JetInstance.SetSystemParameter(JET_SESID,JET_param,IntPtr,string)"/>,
@@ -24,16 +23,12 @@ namespace EsentLib.Jet
     /// and <see cref="InstanceParameters"/>.
     /// </para>
     /// </summary>
-    /// <seealso cref="VistaParam"/>
-    /// <seealso cref="Windows7Param"/>
     /// <seealso cref="Windows8Param"/>
     public enum JET_param
     {
-        /// <summary>
-        /// This parameter indicates the relative or absolute file system path of the
-        /// folder that will contain the checkpoint file for the instance. The path
-        /// must be terminated with a backslash character, which indicates that the
-        /// target path is a folder. 
+        /// <summary>This parameter indicates the relative or absolute file system path of the
+        /// folder that will contain the checkpoint file for the instance. The path must be
+        /// terminated with a backslash character, which indicates that the target path is a folder.
         /// </summary>
         SystemPath = 0,
 
@@ -425,7 +420,201 @@ namespace EsentLib.Jet
         /// </summary>
         DisablePerfmon = 107,
 
-        // If you can not find the parameter you are expecting here, then perhaps it is
-        // in a later version of the API, in VistaParam, Windows7Param, etc.
+        // ----- //
+        // VISTA //
+        // ----- //
+        /// <summary>
+        /// This parameter controls the number of B+ Tree resources cached by
+        /// the instance after the tables they represent have been closed by
+        /// the application. Large values for this parameter will cause the
+        /// database engine to use more memory but will increase the speed
+        /// with which a large number of tables can be opened randomly by
+        /// the application. This is useful for applications that have a
+        /// schema with a very large number of tables.
+        /// </summary>
+        CachedClosedTables = 125,
+
+        /// <summary>
+        /// Enable the use of the OS file cache for all managed files.
+        /// </summary>
+        EnableFileCache = 126,
+
+        /// <summary>
+        /// Enable the use of memory mapped file I/O for database files.
+        /// </summary>
+        EnableViewCache = 127,
+
+        /// <summary>
+        /// This parameter exposes multiple sets of default values for the
+        /// entire set of system parameters. When this parameter is set to
+        /// a specific configuration, all system parameter values are reset
+        /// to their default values for that configuration. If the
+        /// configuration is set for a specific instance then global system
+        /// parameters will not be reset to their default values.
+        /// Small Configuration (0): The database engine is optimized for memory use. 
+        /// Legacy Configuration (1): The database engine has its traditional defaults.
+        /// </summary>
+        Configuration = 129,
+
+        /// <summary>
+        /// This parameter is used to control when the database engine accepts
+        /// or rejects changes to a subset of the system parameters. This
+        /// parameter is used in conjunction with <see cref="Configuration"/> to
+        /// prevent some system parameters from being set away from the selected
+        /// configuration's defaults.
+        /// </summary>
+        EnableAdvanced = 130,
+
+        /// <summary>
+        /// This read-only parameter indicates the maximum allowable index key
+        /// length that can be selected for the current database page size
+        /// (as configured by <see cref="JET_param.DatabasePageSize"/>).
+        /// </summary>
+        KeyMost = 134,
+
+        /// <summary>
+        /// This parameter provides backwards compatibility with the file naming conventions of earlier releases of the database engine.
+        /// </summary>
+        LegacyFileNames = 136,
+
+        /// <summary>
+        /// Set the name associated with table class 1.
+        /// </summary>
+        TableClass1Name = 137,
+
+        /// <summary>
+        /// Set the name associated with table class 2.
+        /// </summary>
+        TableClass2Name = 138,
+
+        /// <summary>
+        /// Set the name associated with table class 3.
+        /// </summary>
+        TableClass3Name = 139,
+
+        /// <summary>
+        /// Set the name associated with table class 4.
+        /// </summary>
+        TableClass4Name = 140,
+
+        /// <summary>
+        /// Set the name associated with table class 5.
+        /// </summary>
+        TableClass5Name = 141,
+
+        /// <summary>
+        /// Set the name associated with table class 6.
+        /// </summary>
+        TableClass6Name = 142,
+
+        /// <summary>
+        /// Set the name associated with table class 7.
+        /// </summary>
+        TableClass7Name = 143,
+
+        /// <summary>
+        /// Set the name associated with table class 8.
+        /// </summary>
+        TableClass8Name = 144,
+
+        /// <summary>
+        /// Set the name associated with table class 9.
+        /// </summary>
+        TableClass9Name = 145,
+
+        /// <summary>
+        /// Set the name associated with table class 10.
+        /// </summary>
+        TableClass10Name = 146,
+
+        /// <summary>
+        /// Set the name associated with table class 11.
+        /// </summary>
+        TableClass11Name = 147,
+
+        /// <summary>
+        /// Set the name associated with table class 12.
+        /// </summary>
+        TableClass12Name = 148,
+
+        /// <summary>
+        /// Set the name associated with table class 13.
+        /// </summary>
+        TableClass13Name = 149,
+
+        /// <summary>
+        /// Set the name associated with table class 14.
+        /// </summary>
+        TableClass14Name = 150,
+
+        /// <summary>
+        /// Set the name associated with table class 15.
+        /// </summary>
+        TableClass15Name = 151,
+
+        /// <summary>
+        /// Sets the IO priority per instance, anytime. This is used
+        /// mainly for background recovery (log replay).
+        /// Does not affect the pending IOs, just the subsequent ones issued.
+        /// The valid values for this parameter are contained in the
+        /// <see cref="JET_IOPriority"/> enumeration.
+        /// </summary>
+        IOPriority = 152,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>
+        /// This parameter sets the number of logs that esent will defer database
+        /// flushes for. This can be used to increase database recoverability if
+        /// failures cause logfiles to be lost.
+        /// </summary>
+        WaypointLatency = 153,
+
+        /// <summary>Turn on/off automatic sequential B-tree defragmentation tasks (On by default, but
+        /// also requires <see cref="SpaceHintsGrbit"/> flags / <see cref="SpaceHintsGrbit"/>.RetrieveHintTableScan*
+        /// to trigger on any given tables).</summary>
+        DefragmentSequentialBTrees = 160,
+
+        /// <summary>Determine how frequently B-tree density is checked (Note: currently not
+        /// implemented).</summary>
+        DefragmentSequentialBTreesDensityCheckFrequency = 161,
+
+        /// <summary>This parameter is used to retrieve the chunk size of long-value (blob) data.
+        /// Setting and retrieving data in multiples of this size increases efficiency.</summary>
+        LVChunkSizeMost = 163,
+
+        /// <summary>Maximum number of bytes that can be grouped for a coalesced read operation.</summary>
+        MaxCoalesceReadSize = 164,
+
+        /// <summary>Maximum number of bytes that can be grouped for a coalesced write operation.</summary>
+        MaxCoalesceWriteSize = 165,
+
+        /// <summary>Maximum number of bytes that can be gapped for a coalesced read IO operation.</summary>
+        MaxCoalesceReadGapSize = 166,
+
+        /// <summary>Maximum number of bytes that can be gapped for a coalesced write IO operation.</summary>
+        MaxCoalesceWriteGapSize = 167,
+
+        /// <summary>Enable Database Maintenance during recovery.</summary>
+        EnableDbScanInRecovery = 169,
+
+        /// <summary>Throttling of the database scan, in milliseconds.</summary>
+        DbScanThrottle = 170,
+
+        /// <summary>Minimum interval to repeat the database scan, in seconds.</summary>
+        DbScanIntervalMinSec = 171,
+
+        /// <summary>Maximum interval to allow the database scan to finish, in seconds.</summary>
+        DbScanIntervalMaxSec = 172,
+
+        // ----------- //
+        // WINDOWS 8.1 //
+        // ----------- //
+        /// <summary>Whether to free space back to the OS after deleting data. This may free space
+        /// in the middle of files (done in the units of database extents). This uses Sparse Files,
+        /// which is available on NTFS and ReFS (not FAT). The exact method of releasing space is an
+        /// implementation detail and is subject to change.</summary>
+        EnableShrinkDatabase = 184,
     }
 }

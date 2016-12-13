@@ -4,6 +4,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EsentLib.Implementation;
+
 namespace EsentLib.Jet
 {
     /// <summary>
@@ -30,12 +32,10 @@ namespace EsentLib.Jet
         /// </summary>
         Options = 6,
 
-        /// <summary>
-        /// Returns a number one greater than the maximum level to which transactions can be
-        /// nested. If <see cref="Api.JetBeginTransaction"/> is called (in a nesting fashion, that is, on the
-        /// same session, without a commit or rollback) as many times as this value, on the
-        /// last call <see cref="JET_err.TransTooDeep"/> will be returned (Int32).
-        /// </summary>
+        /// <summary>Returns a number one greater than the maximum level to which transactions
+        /// can be nested. If <see cref="JetSession.BeginTransaction"/> is called (in a nesting fashion,
+        /// that is, on the same session, without a commit or rollback) as many times as this value,
+        /// on the last call <see cref="JET_err.TransTooDeep"/> will be returned (Int32).</summary>
         Transactions = 7,
 
         /// <summary>

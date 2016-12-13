@@ -50,24 +50,24 @@ namespace EsentLib.Platform.Windows8
             EsentExceptionHelper.Check(Api.Impl.JetBeginTransaction3(sesid, userTransactionId, grbit));
         }
 
-        /// <summary>
-        /// Commits the changes made to the state of the database during the current save point
-        /// and migrates them to the previous save point. If the outermost save point is committed
-        /// then the changes made during that save point will be committed to the state of the
-        /// database and the session will exit the transaction.
-        /// </summary>
-        /// <param name="sesid">The session to commit the transaction for.</param>
-        /// <param name="grbit">Commit options.</param>
-        /// <param name="durableCommit">Duration to commit lazy transaction.</param>
-        /// <param name="commitId">Commit-id associated with this commit record.</param>
-        public static void JetCommitTransaction2(
-            JET_SESID sesid,
-            CommitTransactionGrbit grbit,
-            TimeSpan durableCommit,
-            out JET_COMMIT_ID commitId)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetCommitTransaction2(sesid, grbit, durableCommit, out commitId));
-        }
+        ///// <summary>
+        ///// Commits the changes made to the state of the database during the current save point
+        ///// and migrates them to the previous save point. If the outermost save point is committed
+        ///// then the changes made during that save point will be committed to the state of the
+        ///// database and the session will exit the transaction.
+        ///// </summary>
+        ///// <param name="sesid">The session to commit the transaction for.</param>
+        ///// <param name="grbit">Commit options.</param>
+        ///// <param name="durableCommit">Duration to commit lazy transaction.</param>
+        ///// <param name="commitId">Commit-id associated with this commit record.</param>
+        //public static void JetCommitTransaction2(
+        //    JET_SESID sesid,
+        //    CommitTransactionGrbit grbit,
+        //    TimeSpan durableCommit,
+        //    out JET_COMMIT_ID commitId)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetCommitTransaction2(sesid, grbit, durableCommit, out commitId));
+        //}
 
         #endregion
 
@@ -83,31 +83,23 @@ namespace EsentLib.Platform.Windows8
             EsentExceptionHelper.Check(Api.Impl.JetGetErrorInfo(error, out errinfo));
         }
 
-        /// <summary>
-        /// Resizes a currently open database. Windows 8: Only supports growing a database file.
-        /// Windows 8.1: When <see cref="InstanceParameters.EnableShrinkDatabase"/> is set to
-        /// <see cref="Win81.ShrinkDatabaseGrbit.On"/>, and if the
+        /// <summary>Resizes a currently open database. Windows 8: Only supports growing a database file.
+        /// Windows 8.1: When <see cref="JET_param.EnableShrinkDatabase"/> is set to
+        /// <see cref="Enums.ShrinkDatabaseGrbit.On"/>, and if the
         /// file system supports Sparse Files, then space may be freed up in the middle of the
-        /// file.
-        /// </summary>
-        /// <remarks>
-        /// Many APIs return the logical size of the file, not how many bytes it takes up on disk.
+        /// file.</summary>
+        /// <remarks>Many APIs return the logical size of the file, not how many bytes it takes up on disk.
         /// Win32's GetCompressedFileSize returns the correct on-disk size.
         /// <see cref="Api.JetGetDatabaseInfo(JET_SESID, JET_DBID, out int, JET_DbInfo)"/>
         /// returns the on-disk size when used with
-        /// <see cref="Win81.Windows81DbInfo.FilesizeOnDisk"/>
-        /// </remarks>
+        /// <see cref="Win81.Windows81DbInfo.FilesizeOnDisk"/></remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to grow.</param>
         /// <param name="desiredPages">The desired size of the database, in pages.</param>
         /// <param name="actualPages">The size of the database, in pages, after the call. </param>
         /// <param name="grbit">Resize options.</param>
-        public static void JetResizeDatabase(
-            JET_SESID sesid, 
-            JET_DBID dbid, 
-            int desiredPages, 
-            out int actualPages,
-            ResizeDatabaseGrbit grbit)
+        public static void JetResizeDatabase(JET_SESID sesid,  JET_DBID dbid,  int desiredPages, 
+            out int actualPages, ResizeDatabaseGrbit grbit)
         {
             EsentExceptionHelper.Check(Api.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit));
         }
@@ -186,63 +178,54 @@ namespace EsentLib.Platform.Windows8
 
         #region Session Parameters
 
-        /// <summary>Gets a parameter on the provided session state, used for the lifetime of this
-        /// session or until reset.</summary>
-        /// <param name="sesid">The session to set the parameter on.</param>
-        /// <param name="sesparamid">The ID of the session parameter to set, see
-        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
-        /// <param name="value">A 32-bit integer to retrieve.</param>
-        public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
-            out int value)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out value));
-        }
+        ///// <summary>Gets a parameter on the provided session state, used for the lifetime of this
+        ///// session or until reset.</summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set, see
+        ///// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
+        ///// <param name="value">A 32-bit integer to retrieve.</param>
+        //public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
+        //    out int value)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out value));
+        //}
 
-        /// <summary>
-        /// Gets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        /// </summary>
-        /// <param name="sesid">The session to set the parameter on.</param>
-        /// <param name="sesparamid">The ID of the session parameter to set, see
-        /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
-        /// <param name="data">A byte array to retrieve.</param>
-        /// <param name="length">AThe length of the data array.</param>
-        /// <param name="actualDataSize">The actual size of the data field.</param>
-        public static void JetGetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
-            byte[] data,
-            int length,
-            out int actualDataSize)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, data, length, out actualDataSize));
-        }
+        ///// <summary>
+        ///// Gets a parameter on the provided session state, used for the lifetime of this session or until reset.
+        ///// </summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set, see
+        ///// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
+        ///// <param name="data">A byte array to retrieve.</param>
+        ///// <param name="length">AThe length of the data array.</param>
+        ///// <param name="actualDataSize">The actual size of the data field.</param>
+        //public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
+        //    byte[] data, int length, out int actualDataSize)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, data, length, out actualDataSize));
+        //}
 
-        /// <summary>
-        /// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        /// </summary>
-        /// <param name="sesid">The session to set the parameter on.</param>
-        /// <param name="sesparamid">The ID of the session parameter to set.</param>
-        /// <param name="value">A 32-bit integer to set.</param>
-        public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, int value)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, value));
-        }
+        ///// <summary>Sets a parameter on the provided session state, used for the lifetime of this session or until reset.</summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set.</param>
+        ///// <param name="value">A 32-bit integer to set.</param>
+        //public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, int value)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, value));
+        //}
 
-        /// <summary>
-        /// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        /// </summary>
-        /// <param name="sesid">The session to set the parameter on.</param>
-        /// <param name="sesparamid">The ID of the session parameter to set.</param>
-        /// <param name="data">Data to set in this session parameter.</param>
-        /// <param name="dataSize">Size of the data provided.</param>
-        public static void JetSetSessionParameter(
-            JET_SESID sesid,
-            JET_sesparam sesparamid,
-            byte[] data,
-            int dataSize)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, data, dataSize));
-        }
+        ///// <summary>
+        ///// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
+        ///// </summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set.</param>
+        ///// <param name="data">Data to set in this session parameter.</param>
+        ///// <param name="dataSize">Size of the data provided.</param>
+        //public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
+        //    byte[] data, int dataSize)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, data, dataSize));
+        //}
 
         #endregion
 

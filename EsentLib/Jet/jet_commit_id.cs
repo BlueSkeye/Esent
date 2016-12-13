@@ -12,15 +12,15 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace EsentLib.Jet.Windows8
+namespace EsentLib.Jet
 {
     /// <summary>
     /// Information context surrounded data emitted from JET_PFNEMITLOGDATA.
     /// </summary>
     [SuppressMessage(
-    "Microsoft.StyleCop.CSharp.NamingRules",
-    "SA1305:FieldNamesMustNotUseHungarianNotation",
-    Justification = "This should match the name of the unmanaged structure.")]
+        "Microsoft.StyleCop.CSharp.NamingRules",
+        "SA1305:FieldNamesMustNotUseHungarianNotation",
+        Justification = "This should match the name of the unmanaged structure.")]
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1307:AccessibleFieldsMustBeginWithUpperCaseLetter",

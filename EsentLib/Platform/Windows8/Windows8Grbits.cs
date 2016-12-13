@@ -19,21 +19,14 @@ namespace EsentLib.Platform.Windows8
         None = 0,
     }
 
-    /// <summary>
-    /// Options for <see cref="Windows8Api.JetResizeDatabase"/>.
-    /// </summary>
-    /// <seealso cref="Windows81.Windows81Grbits.OnlyShrink"/>
+    /// <summary>Options for <see cref="Windows8Api.JetResizeDatabase"/>.</summary>
     [Flags]
     public enum ResizeDatabaseGrbit
     {
-        /// <summary>
-        /// No option.
-        /// </summary>
+        /// <summary>No option.</summary>
         None = 0,
 
-        /// <summary>
-        /// Only grow the database. If the resize call would shrink the database, do nothing.
-        /// </summary>
+        /// <summary>Only grow the database. If the resize call would shrink the database, do nothing.</summary>
         OnlyGrow = 0x1,
     }
 

@@ -6,7 +6,6 @@
 
 using EsentLib.Jet;
 using EsentLib.Jet.Windows8;
-using EsentLib.Jet.Windows10;
 
 namespace EsentLib.Platform.Windows10
 {
@@ -14,29 +13,29 @@ namespace EsentLib.Platform.Windows10
     public static class Windows10Api
     {
         #region Session Parameters
-        /// <summary>Sets a parameter on the provided session state, used for the lifetime of this session
-        /// or until reset.</summary>
-        /// <param name="sesid">The session to set the parameter on.</param>
-        /// <param name="sesparamid">The ID of the session parameter to retrieve.</param>
-        /// <param name="operationContext">An operation context to retrieve.</param>
-        /// <seealso cref="JET_OPERATIONCONTEXT"/>
-        public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
-            out JET_OPERATIONCONTEXT operationContext)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out operationContext));
-        }
+        ///// <summary>Sets a parameter on the provided session state, used for the lifetime of this session
+        ///// or until reset.</summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to retrieve.</param>
+        ///// <param name="operationContext">An operation context to retrieve.</param>
+        ///// <seealso cref="JET_OPERATIONCONTEXT"/>
+        //public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
+        //    out JET_OPERATIONCONTEXT operationContext)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out operationContext));
+        //}
 
-        /// <summary>
-        /// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        /// </summary>
-        /// <param name="sesid">The session to set the parameter on.</param>
-        /// <param name="sesparamid">The ID of the session parameter to set.</param>
-        /// <param name="operationContext">An operation context to set.</param>
-        /// <seealso cref="JET_OPERATIONCONTEXT"/>
-        public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, JET_OPERATIONCONTEXT operationContext)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, operationContext));
-        }
+        ///// <summary>
+        ///// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
+        ///// </summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set.</param>
+        ///// <param name="operationContext">An operation context to set.</param>
+        ///// <seealso cref="JET_OPERATIONCONTEXT"/>
+        //public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, JET_OPERATIONCONTEXT operationContext)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, operationContext));
+        //}
         #endregion
 
         #region Sessions

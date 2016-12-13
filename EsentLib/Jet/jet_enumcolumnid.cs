@@ -4,17 +4,14 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.InteropServices;
+
 namespace EsentLib.Jet
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Runtime.InteropServices;
-
-    /// <summary>
-    /// The native (unmanaged) version of the
-    /// <see cref="JET_ENUMCOLUMNID"/> class.
-    /// </summary>
+    /// <summary>The native (unmanaged) version of the <see cref="JET_ENUMCOLUMNID"/> class.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
@@ -22,28 +19,19 @@ namespace EsentLib.Jet
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     internal unsafe struct NATIVE_ENUMCOLUMNID
     {
-        /// <summary>
-        /// Column ID to enumerate.
-        /// </summary>
+        /// <summary>Column ID to enumerate.</summary>
         public uint columnid;
 
-        /// <summary>
-        /// Count of column values to enumerate.
-        /// </summary>
+        /// <summary>Count of column values to enumerate.</summary>
         public uint ctagSequence;
 
-        /// <summary>
-        /// Column values to enumerate.
-        /// </summary>
+        /// <summary>Column values to enumerate.</summary>
         public uint* rgtagSequence;
     }
 
-    /// <summary>
-    /// Enumerates a specific set of columns and, optionally, a specific set
-    /// of multiple values for those columns when the JetEnumerateColumns
-    /// function is used. JetEnumerateColumns optionally takes an array of
-    /// JET_ENUMCOLUMNID structures.
-    /// </summary>
+    /// <summary>Enumerates a specific set of columns and, optionally, a specific set of
+    /// multiple values for those columns when the JetEnumerateColumns function is used.
+    /// JetEnumerateColumns optionally takes an array of JET_ENUMCOLUMNID structures.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",
@@ -88,39 +76,28 @@ namespace EsentLib.Jet
             return string.Format(CultureInfo.InvariantCulture, "JET_ENUMCOLUMNID(0x{0:x})", this.columnid);
         }
 
-        /// <summary>
-        /// Check to see if ctagSequence is negative or greater than the length
-        /// of rgtagSequence.
-        /// </summary>
+        /// <summary>Check to see if ctagSequence is negative or greater than the length of
+        /// rgtagSequence.</summary>
         internal void CheckDataSize()
         {
-            if (this.ctagSequence < 0)
-            {
+            if (0 > this.ctagSequence) {
                 throw new ArgumentOutOfRangeException("ctagSequence", "ctagSequence cannot be negative");
             }
-
-            if ((null == this.rgtagSequence && 0 != this.ctagSequence) || (null != this.rgtagSequence && this.ctagSequence > this.rgtagSequence.Length))
-            {
-                throw new ArgumentOutOfRangeException(
-                    "ctagSequence",
-                    this.ctagSequence,
+            if ((null == this.rgtagSequence && 0 != this.ctagSequence) || (null != this.rgtagSequence && this.ctagSequence > this.rgtagSequence.Length)) {
+                throw new ArgumentOutOfRangeException( "ctagSequence", this.ctagSequence,
                     "cannot be greater than the length of the pvData");
             }
         }
 
-        /// <summary>
-        /// Gets the native (interop) version of this object.
-        /// </summary>
+        /// <summary>Gets the native (interop) version of this object.</summary>
         /// <returns>A NATIVE_ENUMCOLUMNID representing this object.</returns>
         internal NATIVE_ENUMCOLUMNID GetNativeEnumColumnid()
         {
             this.CheckDataSize();          
-            var value = new NATIVE_ENUMCOLUMNID
-            {
+            return new NATIVE_ENUMCOLUMNID {
                 columnid = this.columnid.Value,
                 ctagSequence = checked((uint)this.ctagSequence)
             };
-            return value;
         }
     }
 }

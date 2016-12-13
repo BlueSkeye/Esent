@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using System.Runtime.InteropServices;
+
+using EsentLib.Jet;
 
 namespace EsentLib.Implementation
 {
@@ -13,16 +16,41 @@ namespace EsentLib.Implementation
             _owner = owner;
         }
 
+        internal JetCapabilities Capabilities
+        {
+            get { return _owner.Capabilities; }
+        }
+
+        /// <summary>A 32-bit integer ID that is logged in traces and can be used by clients to
+        /// correlate ESE actions with their activity.</summary>
+        /// <returns>The corrlation identifer of the specified database session.</returns>
+        public int CorrelationID
+        {
+            get { return GetInt32Parameter(JET_sesparam.CorrelationID); }
+            set { SetParameter(JET_sesparam.CorrelationID, value); }
+        }
+
+        internal IntPtr Id
+        {
+            get { return _hSession.Value; }
+        }
+
+        /// <summary>A client context of type <see cref="JET_OPERATIONCONTEXT"/> that the engine
+        /// uses to track and trace operations (such as IOs).</summary>
+        /// <returns>The operation context of the specified database session.</returns>
+        public JET_OPERATIONCONTEXT OperationContext
+        {
+            get { return GetOperationContextParameter(); }
+            set { SetParameter(value); }
+        }
+
         /// <summary>Gets the current number of nested levels of transactions begun. A value
         /// of zero indicates that the session is not currently in a transaction. This
-        /// parameter is read-only.</summary>
+        /// parameter is read-only. Requires Windows 10.</summary>
         /// <returns>The current transaction level of the specified database session.</returns>
         public int TransactionLevel
         {
-            get
-            {
-                return GetParameter(EsentLib.Jet.JET_sesparam.TransactionLevel);
-            }
+            get { return GetInt32Parameter(JET_sesparam.TransactionLevel); }
         }
 
         /// <summary>Attaches a database file for use with a database instance. In order to
@@ -35,10 +63,18 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("AttachDatabase");
             Helpers.CheckNotNull(database, "database");
-            int returnCode = NativeMethods.JetAttachDatabaseW(_hSession.Value, database, (uint)grbit);
+            int returnCode = NativeMethods.JetAttachDatabaseW(Id, database, (uint)grbit);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return;
+        }
+
+        /// <summary>Causes a session to enter a transaction or create a new save point in an
+        /// existing transaction.</summary>
+        /// <returns></returns>
+        public JetTransaction BeginTransaction(BeginTransactionGrbit grbit = BeginTransactionGrbit.None)
+        {
+            return new JetTransaction(this, grbit);
         }
 
         /// <summary>Ends a session.</summary>
@@ -51,7 +87,7 @@ namespace EsentLib.Implementation
         private void Close(EndSessionGrbit grbit, bool throwOnError)
         {
             Tracing.TraceFunctionCall("Close");
-            int returnCode = NativeMethods.JetEndSession(_hSession.Value, (uint)grbit);
+            int returnCode = NativeMethods.JetEndSession(Id, (uint)grbit);
             Tracing.TraceResult(returnCode);
             if (throwOnError) { EsentExceptionHelper.Check(returnCode); }
         }
@@ -66,8 +102,8 @@ namespace EsentLib.Implementation
             Tracing.TraceFunctionCall("CreateDatabase");
             Helpers.CheckNotNull(database, "database");
             JET_DBID dbid = JET_DBID.Nil;
-            int returnCode = NativeMethods.JetCreateDatabaseW(this._hSession.Value,
-                database, connect, out dbid.Value, (uint)grbit);
+            int returnCode = NativeMethods.JetCreateDatabaseW(Id, database, connect,
+                out dbid.Value, (uint)grbit);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return new JetDatabase(dbid);
@@ -87,32 +123,19 @@ namespace EsentLib.Implementation
             this.Close(EndSessionGrbit.None, disposing);
         }
 
-        /// <summary>Gets a parameter on the provided session state, used for the lifetime of this
-        /// session or until reset.</summary>
-        /// <param name="sesparamid">The ID of the session parameter to set, see
-        /// <returns>The requested parameter value.</returns>
-        public int GetParameter(EsentLib.Jet.JET_sesparam sesparamid)
-        {
-            int result;
-            int returnCode = Api.Impl.JetGetSessionParameter(this._hSession, sesparamid, out result);
-            // TODO : Trace call
-            EsentExceptionHelper.Check(returnCode);
-            return result;
-        }
-
         /// <summary>Gets a parameter on the provided session state, used for the lifetime of
         /// this session or until reset.</summary>
         /// <param name="sesparamid">The ID of the session parameter to set, see
         /// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
         /// <returns>The 32-bit retrieved value.</returns>
-        public int GetParameter(JET_sesparam sesparamid)
+        private int GetInt32Parameter(JET_sesparam sesparamid)
         {
             Tracing.TraceFunctionCall("GetParameter");
-            this.CheckSupportsWindows8Features("GetParameter");
+            this.Capabilities.CheckSupportsWindows8Features("GetParameter");
             int actualDataSize;
             int result;
-            int err = NativeMethods.JetGetSessionParameter(_hSession.Value, (uint)sesparamid,
-                out result, sizeof(int), out actualDataSize);
+            int err = NativeMethods.JetGetSessionParameter(Id, (uint)sesparamid, out result,
+                sizeof(int), out actualDataSize);
 
             if (err >= (int)JET_err.Success) {
                 if (actualDataSize != sizeof(int)) {
@@ -123,7 +146,30 @@ namespace EsentLib.Implementation
                 }
             }
             Tracing.TraceResult(err);
+            EsentExceptionHelper.Check(err);
             return result;
+        }
+
+        private JET_OPERATIONCONTEXT GetOperationContextParameter()
+        {
+            Tracing.TraceFunctionCall("JetGetSessionParameter");
+            this.Capabilities.CheckSupportsWindows10Features("JetGetSessionParameter");
+            NATIVE_OPERATIONCONTEXT nativeContext = new NATIVE_OPERATIONCONTEXT();
+            int dataSize = Marshal.SizeOf(nativeContext);
+            int actualDataSize;
+            int err = NativeMethods.JetGetSessionParameter(Id, (uint)JET_sesparam.OperationContext,
+                out nativeContext, dataSize, out actualDataSize);
+            if ((int)JET_err.Success <= err) {
+                if (actualDataSize != dataSize) {
+                    throw new ArgumentException(
+                        string.Format(CultureInfo.InvariantCulture,
+                            "Bad return value. Unexpected data size returned. Expected {0}, but received {1}.",
+                            dataSize, actualDataSize),
+                        "sesparamid");
+                }
+            }
+            Tracing.TraceResult(err);
+            return new JET_OPERATIONCONTEXT(ref nativeContext);
         }
 
         /// <summary>Retrieves the version of the database engine.</summary>
@@ -138,7 +184,7 @@ namespace EsentLib.Implementation
             }
             // Get the version from Esent
             uint nativeVersion;
-            int returnCode = NativeMethods.JetGetVersion(_hSession.Value, out nativeVersion);
+            int returnCode = NativeMethods.JetGetVersion(Id, out nativeVersion);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return nativeVersion;
@@ -156,10 +202,37 @@ namespace EsentLib.Implementation
             Tracing.TraceFunctionCall("OpenDatabase");
             Helpers.CheckNotNull(database, "database");
             JET_DBID dbid = JET_DBID.Nil;
-            int returnCode = NativeMethods.JetOpenDatabaseW(this._hSession.Value, database, connect,
-                out dbid.Value, (uint)grbit);
+            int returnCode = NativeMethods.JetOpenDatabaseW(Id, database, connect, out dbid.Value,
+                (uint)grbit);
             Tracing.TraceResult(returnCode);
             return new JetDatabase(dbid);
+        }
+
+        /// <summary>Sets a parameter on the provided session state, used for the lifetime of this session or until reset.</summary>
+       /// <param name="sesparamid">The ID of the session parameter to set.</param>
+        /// <param name="valueToSet">A 32-bit integer to set.</param>
+        /// <returns>An error if the call fails.</returns>
+        private int SetParameter(JET_sesparam sesparamid, int valueToSet)
+        {
+            Tracing.TraceFunctionCall("SetParameter");
+            this.Capabilities.CheckSupportsWindows8Features("SetParameter");
+            int err = NativeMethods.JetSetSessionParameter(Id, (uint)sesparamid, ref valueToSet, sizeof(int));
+            return Tracing.TraceResult(err);
+        }
+
+        /// <summary></summary>
+        /// <param name="operationContext"></param>
+        /// <returns></returns>
+        private void SetParameter(JET_OPERATIONCONTEXT operationContext)
+        {
+            Tracing.TraceFunctionCall("SetParameter");
+            this.Capabilities.CheckSupportsWindows10Features("SetParameter");
+            NATIVE_OPERATIONCONTEXT nativeContext = operationContext.GetNativeOperationContext();
+            int dataSize = Marshal.SizeOf(nativeContext);
+            int err = NativeMethods.JetSetSessionParameter(Id, (uint)JET_sesparam.OperationContext,
+                ref nativeContext, checked((int)dataSize));
+            Tracing.TraceResult(err);
+            EsentExceptionHelper.Check(err);
         }
 
         /// <summary>Returns a <see cref="T:System.String"/> that represents the current
@@ -168,8 +241,7 @@ namespace EsentLib.Implementation
         /// </returns>
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "Session (0x{0:x})",
-                this._hSession.Value);
+            return string.Format(CultureInfo.InvariantCulture, "Session (0x{0:x})", Id);
         }
 
         internal static readonly JetSession NullSession = new JetSession(null, JET_SESID.Nil);

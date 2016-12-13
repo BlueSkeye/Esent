@@ -189,19 +189,14 @@ namespace EsentLib.Jet
             set { this.numConditionalColumns = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the maximum allowable size, in bytes, for keys in the index.
-        /// The minimum supported maximum key size is JET_cbKeyMostMin (255) which
-        /// is the legacy maximum key size. The maximum key size is dependent on
-        /// the database page size <see cref="JET_param.DatabasePageSize"/>. The
-        /// maximum key size can be retrieved with <see cref="EsentLib.SystemParameters.KeyMost"/>.
-        /// <para>
-        /// This parameter is ignored on Windows XP and Windows Server 2003.
-        /// </para>
-        /// <para>
-        /// Unlike the unmanaged API, <see cref="VistaGrbits.IndexKeyMost"/>
-        /// (JET_bitIndexKeyMost) is not needed, it will be added automatically.
-        /// </para>
+        /// <summary>Gets or sets the maximum allowable size, in bytes, for keys in the index.
+        /// The minimum supported maximum key size is JET_cbKeyMostMin (255) which is the legacy
+        /// maximum key size. The maximum key size is dependent on the database page size
+        /// <see cref="JET_param.DatabasePageSize"/>. The maximum key size can be retrieved with
+        /// <see cref="JET_param.KeyMost"/>.
+        /// <para>This parameter is ignored on Windows XP and Windows Server 2003.</para>
+        /// <para>Unlike the unmanaged API, <see cref="VistaGrbits.IndexKeyMost"/>
+        /// (JET_bitIndexKeyMost) is not needed, it will be added automatically.</para>
         /// </summary>
         public int cbKeyMost
         {

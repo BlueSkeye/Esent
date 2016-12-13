@@ -12,7 +12,6 @@ using System.Text;
 using EsentLib.Jet;
 using EsentLib.Jet.Vista;
 using EsentLib.Jet.Windows8;
-using EsentLib.Jet.Windows10;
 
 namespace EsentLib.Implementation
 {
@@ -399,20 +398,17 @@ namespace EsentLib.Implementation
 
         #region transactions
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetBeginTransaction(IntPtr sesid);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetBeginTransaction2(IntPtr sesid, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
+
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetBeginTransaction3(IntPtr sesid, long trxid, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetCommitTransaction(IntPtr sesid, uint grbit);
-#endif
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetRollback(IntPtr sesid, uint grbit);
@@ -888,8 +884,7 @@ namespace EsentLib.Implementation
         // WINDOWS 8  //
         // ---------- //
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetGetErrorInfoW(ref int error,
-            [In, Out] ref EsentLib.Jet.Windows8.NATIVE_ERRINFOBASIC pvResult,
+        public static extern int JetGetErrorInfoW(ref int error, [In, Out] ref NATIVE_ERRINFOBASIC pvResult,
             uint cbMax, uint InfoLevel, uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]

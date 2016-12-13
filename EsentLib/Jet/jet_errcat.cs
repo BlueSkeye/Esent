@@ -4,7 +4,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace EsentLib.Jet.Windows8
+namespace EsentLib.Jet
 {
     /// <summary>
     /// The error category. The hierarchy is as follows:

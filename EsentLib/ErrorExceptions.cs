@@ -4429,15 +4429,14 @@ namespace EsentLib
         /// Initializes a new instance of the EsentEngineFormatVersionNoLongerSupportedTooLowException class.
         /// </summary>
         public EsentEngineFormatVersionNoLongerSupportedTooLowException() :
-            base("The specified JET_ENGINEFORMATVERSION value is too low to be supported by this version of ESE.", JET_err.EngineFormatVersionNoLongerSupportedTooLow)
+            base("The specified JET_ENGINEFORMATVERSION value is too low to be supported by this version of ESE.",
+                JET_err.EngineFormatVersionNoLongerSupportedTooLow)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentEngineFormatVersionNoLongerSupportedTooLowException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentEngineFormatVersionNoLongerSupportedTooLowException
+        /// class. This constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
         private EsentEngineFormatVersionNoLongerSupportedTooLowException(SerializationInfo info, StreamingContext context) :
@@ -4447,9 +4446,7 @@ namespace EsentLib
 #endif
     }
 
-    /// <summary>
-    /// Base class for JET_err.EngineFormatVersionNotYetImplementedTooHigh exceptions.
-    /// </summary>
+    /// <summary>Base class for JET_err.EngineFormatVersionNotYetImplementedTooHigh exceptions.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.MaintainabilityRules",
         "SA1402:FileMayOnlyContainASingleClass",

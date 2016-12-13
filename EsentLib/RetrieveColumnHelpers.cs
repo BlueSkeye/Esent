@@ -994,59 +994,37 @@ namespace EsentLib
         /// <returns>A nullable struct of type T.</returns>
         private static T? CreateReturnValue<T>(T data, int dataSize, JET_wrn wrn, int actualDataSize) where T : struct
         {
-            if (JET_wrn.ColumnNull == wrn)
-            {
-                return new T?();
-            }
-
+            if (JET_wrn.ColumnNull == wrn) { return new T?(); }
             CheckDataSize(dataSize, actualDataSize);
             return data;
         }
 
-        /// <summary>
-        /// Make sure the retrieved data size is at least as long as the expected size.
-        /// An exception is thrown if the data isn't long enough.
-        /// </summary>
+        /// <summary>Make sure the retrieved data size is at least as long as the expected size.
+        /// An exception is thrown if the data isn't long enough.</summary>
         /// <param name="expectedDataSize">The expected data size.</param>
         /// <param name="actualDataSize">The size of the retrieved data.</param>
         private static void CheckDataSize(int expectedDataSize, int actualDataSize)
         {
-            if (actualDataSize < expectedDataSize)
-            {
+            if (actualDataSize < expectedDataSize) {
                 throw new EsentInvalidColumnException();
             }
         }
 
-        /// <summary>
-        /// Recursively pin the retrieve buffers in the JET_RETRIEVECOLUMN
-        /// structures and then retrieve the columns. This is done to avoid
-        /// creating GCHandles, which are expensive. This function pins
-        /// the current retrievecolumn structure (indicated by i) and then
-        /// recursively calls itself until all structures are pinned. This
-        /// is done because it isn't possible to create an arbitrary number
-        /// of pinned variables in a method.
-        /// </summary>
-        /// <param name="sesid">
-        /// The session to use.
-        /// </param>
-        /// <param name="tableid">
-        /// The table to retrieve from.
-        /// </param>
-        /// <param name="nativeretrievecolumns">
-        /// The nativeretrievecolumns structure.</param>
-        /// <param name="retrievecolumns">
-        /// The managed retrieve columns structure.
-        /// </param>
+        /// <summary>Recursively pin the retrieve buffers in the JET_RETRIEVECOLUMN structures
+        /// and then retrieve the columns. This is done to avoid creating GCHandles, which are
+        /// expensive. This function pins the current retrievecolumn structure (indicated by i)
+        /// and then recursively calls itself until all structures are pinned. This is done because
+        /// it isn't possible to create an arbitrary number of pinned variables in a method.</summary>
+        /// <param name="sesid">The session to use</param>
+        /// <param name="tableid">The table to retrieve from.</param>
+        /// <param name="nativeretrievecolumns">The nativeretrievecolumns structure.</param>
+        /// <param name="retrievecolumns">The managed retrieve columns structure.</param>
         /// <param name="numColumns">The number of columns.</param>
         /// <param name="i">The column currently being processed.</param>
         /// <returns>An error code from JetRetrieveColumns.</returns>
-        private static unsafe int PinColumnsAndRetrieve(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            NATIVE_RETRIEVECOLUMN* nativeretrievecolumns,
-            IList<JET_RETRIEVECOLUMN> retrievecolumns,
-            int numColumns,
-            int i)
+        private static unsafe int PinColumnsAndRetrieve(JET_SESID sesid, JET_TABLEID tableid,
+            NATIVE_RETRIEVECOLUMN* nativeretrievecolumns, IList<JET_RETRIEVECOLUMN> retrievecolumns,
+            int numColumns, int i)
         {
             // If consecutive JET_RETRIEVECOLUMN structures are using the same buffer then only pin it once.
             fixed (byte* pinnedBuffer = retrievecolumns[i].pvData)
@@ -1066,19 +1044,18 @@ namespace EsentLib
             }
         }
 
-        /// <summary>
-        /// Retrieve a Unicode (UTF16) string. This is optimized to take advantage of the fact
-        /// that no conversion is needed.
-        /// </summary>
+        /// <summary>Retrieve a Unicode (UTF16) string. This is optimized to take advantage of
+        /// the fact that no conversion is needed.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve from.</param>
         /// <param name="columnid">The column to retrieve.</param>
         /// <param name="grbit">Retrieve options.</param>
         /// <returns>The string retrieved from the column.</returns>
-        private static unsafe string RetrieveUnicodeString(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, RetrieveColumnGrbit grbit)
+        private static unsafe string RetrieveUnicodeString(JET_SESID sesid, JET_TABLEID tableid,
+            JET_COLUMNID columnid, RetrieveColumnGrbit grbit)
         {
-            Debug.Assert((grbit & (RetrieveColumnGrbit)0x00020000) == 0, "UnpublishedGrbits.RetrieveAsRefIfNotInRecord is not supported.");
-
+            Debug.Assert((grbit & (RetrieveColumnGrbit)0x00020000) == 0,
+                "UnpublishedGrbits.RetrieveAsRefIfNotInRecord is not supported.");
             // 512 Unicode characters (1kb on stack)
             const int BufferSize = 512;
             char* buffer = stackalloc char[BufferSize];

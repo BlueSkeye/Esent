@@ -26,15 +26,15 @@ namespace EsentLib
         //    Api.JetBeginSession(instance, out sesid, null, null);
         //}
 
-        /// <summary>Creates and attaches a database file.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The path to the database file to create.</param>
-        /// <param name="dbid">Returns the dbid of the new database.</param>
-        /// <param name="grbit">Database creation options.</param>
-        public static void CreateDatabase(JET_SESID sesid, string database, out JET_DBID dbid, CreateDatabaseGrbit grbit)
-        {
-            Api.JetCreateDatabase(sesid, database, null, out dbid, grbit);
-        }
+        ///// <summary>Creates and attaches a database file.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="database">The path to the database file to create.</param>
+        ///// <param name="dbid">Returns the dbid of the new database.</param>
+        ///// <param name="grbit">Database creation options.</param>
+        //public static void CreateDatabase(JET_SESID sesid, string database, out JET_DBID dbid, CreateDatabaseGrbit grbit)
+        //{
+        //    Api.JetCreateDatabase(sesid, database, null, out dbid, grbit);
+        //}
 
         ///// <summary>Opens a database previously attached with <see cref="JetAttachDatabase"/>,
         ///// for use with a database session. This function can be called multiple times

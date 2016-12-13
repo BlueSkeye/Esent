@@ -8,11 +8,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace EsentLib.Jet.Windows10
+namespace EsentLib.Jet
 {
-    /// <summary>
-    /// A structure that can be used with <see cref="EsentLib.Jet.JET_sesparam.OperationContext"/> to set a client context on a session.
-    /// </summary>
+    /// <summary>A structure that can be used with <see cref="JET_sesparam.OperationContext"/> to set a client context on a session.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -26,44 +24,30 @@ namespace EsentLib.Jet.Windows10
         Justification = "Ordering matches the rest of the codebase.")]
     internal struct NATIVE_OPERATIONCONTEXT
     {
-        /// <summary>
-        /// User ID this operation context belongs to.
-        /// </summary>
+        /// <summary>User ID this operation context belongs to.</summary>
         public int ulUserID;
 
-        /// <summary>
-        /// An operation ID identifying this operation.
-        /// </summary>
+        /// <summary>An operation ID identifying this operation.</summary>
         public byte nOperationID;
 
-        /// <summary>
-        /// Type of this operation.
-        /// </summary>
+        /// <summary>Type of this operation.</summary>
         public byte nOperationType;
 
-        /// <summary>
-        /// The client type that this operation context belongs to.
-        /// </summary>
+        /// <summary>The client type that this operation context belongs to.</summary>
         public byte nClientType;
 
-        /// <summary>
-        /// Flags for additional context that an application might want to store.
-        /// </summary>
+        /// <summary>Flags for additional context that an application might want to store.</summary>
         public byte fFlags;
     }
 
     /// <summary>
-    /// A type that can be used with <see cref="EsentLib.Jet.JET_sesparam.OperationContext"/> to set a client context on a session.
+    /// A type that can be used with <see cref="JET_sesparam.OperationContext"/> to set a client context on a session.
     /// </summary>
     public struct JET_OPERATIONCONTEXT : IEquatable<JET_OPERATIONCONTEXT>
     {
-        #region Constructors
-        /// <summary>
-        /// Initializes a new instance of the <see cref="JET_OPERATIONCONTEXT"/>
-        /// struct.
-        /// </summary>
-        /// <param name="native">The native <see cref="NATIVE_OPERATIONCONTEXT"/>
-        /// object to be based upon.</param>
+        /// <summary>Initializes a new instance of the <see cref="JET_OPERATIONCONTEXT"/>struct.</summary>
+        /// <param name="native">The native <see cref="NATIVE_OPERATIONCONTEXT"/> object to be
+        /// based upon.</param>
         internal JET_OPERATIONCONTEXT(ref NATIVE_OPERATIONCONTEXT native)
             : this()
         {
@@ -71,34 +55,22 @@ namespace EsentLib.Jet.Windows10
             this.OperationID = native.nOperationID;
             this.OperationType = native.nOperationType;
             this.ClientType = native.nClientType;
-
             this.Flags = native.fFlags;
         }
-        #endregion
 
-        /// <summary>
-        /// Gets or sets the user ID this operation context belongs to.
-        /// </summary>
+        /// <summary>Gets or sets the user ID this operation context belongs to.</summary>
         public int UserID { get; set; }
 
-        /// <summary>
-        /// Gets or sets an operation ID identifying this operation.
-        /// </summary>
+        /// <summary>Gets or sets an operation ID identifying this operation.</summary>
         public byte OperationID { get; set; }
 
-        /// <summary>
-        /// Gets or sets the type of this operation.
-        /// </summary>
+        /// <summary>Gets or sets the type of this operation.</summary>
         public byte OperationType { get; set; }
 
-        /// <summary>
-        /// Gets or sets the client type that this operation context belongs to.
-        /// </summary>
+        /// <summary>Gets or sets the client type that this operation context belongs to.</summary>
         public byte ClientType { get; set; }
 
-        /// <summary>
-        /// Gets or sets the flags for additional context that an application might want to store.
-        /// </summary>
+        /// <summary>Gets or sets the flags for additional context that an application might want to store.</summary>
         public byte Flags { get; set; }
 
         #region operators
@@ -176,28 +148,16 @@ namespace EsentLib.Jet.Windows10
 
         #endregion
 
-        /// <summary>
-        /// Generate a string representation of the instance.
-        /// </summary>
+        /// <summary>Generate a string representation of the instance.</summary>
         /// <returns>The structure as a string.</returns>
         public override string ToString()
         {
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "JET_OPERATIONCONTEXT({0}:{1}:{2}:{3}:0x{4:x2})",
-                this.UserID,
-                this.OperationID,
-                this.OperationType,
-                this.ClientType,
-                this.Flags);
+            return string.Format(CultureInfo.InvariantCulture, "JET_OPERATIONCONTEXT({0}:{1}:{2}:{3}:0x{4:x2})",
+                this.UserID, this.OperationID, this.OperationType, this.ClientType, this.Flags);
         }
 
-        /// <summary>
-        /// Gets the native (interop) version of this object.
-        /// </summary>
-        /// <returns>
-        /// The native (interop) version of this object.
-        /// </returns>
+        /// <summary>Gets the native (interop) version of this object.</summary>
+        /// <returns>The native (interop) version of this object.</returns>
         internal NATIVE_OPERATIONCONTEXT GetNativeOperationContext()
         {
             var native = new NATIVE_OPERATIONCONTEXT();

@@ -111,19 +111,6 @@ namespace EsentLib
 
         #region Databases
 
-        /// <summary>Creates and attaches a database file.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The path to the database file to create.</param>
-        /// <param name="connect">The parameter is not used.</param>
-        /// <param name="dbid">Returns the dbid of the new database.</param>
-        /// <param name="grbit">Database creation options.</param>
-        /// <seealso cref="Api.CreateDatabase"/>
-        public static void JetCreateDatabase(JET_SESID sesid, string database,
-            string connect, out JET_DBID dbid, CreateDatabaseGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetCreateDatabase(sesid, database, connect, out dbid, grbit));
-        }
-
         /// <summary>Creates and attaches a database file with a maximum database size
         /// specified.<seealso cref="JetAttachDatabase2"/>.</summary>
         /// <param name="sesid">The session to use.</param>
@@ -158,7 +145,7 @@ namespace EsentLib
         }
 
         /// <summary>Closes a database file that was previously opened with <see cref="IJetSession.OpenDatabase"/> or
-        /// created with <see cref="JetCreateDatabase"/>.</summary>
+        /// created with <see cref="JetSession.CreateDatabase"/>.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to close.</param>
         /// <param name="grbit">Close options.</param>
@@ -669,52 +656,50 @@ namespace EsentLib
 
         #region Transactions
 
-        /// <summary>
-        /// Causes a session to enter a transaction or create a new save point in an existing
-        /// transaction.
-        /// </summary>
-        /// <param name="sesid">The session to begin the transaction for.</param>
-        public static void JetBeginTransaction(JET_SESID sesid)
-        {
-            EsentExceptionHelper.Check(Impl.JetBeginTransaction(sesid));
-        }
+        ///// <summary>
+        ///// Causes a session to enter a transaction or create a new save point in an existing
+        ///// transaction.
+        ///// </summary>
+        ///// <param name="sesid">The session to begin the transaction for.</param>
+        //public static void JetBeginTransaction(JET_SESID sesid)
+        //{
+        //    EsentExceptionHelper.Check(Impl.JetBeginTransaction(sesid));
+        //}
 
-        /// <summary>
-        /// Causes a session to enter a transaction or create a new save point in an existing
-        /// transaction.
-        /// </summary>
-        /// <param name="sesid">The session to begin the transaction for.</param>
-        /// <param name="grbit">Transaction options.</param>
-        public static void JetBeginTransaction2(JET_SESID sesid, BeginTransactionGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetBeginTransaction2(sesid, grbit));
-        }
+        ///// <summary>Causes a session to enter a transaction or create a new save point in an
+        ///// existing transaction.</summary>
+        ///// <param name="sesid">The session to begin the transaction for.</param>
+        ///// <param name="grbit">Transaction options.</param>
+        //public static void JetBeginTransaction2(JET_SESID sesid, BeginTransactionGrbit grbit)
+        //{
+        //    EsentExceptionHelper.Check(Impl.JetBeginTransaction2(sesid, grbit));
+        //}
 
-        /// <summary>
-        /// Commits the changes made to the state of the database during the current save point
-        /// and migrates them to the previous save point. If the outermost save point is committed
-        /// then the changes made during that save point will be committed to the state of the
-        /// database and the session will exit the transaction.
-        /// </summary>
-        /// <param name="sesid">The session to commit the transaction for.</param>
-        /// <param name="grbit">Commit options.</param>
-        public static void JetCommitTransaction(JET_SESID sesid, CommitTransactionGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetCommitTransaction(sesid, grbit));
-        }
+        ///// <summary>
+        ///// Commits the changes made to the state of the database during the current save point
+        ///// and migrates them to the previous save point. If the outermost save point is committed
+        ///// then the changes made during that save point will be committed to the state of the
+        ///// database and the session will exit the transaction.
+        ///// </summary>
+        ///// <param name="sesid">The session to commit the transaction for.</param>
+        ///// <param name="grbit">Commit options.</param>
+        //public static void JetCommitTransaction(JET_SESID sesid, CommitTransactionGrbit grbit)
+        //{
+        //    EsentExceptionHelper.Check(Impl.JetCommitTransaction(sesid, grbit));
+        //}
 
-        /// <summary>
-        /// Undoes the changes made to the state of the database
-        /// and returns to the last save point. JetRollback will also close any cursors
-        /// opened during the save point. If the outermost save point is undone, the
-        /// session will exit the transaction.
-        /// </summary>
-        /// <param name="sesid">The session to rollback the transaction for.</param>
-        /// <param name="grbit">Rollback options.</param>
-        public static void JetRollback(JET_SESID sesid, RollbackTransactionGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetRollback(sesid, grbit));
-        }
+        ///// <summary>
+        ///// Undoes the changes made to the state of the database
+        ///// and returns to the last save point. JetRollback will also close any cursors
+        ///// opened during the save point. If the outermost save point is undone, the
+        ///// session will exit the transaction.
+        ///// </summary>
+        ///// <param name="sesid">The session to rollback the transaction for.</param>
+        ///// <param name="grbit">Rollback options.</param>
+        //public static void JetRollback(JET_SESID sesid, RollbackTransactionGrbit grbit)
+        //{
+        //    EsentExceptionHelper.Check(Impl.JetRollback(sesid, grbit));
+        //}
 
         #endregion
 
@@ -1880,7 +1865,7 @@ namespace EsentLib
         /// Retrieves the bookmark for the record that is associated with the index entry
         /// at the current position of a cursor. This bookmark can then be used to
         /// reposition that cursor back to the same record using <see cref="JetGotoBookmark"/>. 
-        /// The bookmark will be no longer than <see cref="EsentLib.SystemParameters.BookmarkMost"/>
+        /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
         /// bytes.
         /// Also see <seealso cref="GetBookmark"/>.
         /// </summary>
