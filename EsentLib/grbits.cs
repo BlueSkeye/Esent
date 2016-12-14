@@ -22,20 +22,33 @@ namespace EsentLib
     }
 
     /// <summary>Options for <see cref="EsentLib.Implementation.JetInstance.Initialize"/>.</summary>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.RecoveryWithoutUndo"/>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.TruncateLogsAfterRecovery"/>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.ReplayMissingMapEntryDB"/>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.LogStreamMustExist"/>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ReplayIgnoreLostLogs"/>
     /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.KeepDbAttachedAtEndOfRecovery"/>
     [Flags]
     public enum InitGrbit
     {
         /// <summary>Default options.</summary>
-        None = 0
+        None = 0,
+
+        // ----- //
+        // VISTA //
+        // ----- //
+        /// <summary>Perform recovery, but halt at the Undo phase. Allows whatever logs are present to
+        /// be replayed, then later additional logs can be copied and replayed.</summary>
+        RecoveryWithoutUndo = 0x8,
+
+        /// <summary>On successful soft recovery, truncate log files.</summary>
+        TruncateLogsAfterRecovery = 0x00000010,
+
+        /// <summary>Missing database map entry default to same location.</summary>
+        ReplayMissingMapEntryDB = 0x00000020,
+
+        /// <summary>Transaction logs must exist in the log file directory (i.e. can't auto-start
+        /// a new stream).</summary>
+        LogStreamMustExist = 0x40,
     }
 
-    /// <summary>Options for <see cref="Api.JetTerm2"/>.</summary>
+    /// <summary>Options for <see cref="IJetInstance.Close(TermGrbit)"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Dirty"/>
     [Flags]
     public enum TermGrbit
@@ -70,7 +83,7 @@ namespace EsentLib
         RecoveryOff = 0x8,
     }
 
-    /// <summary>Options for <see cref="Api.JetDetachDatabase2"/>.</summary>
+    /// <summary>Options for <see cref="JetDatabase.Detach"/>.</summary>
     [Flags]
     public enum DetachDatabaseGrbit
     {
@@ -98,21 +111,21 @@ namespace EsentLib
     [Flags]
     public enum AttachDatabaseGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        ///  Prevents modifications to the database.
-        /// </summary>
+        /// <summary>Prevents modifications to the database.</summary>
         ReadOnly = 0x1,
 
-        /// <summary>
-        /// If JET_paramEnableIndexChecking has been set, all indexes over Unicode
-        /// data will be deleted.
-        /// </summary>
-        DeleteCorruptIndexes = 0x10, 
+        /// <summary>If JET_paramEnableIndexChecking has been set, all indexes over Unicode data
+        /// will be deleted.</summary>
+        DeleteCorruptIndexes = 0x10,
+
+        // ------------ //
+        // WINDOWS 2003 //
+        // ------------ //
+        /// <summary>Delete all indexes with unicode columns.</summary>
+        DeleteUnicodeIndexes = 0x400,
     }
 
     /// <summary>Options for <see cref="JetSession.OpenDatabase"/>.</summary>
@@ -130,9 +143,7 @@ namespace EsentLib
         Exclusive = 0x2,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetCloseDatabase"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetDatabase.Close"/>.</summary>
     [Flags]
     public enum CloseDatabaseGrbit
     {
@@ -142,94 +153,72 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetCompact"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetDatabase.CompactDatabase"/>.</summary>
     [Flags]
     public enum CompactGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// Causes JetCompact to dump statistics on the source database to a file
-        ///  named DFRGINFO.TXT. Statistics include the name of each table in
-        /// source database, number of rows in each table, total size in bytes of
-        /// all rows in each table, total size in bytes of all columns of type
-        /// <see cref="JET_coltyp.LongText"/> or <see cref="JET_coltyp.LongBinary"/>
-        /// that were large enough to be stored separate from the record, number
-        /// of clustered index leaf pages, and the number of long value leaf pages.
-        /// In addition, summary statistics including the size of the source database,
-        /// destination database, time required for database compaction, temporary
-        /// database space are all dumped as well.
-        /// </summary>
+        /// <summary>Causes JetCompact to dump statistics on the source database to a file
+        /// named DFRGINFO.TXT. Statistics include the name of each table in source database,
+        /// number of rows in each table, total size in bytes of all rows in each table, total
+        /// size in bytes of all columns of type <see cref="JET_coltyp.LongText"/> or
+        /// <see cref="JET_coltyp.LongBinary"/> that were large enough to be stored separate
+        /// from the record, number of clustered index leaf pages, and the number of long value
+        /// leaf pages. In addition, summary statistics including the size of the source database,
+        /// destination database, time required for database compaction, temporary database
+        /// space are all dumped as well.</summary>
         Stats = 0x20,
 
-        /// <summary>
-        /// Used when the source database is known to be corrupt. It enables a
-        /// whole set of new behaviors intended to salvage as much data as
-        /// possible from the source database. JetCompact with this option set
-        /// may return <see cref="JET_err.Success"/> but not copy all of the data
-        /// created in the source database. Data that was in damaged portions of
-        /// the source database will be skipped.
-        /// </summary>
+        /// <summary>Used when the source database is known to be corrupt. It enables a whole set
+        /// of new behaviors intended to salvage as much data as possible from the source database.
+        /// JetCompact with this option set may return <see cref="JET_err.Success"/> but not copy
+        /// all of the data created in the source database. Data that was in damaged portions of
+        /// the source database will be skipped.</summary>
         [Obsolete("Use esentutl repair functionality instead.")]
         Repair = 0x40,        
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetOSSnapshotFreeze"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetSnapshot.Start"/>.</summary>
     [Flags]
     public enum SnapshotFreezeGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetOSSnapshotPrepare"/>.
-    /// </summary>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.ContinueAfterThaw"/>
+    /// <summary>Options for <see cref="JetEnvironment.PrepareSnapshot"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ExplicitPrepare"/>
     [Flags]
     public enum SnapshotPrepareGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     
-        /// <summary>
-        /// Only logfiles will be taken.
-        /// </summary>
+        /// <summary>Only logfiles will be taken.</summary>
         IncrementalSnapshot = 0x1,
 
-        /// <summary>
-        /// A copy snapshot (normal or incremental) with no log truncation.
-        /// </summary>
+        /// <summary>A copy snapshot (normal or incremental) with no log truncation.</summary>
         CopySnapshot = 0x2,
+
+        // ----- //
+        // VISTA //
+        // ----- //
+        /// <summary>The snapshot session continues after JetOSSnapshotThaw and will require a
+        /// JetOSSnapshotEnd function call.</summary>
+        ContinueAfterThaw = 0x4,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetOSSnapshotThaw"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetSnapshot.Thaw"/>.</summary>
     [Flags]
     public enum SnapshotThawGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetBackupInstance"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="JetInstance.Backup"/>.</summary>
     [Flags]
     public enum BackupGrbit
     {
@@ -252,46 +241,34 @@ namespace EsentLib
         Atomic = 0x4,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetBeginExternalBackupInstance"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetInstance.PrepareBackup"/>.</summary>
     [Flags]
     public enum BeginExternalBackupGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// Creates an incremental backup as opposed to a full backup. This
-        /// means that only the log files since the last full or incremental
-        /// backup will be backed up.
-        /// </summary>
+        /// <summary>Creates an incremental backup as opposed to a full backup. This means that
+        /// only the log files since the last full or incremental backup will be backed up.</summary>
         Incremental = 0x1,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetEndExternalBackupInstance"/>.
-    /// </summary>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.TruncateDone"/>
+    /// <summary>Options for <see cref="Api.JetEndExternalBackupInstance"/>.</summary>
     [Flags]
     public enum EndExternalBackupGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// The client application finished the backup completely, and is ending normally.
-        /// </summary>
+        /// <summary>The client application finished the backup completely, and is ending normally.</summary>
         Normal = 0x1,
 
-        /// <summary>
-        /// The client application is aborting the backup.
-        /// </summary>
+        /// <summary>The client application is aborting the backup.</summary>
         Abort = 0x2,
+
+        /// <summary>The engine can mark the database headers as appropriate (for example, a full
+        /// backup completed), even though the call to truncate was not completed.</summary>
+        TruncateDone = 0x100,
     }
 
     /// <summary>Options for <see cref="JetSession.BeginTransaction"/>.</summary>
@@ -343,6 +320,19 @@ namespace EsentLib
         /// This option cannot be used in combination with any other option.
         /// </remarks>
         WaitLastLevel0Commit = 0x2,
+
+        // ------------ //
+        // WINDOWS 2003 //
+        // ------------ //
+        /// <summary>
+        /// All transactions previously committed by any session that have not
+        /// yet been flushed to the transaction log file will be flushed immediately.
+        /// This API will wait until the transactions have been flushed before
+        /// returning to the caller. This option may be used even if the session
+        /// is not currently in a transaction. This option cannot be used in
+        /// combination with any other option.
+        /// </summary>
+        WaitAllLevel0Commit = 0x8,
     }
 
     /// <summary>
@@ -697,7 +687,6 @@ namespace EsentLib
     /// Options for <see cref="Api.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
     /// and its associated overloads.
     /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows2003.Server2003Grbits.EnumerateIgnoreUserDefinedDefault"/>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnumerateInRecordOnly"/>
     [Flags]
     public enum EnumerateColumnsGrbit
@@ -764,7 +753,20 @@ namespace EsentLib
         /// when numColumnids is zero), only tagged column values will be returned.
         /// This option is not allowed when enumerating a specific array of column IDs.
         /// </summary>
-        EnumerateTaggedOnly = 0x00040000, 
+        EnumerateTaggedOnly = 0x00040000,
+
+        /// <summary>
+        /// If a given column is not present in the record and it has a user
+        /// defined default value then no column value will be returned.
+        /// This option will prevent the callback that computes the user defined
+        /// default value for the column from being called when enumerating
+        /// the values for that column.
+        /// </summary>
+        /// <remarks>
+        /// This option is only available for Windows Server 2003 SP1 and later
+        /// operating systems.
+        /// </remarks>
+        EnumerateIgnoreUserDefinedDefault = 0x00100000,
     }
 
     /// <summary>
@@ -1146,52 +1148,40 @@ namespace EsentLib
         NoRollback = 0x1,
     }
 
-    /// <summary>
-    /// Options for the <see cref="JET_COLUMNDEF"/> structure.
-    /// </summary>
+    /// <summary>Options for the <see cref="JET_COLUMNDEF"/> structure.</summary>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ColumnCompressed"/>
     [Flags]
     public enum ColumndefGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0x0,
 
-        /// <summary>
-        /// The column will be fixed. It will always use the same amount of space in a row,
-        /// regardless of how much data is being stored in the column. ColumnFixed
-        /// cannot be used with ColumnTagged. This bit cannot be used with long values
-        /// (that is JET_coltyp.LongText and JET_coltyp.LongBinary).
-        /// </summary>
+        /// <summary>The column will be fixed. It will always use the same amount of space in a row,
+        /// regardless of how much data is being stored in the column. ColumnFixed cannot be used
+        /// with ColumnTagged. This bit cannot be used with long values (that is JET_coltyp.LongText
+        /// and JET_coltyp.LongBinary).</summary>
         ColumnFixed = 0x1,
 
-        /// <summary>
-        ///  The column will be tagged. Tagged columns do not take up any space in the database
-        ///  if they do not contain data. This bit cannot be used with ColumnFixed.
-        /// </summary>
+        /// <summary>The column will be tagged. Tagged columns do not take up any space in the database
+        ///  if they do not contain data. This bit cannot be used with ColumnFixed.</summary>
         ColumnTagged = 0x2,
 
-        /// <summary>
-        /// The column must never be set to a NULL value. On Windows XP this can only be applied to
-        /// fixed columns (bit, byte, integer, etc).
-        /// </summary>
+        /// <summary>The column must never be set to a NULL value. On Windows XP this can only
+        /// be applied to fixed columns (bit, byte, integer, etc).</summary>
         ColumnNotNULL = 0x4,
 
-        /// <summary>
-        /// The column is a version column that specifies the version of the row. The value of
-        /// this column starts at zero and will be automatically incremented for each update on
-        /// the row. This option can only be applied to <see cref="JET_coltyp.Long"/> columns. This option cannot
-        /// be used with <see cref="ColumnAutoincrement"/>, <see cref="ColumnEscrowUpdate"/>, or <see cref="ColumnTagged"/>.
-        /// </summary>
+        /// <summary>The column is a version column that specifies the version of the row. The value
+        /// of this column starts at zero and will be automatically incremented for each update on
+        /// the row. This option can only be applied to <see cref="JET_coltyp.Long"/> columns. This
+        /// option cannot be used with <see cref="ColumnAutoincrement"/>, <see cref="ColumnEscrowUpdate"/>,
+        /// or <see cref="ColumnTagged"/>.</summary>
         ColumnVersion = 0x8,
 
-        /// <summary>
-        /// The column will automatically be incremented. The number is an increasing number, and
-        /// is guaranteed to be unique within a table. The numbers, however, might not be continuous.
-        /// For example, if five rows are inserted into a table, the "autoincrement" column could
-        /// contain the values { 1, 2, 6, 7, 8 }. This bit can only be used on columns of type
-        /// <see cref="JET_coltyp.Long"/> or <see cref="JET_coltyp.Currency"/>.
+        /// <summary>The column will automatically be incremented. The number is an increasing
+        /// number, and is guaranteed to be unique within a table. The numbers, however, might
+        /// not be continuous. For example, if five rows are inserted into a table, the
+        /// "autoincrement" column could contain the values { 1, 2, 6, 7, 8 }. This bit can
+        /// only be used on columns of type<see cref="JET_coltyp.Long"/> or <see cref="JET_coltyp.Currency"/>.
         /// </summary>
         ColumnAutoincrement = 0x10,
 
@@ -1269,6 +1259,12 @@ namespace EsentLib
         ///  without <see cref="TTKey"/> then this option is ignored.
         /// </summary>
         TTDescending = 0x80,
+
+        // ------------ //
+        // WINDOWS 2003 //
+        // ------------ //
+        /// <summary>This is a finalizable column (delete record if escrow value equals 0).</summary>
+        ColumnDeleteOnZero = 0x20000,
     }
 
     /// <summary>
@@ -1303,121 +1299,118 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetCreateIndex"/> and <see cref="JET_INDEXCREATE"/>.
     /// </summary>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexCrossProduct"/>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexDisallowTruncation"/>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexNestedTable"/>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexUnicode"/>
-    /// <seealso cref="EsentLib.Platform.Vista.VistaGrbits.IndexKeyMost"/>
     /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.IndexDotNetGuid"/>
     /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.IndexCreateImmutableStructure"/>
     [Flags]
     public enum CreateIndexGrbit
     {        
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0x0,
 
-        /// <summary>
-        /// Duplicate index entries (keys) are disallowed. This is enforced when JetUpdate is called,
-        /// not when JetSetColumn is called.
-        /// </summary>
+        /// <summary>Duplicate index entries (keys) are disallowed. This is enforced when JetUpdate is called,
+        /// not when JetSetColumn is called.</summary>
         IndexUnique  = 0x1,
 
-        /// <summary>
-        /// The index is a primary (clustered) index. Every table must have exactly one primary index.
-        /// If no primary index is explicitly defined over a table, then the database engine will
-        /// create its own primary index.
-        /// </summary>
+        /// <summary>The index is a primary (clustered) index. Every table must have exactly one primary index.
+        /// If no primary index is explicitly defined over a table, then the database engine will create its
+        /// own primary index.</summary>
         IndexPrimary = 0x2,
 
-        /// <summary>
-        /// None of the columns over which the index is created may contain a NULL value.
-        /// </summary>
+        /// <summary>None of the columns over which the index is created may contain a NULL value.</summary>
         IndexDisallowNull = 0x4,
 
-        /// <summary>
-        /// Do not add an index entry for a row if all of the columns being indexed are NULL.
-        /// </summary>
+        /// <summary>Do not add an index entry for a row if all of the columns being indexed are NULL.</summary>
         IndexIgnoreNull = 0x8,
 
-        /// <summary>
-        /// Do not add an index entry for a row if any of the columns being indexed are NULL.
-        /// </summary>
+        /// <summary>Do not add an index entry for a row if any of the columns being indexed are NULL.</summary>
         IndexIgnoreAnyNull = 0x20,
 
-        /// <summary>
-        /// Do not add an index entry for a row if the first column being indexed is NULL.
-        /// </summary>
+        /// <summary>Do not add an index entry for a row if the first column being indexed is NULL.</summary>
         IndexIgnoreFirstNull = 0x40,
 
-        /// <summary>
-        /// Specifies that the index operations will be logged lazily. JET_bitIndexLazyFlush does not
-        /// affect the laziness of data updates. If the indexing operations is interrupted by process
-        /// termination, Soft Recovery will still be able to able to get the database to a consistent
-        /// state, but the index may not be present.
-        /// </summary>
+        /// <summary>Specifies that the index operations will be logged lazily. JET_bitIndexLazyFlush does not
+        /// affect the laziness of data updates. If the indexing operations is interrupted by process termination,
+        /// Soft Recovery will still be able to able to get the database to a consistent state, but the index may
+        /// not be present.</summary>
         IndexLazyFlush = 0x80,
 
-        /// <summary>
-        /// Do not attempt to build the index, because all entries would evaluate to NULL. grbit MUST
-        /// also specify JET_bitIgnoreAnyNull when JET_bitIndexEmpty is passed. This is a performance
-        /// enhancement. For example if a new column is added to a table, then an index is created over
-        /// this newly added column, all of the records in the table would be scanned even though they
-        /// would never get added to the index anyway. Specifying JET_bitIndexEmpty skips the scanning
-        /// of the table, which could potentially take a long time.
-        /// </summary>
+        /// <summary>Do not attempt to build the index, because all entries would evaluate to NULL. grbit MUST
+        /// also specify JET_bitIgnoreAnyNull when JET_bitIndexEmpty is passed. This is a performance enhancement.
+        /// For example if a new column is added to a table, then an index is created over this newly added column,
+        /// all of the records in the table would be scanned even though they would never get added to the index
+        /// anyway. Specifying JET_bitIndexEmpty skips the scanning of the table, which could potentially take a
+        /// long time.</summary>
         IndexEmpty = 0x100,
 
-        /// <summary>
-        /// Causes index creation to be visible to other transactions. Normally a session in a
+        /// <summary>Causes index creation to be visible to other transactions. Normally a session in a
         /// transaction will not be able to see an index creation operation in another session. This
         /// flag can be useful if another transaction is likely to create the same index, so that the
         /// second index-create will simply fail instead of potentially causing many unnecessary database
         /// operations. The second transaction may not be able to use the index immediately. The index
         /// creation operation needs to complete before it is usable. The session must not currently be in
-        /// a transaction to create an index without version information.
-        /// </summary>
+        /// a transaction to create an index without version information.</summary>
         IndexUnversioned = 0x200,
 
-        /// <summary>
-        /// Specifying this flag causes NULL values to be sorted after data for all columns in the index.
-        /// </summary>
+        /// <summary>Specifying this flag causes NULL values to be sorted after data for all columns in
+        /// the index.</summary>
         IndexSortNullsHigh = 0x400,
+
+        // ----- //
+        // VISTA //
+        // ----- //
+        /// <summary>Specifying this flag for an index that has more than one key column that
+        /// is a multi-valued column will result in an index entry being created for each result
+        /// of a cross product of all the values in those key columns. Otherwise, the index
+        /// would only have one entry for each multi-value in the most significant key column
+        /// that is a multi-valued column and each of those index entries would use the first
+        /// multi-value from any other key columns that are multi-valued columns.
+        /// <para>For example, if you specified this flag for an index over column A that has
+        /// the values "red" and "blue" and over column B that has the values "1" and "2" then
+        /// the following index entries would b created: "red", "1"; "red", "2"; "blue", "1";
+        /// "blue", "2". Otherwise, the following index entries would be created: "red", "1";
+        /// "blue", "1".</para></summary>
+        IndexCrossProduct = 0x4000,
+
+        /// <summary>Specifying this flag will cause any update to the index that would result
+        /// in a truncated key to fail with <see cref="EsentLib.Jet.JET_err.KeyTruncated"/>.
+        /// Otherwise, keys will be silently truncated.</summary>
+        IndexDisallowTruncation = 0x10000,
+
+        /// <summary>Index over multiple multi-valued columns but only with values of same
+        /// itagSequence.</summary>
+        IndexNestedTable = 0x20000,
+
+        /// <summary>Specifying this flag will cause the index to use the maximum key size specified
+        /// in the cbKeyMost field in the structure. Otherwise, the index will use JET_cbKeyMost
+        /// (255) as its maximum key size.</summary>
+        /// <remarks>Set internally when the NATIVE_INDEXCREATE structure is generated</remarks>
+        IndexKeyMost = 0x8000,
+
+        /// <summary>LCID field of JET_INDEXCREATE actually points to a JET_UNICODEINDEX struct to
+        /// allow user-defined LCMapString() flags.</summary>
+        IndexUnicode = 0x00000800,
     }
 
-    /// <summary>
-    /// Key definition grbits. Used when retrieving information about an index, contained
-    /// in the column specified in <see cref="JET_INDEXLIST.columnidgrbitColumn"/>.
-    /// </summary>
+    /// <summary>Key definition grbits. Used when retrieving information about an index, contained
+    /// in the column specified in <see cref="JET_INDEXLIST.columnidgrbitColumn"/>.</summary>
     [Flags]
     public enum IndexKeyGrbit
     {
-        /// <summary>
-        /// Key segment is ascending.
-        /// </summary>
+        /// <summary>Key segment is ascending.</summary>
         Ascending = 0x0,
 
-        /// <summary>
-        /// Key segment is descending.
-        /// </summary>
+        /// <summary>Key segment is descending.</summary>
         Descending = 0x1,
     }
 
-    /// <summary>
-    /// Options for the <seealso cref="JET_CONDITIONALCOLUMN"/> structure.
-    /// </summary>
+    /// <summary>Options for the <seealso cref="JET_CONDITIONALCOLUMN"/> structure.</summary>
     [Flags]
     public enum ConditionalColumnGrbit
     {
-        /// <summary>
-        /// The column must be null for an index entry to appear in the index.
-        /// </summary>
+        /// <summary>The column must be null for an index entry to appear in the index.</summary>
         ColumnMustBeNull = 0x1,
 
-        /// <summary>
-        /// The column must be non-null for an index entry to appear in the index.
-        /// </summary>
+        /// <summary>The column must be non-null for an index entry to appear in the index.</summary>
         ColumnMustBeNonNull = 0x2,
     }
 
@@ -1425,15 +1418,12 @@ namespace EsentLib
     /// Options for temporary table creation, with <see cref="Api.JetOpenTempTable"/>,
     /// Api.JetOpenTempTable2, and <see cref="Api.JetOpenTempTable3"/>.
     /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows2003.Server2003Grbits.ForwardOnly"/>
     /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.IntrinsicLVsOnly"/>
     /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.TTDotNetGuid"/>
     [Flags]
     public enum TempTableGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
         /// <summary>
@@ -1453,7 +1443,7 @@ namespace EsentLib
         /// option to be in effect due to the fact that all clustered indexes must 
         /// also be a primary key and thus must be unique. As of Windows Server 
         /// 2003, it is now possible to create a temporary table that does NOT 
-        /// remove duplicates when the <see cref="EsentLib.Platform.Windows2003.Server2003Grbits.ForwardOnly"/>
+        /// remove duplicates when the <see cref="TempTableGrbit.ForwardOnly"/>
         /// option is also specified. 
         /// It is not possible to know which duplicate will win and which duplicates 
         /// will be discarded in general. However, when the 
@@ -1510,6 +1500,18 @@ namespace EsentLib
         /// result in improved performance. 
         /// </summary>
         ErrorOnDuplicateInsertion = 0x20,
+
+        /// <summary>
+        /// This option requests that the temporary table only be created if the
+        /// temporary table manager can use the implementation optimized for
+        /// intermediate query results. If any characteristic of the temporary
+        /// table would prevent the use of this optimization then the operation
+        /// will fail with JET_errCannotMaterializeForwardOnlySort. A side effect
+        /// of this option is to allow the temporary table to contain records
+        /// with duplicate index keys. See <see cref="TempTableGrbit.Unique"/>
+        /// for more information.
+        /// </summary>        
+        ForwardOnly = 0x40,
     }
 
     /// <summary>

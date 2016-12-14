@@ -45,6 +45,17 @@ namespace EsentLib.Implementation
         /// <summary>Gets or sets the maximum number of components in a sort or index key.</summary>
         public int ColumnsKeyMost { get; internal set; }
 
+
+        /// <summary>Check that ESENT supports Server 2003 features. Throws an exception if
+        /// Server 2003 features aren't supported.</summary>
+        /// <param name="api">The API that is being called.</param>
+        internal void CheckSupportsServer2003Features(string api)
+        {
+            if (!SupportsServer2003Features) {
+                throw JetEnvironment.UnsupportedApiException(api);
+            }
+        }
+
         /// <summary>Check that ESENT supports Vista features. Throws an exception if Vista
         /// features aren't supported.</summary>
         /// <param name="api">The API that is being called.</param>

@@ -13,9 +13,7 @@ using System.Runtime.InteropServices;
 
 namespace EsentLib.Jet
 {
-    /// <summary>
-    /// The native version of the JET_DBINFOMISC structure.
-    /// </summary>
+    /// <summary>The native version of the JET_DBINFOMISC structure.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -26,117 +24,73 @@ namespace EsentLib.Jet
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     internal struct NATIVE_DBINFOMISC
     {
-        /// <summary>
-        /// Version of Esent that created the database.
-        /// </summary>
+        /// <summary>Version of Esent that created the database.</summary>
         public uint ulVersion;
 
-        /// <summary>
-        /// Incremental version of Esent that created the database.
-        /// </summary>
+        /// <summary>Incremental version of Esent that created the database.</summary>
         public uint ulUpdate;
 
-        /// <summary>
-        /// Database signature.
-        /// </summary>
+        /// <summary>Database signature.</summary>
         public NATIVE_SIGNATURE signDb;
 
-        /// <summary>
-        /// Consistent/inconsistent state.
-        /// </summary>
+        /// <summary>Consistent/inconsistent state.</summary>
         public uint dbstate;
 
-        /// <summary>
-        /// Null if in inconsistent state.
-        /// </summary>
+        /// <summary>Null if in inconsistent state.</summary>
         public JET_LGPOS lgposConsistent;
 
-        /// <summary>
-        /// Null if in inconsistent state.
-        /// </summary>
+        /// <summary>Null if in inconsistent state.</summary>
         public JET_LOGTIME logtimeConsistent;
 
-        /// <summary>
-        /// Last attach time.
-        /// </summary>
+        /// <summary>Last attach time.</summary>
         public JET_LOGTIME logtimeAttach;
 
-        /// <summary>
-        /// Lgpos at last attach.
-        /// </summary>
+        /// <summary>Lgpos at last attach.</summary>
         public JET_LGPOS lgposAttach;
 
-        /// <summary>
-        /// Last detach time.
-        /// </summary>
+        /// <summary>Last detach time.</summary>
         public JET_LOGTIME logtimeDetach;
 
-        /// <summary>
-        /// Lgpos at last detach.
-        /// </summary>
+        /// <summary>Lgpos at last detach.</summary>
         public JET_LGPOS lgposDetach;
 
-        /// <summary>
-        /// Logfile signature.
-        /// </summary>
+        /// <summary>Logfile signature.</summary>
         public NATIVE_SIGNATURE signLog;
 
-        /// <summary>
-        /// Last successful full backup.
-        /// </summary>
+        /// <summary>Last successful full backup.</summary>
         public JET_BKINFO bkinfoFullPrev;
 
-        /// <summary>
-        /// Last successful incremental backup. Reset when 
-        /// <see cref="bkinfoFullPrev"/> is set.
-        /// </summary>
+        /// <summary>Last successful incremental backup. Reset when <see cref="bkinfoFullPrev"/>
+        /// is set.</summary>
         public JET_BKINFO bkinfoIncPrev;
 
-        /// <summary>
-        /// Current backup.
-        /// </summary>
+        /// <summary>Current backup.</summary>
         public JET_BKINFO bkinfoFullCur;
 
-        /// <summary>
-        /// Internal use only.
-        /// </summary>
+        /// <summary>Internal use only.</summary>
         public uint fShadowingDisabled;
 
-        /// <summary>
-        /// Internal use only.
-        /// </summary>
+        /// <summary>Internal use only.</summary>
         public uint fUpgradeDb;
 
-        /// <summary>
-        /// OS major version.
-        /// </summary>
+        /// <summary>OS major version.</summary>
         public uint dwMajorVersion;
 
-        /// <summary>
-        /// OS minor version.
-        /// </summary>
+        /// <summary>OS minor version.</summary>
         public uint dwMinorVersion;
 
-        /// <summary>
-        /// OS build number.
-        /// </summary>
+        /// <summary>OS build number.</summary>
         public uint dwBuildNumber;
 
-        /// <summary>
-        /// OS Service Pack number.
-        /// </summary>
+        /// <summary>OS Service Pack number.</summary>
         public uint lSPNumber;
 
-        /// <summary>
-        /// Database page size (0 = 4Kb page).
-        /// </summary>
+        /// <summary>Database page size (0 = 4Kb page).</summary>
         public uint cbPageSize;
     }
 
-    /// <summary>
-    /// Native version of the JET_DBINFOMISC structure.
-    /// Adds support for fields that we added in Windows 7.
-    /// </summary>
+    /// <summary>Native version of the JET_DBINFOMISC structure. Adds support for fields that
+    /// we added in Windows 7.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -147,114 +101,76 @@ namespace EsentLib.Jet
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     internal struct NATIVE_DBINFOMISC4
     {
-        /// <summary>
-        /// The core dbinfo structure.
-        /// </summary>
+        /// <summary>The core dbinfo structure.</summary>
         public NATIVE_DBINFOMISC dbinfo;
 
         // Fields added in JET_DBINFOMISC2
 
-        /// <summary>
-        /// The minimum log generation required for replaying the logs.
-        /// Typically the checkpoint generation.
-        /// </summary>
+        /// <summary>The minimum log generation required for replaying the logs. Typically the
+        /// checkpoint generation.</summary>
         public uint genMinRequired;
 
-        /// <summary>
-        /// The maximum log generation required for replaying the logs.
-        /// </summary>
+        /// <summary>The maximum log generation required for replaying the logs.</summary>
         public uint genMaxRequired;
 
-        /// <summary>
-        /// Creation time of the <see cref="genMaxRequired"/> logfile.
-        /// </summary>
+        /// <summary>Creation time of the <see cref="genMaxRequired"/> logfile.</summary>
         public JET_LOGTIME logtimeGenMaxCreate;
 
-        /// <summary>
-        /// Number of times repair has been called on this database.
-        /// </summary>
+        /// <summary>Number of times repair has been called on this database.</summary>
         public uint ulRepairCount;
 
-        /// <summary>
-        /// The last time that repair was run against this database.
-        /// </summary>
+        /// <summary>The last time that repair was run against this database.</summary>
         public JET_LOGTIME logtimeRepair;
 
-        /// <summary>
-        /// Number of times this database was repaired before the last defrag.
-        /// </summary>
+        /// <summary>Number of times this database was repaired before the last defrag.</summary>
         public uint ulRepairCountOld;
 
-        /// <summary>
-        /// Number of times a one bit error was successfully fixed.
-        /// </summary>
+        /// <summary>Number of times a one bit error was successfully fixed.</summary>
         public uint ulECCFixSuccess;
 
-        /// <summary>
-        /// The last time a one bit error was successfully fixed.
-        /// </summary>
+        /// <summary>The last time a one bit error was successfully fixed.</summary>
         public JET_LOGTIME logtimeECCFixSuccess;
 
-        /// <summary>
-        /// The number of times a one bit error was successfully fixed before the last repair.
-        /// </summary>
+        /// <summary>The number of times a one bit error was successfully fixed before the
+        /// last repair.</summary>
         public uint ulECCFixSuccessOld;
 
-        /// <summary>
-        /// Number of times an uncorrectable one bit error was encountered.
-        /// </summary>
+        /// <summary>Number of times an uncorrectable one bit error was encountered.</summary>
         public uint ulECCFixFail;
 
-        /// <summary>
-        /// The last time an uncorrectable one bit error was encountered.
-        /// </summary>
+        /// <summary>The last time an uncorrectable one bit error was encountered.</summary>
         public JET_LOGTIME logtimeECCFixFail;
 
-        /// <summary>
-        /// The number of times an uncorrectable one bit error was encountered.
-        /// </summary>
+        /// <summary>The number of times an uncorrectable one bit error was encountered.</summary>
         public uint ulECCFixFailOld;
 
-        /// <summary>
-        /// Number of times a non-correctable checksum error was found.
-        /// </summary>
+        /// <summary>Number of times a non-correctable checksum error was found.</summary>
         public uint ulBadChecksum;
 
-        /// <summary>
-        /// The last time a non-correctable checksum error was found.
-        /// </summary>
+        /// <summary>The last time a non-correctable checksum error was found.</summary>
         public JET_LOGTIME logtimeBadChecksum;
 
-        /// <summary>
-        /// The number of times a non-correctable checksum error was found before the last repair.
-        /// </summary>
+        /// <summary>The number of times a non-correctable checksum error was found before the
+        /// last repair.</summary>
         public uint ulBadChecksumOld;
 
         // Fields added in JET_DBINFOMISC3
 
-        /// <summary>
-        /// The maximum log generation committed to the database. Typically the current log generation.
-        /// </summary>
+        /// <summary>The maximum log generation committed to the database. Typically the current
+        /// log generation.</summary>
         public uint genCommitted;
 
         // Fields added in JET_DBINFOMISC4
 
-        /// <summary>
-        /// Last successful copy backup.
-        /// </summary>
+        /// <summary>Last successful copy backup.</summary>
         public JET_BKINFO bkinfoCopyPrev;
 
-        /// <summary>
-        /// Last successful differential backup. Reset when 
-        /// bkinfoFullPrev is set.
-        /// </summary>
+        /// <summary>Last successful differential backup. Reset when bkinfoFullPrev is set.</summary>
         public JET_BKINFO bkinfoDiffPrev;
     }
 
-    /// <summary>
-    /// Holds miscellaneous information about a database. This is
-    /// the information that is contained in the database header.
-    /// </summary>
+    /// <summary>Holds miscellaneous information about a database. This is the information that
+    /// is contained in the database header.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",
@@ -886,8 +802,7 @@ namespace EsentLib.Jet
         /// <returns>The hash code for this instance.</returns>
         public override int GetHashCode()
         {
-            var hashes = new[]
-            {
+            var hashes = new[] {
                 this._ulVersion,
                 this._ulUpdate,
                 this._signDb.GetHashCode(),
@@ -928,47 +843,32 @@ namespace EsentLib.Jet
                 this._bkinfoCopyPrev.GetHashCode(),
                 this._bkinfoDiffPrev.GetHashCode(),
             };
-
-            var listHashes = new List<int>(hashes);
+            List<int> listHashes = new List<int>(hashes);
             this.AddNotYetPublishedHashCodes(listHashes);
-
             return Util.CalculateHashCode(listHashes);
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
-        /// </summary>
-        /// <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:System.Object"/>.</param>
-        /// <returns>
-        /// True if the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>; otherwise, false.
-        /// </returns>
+        /// <summary>Determines whether the specified <see cref="T:System.Object"/> is equal to
+        /// the current <see cref="T:System.Object"/>.</summary>
+        /// <param name="obj">The <see cref="T:System.Object"/> to compare with the current
+        /// <see cref="T:System.Object"/>.</param><returns>
+        /// True if the specified <see cref="T:System.Object"/> is equal to the current
+        /// <see cref="T:System.Object"/>; otherwise, false.</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null || this.GetType() != obj.GetType())
-            {
-                return false;
-            }
-
-            return this.Equals((JET_DBINFOMISC)obj);
+            return ((null != obj) && (this.GetType() == obj.GetType())
+                && this.Equals((JET_DBINFOMISC)obj));
         }
 
-        /// <summary>
-        /// Indicates whether the current object is equal to another object of the same type.
-        /// </summary>
+        /// <summary>whether the current object is equal to another object of the same type.</summary>
         /// <param name="other">An object to compare with this object.</param>
-        /// <returns>
-        /// True if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
-        /// </returns>
+        /// <returns>True if the current object is equal to the <paramref name="other"/>
+        /// parameter; otherwise, false.</returns>
         public bool Equals(JET_DBINFOMISC other)
         {
-            if (null == other)
-            {
-                return false;
-            }
-
+            if (null == other) { return false; }
             bool notYetPublishedEquals = true;
             this.NotYetPublishedEquals(other, ref notYetPublishedEquals);
-
             return notYetPublishedEquals
                    && this._ulVersion == other._ulVersion
                    && this._ulUpdate == other._ulUpdate
@@ -1011,14 +911,11 @@ namespace EsentLib.Jet
                    && this._bkinfoDiffPrev == other._bkinfoDiffPrev;
         }
 
-        /// <summary>
-        /// Sets the members of this object from a native object.
-        /// </summary>
+        /// <summary>Sets the members of this object from a native object.</summary>
         /// <param name="native">The native object.</param>
         internal void SetFromNativeDbinfoMisc(ref NATIVE_DBINFOMISC native)
         {
-            unchecked
-            {
+            unchecked {
                 this._ulVersion = (int)native.ulVersion;
                 this._ulUpdate = (int)native.ulUpdate;
                 this._signDb = new JET_SIGNATURE(native.signDb);
@@ -1043,16 +940,13 @@ namespace EsentLib.Jet
             }
         }
 
-        /// <summary>
-        /// Sets the members of this object from a native object.
-        /// </summary>
+        /// <summary>Sets the members of this object from a native object.</summary>
         /// <param name="native">The native object.</param>
         internal void SetFromNativeDbinfoMisc(ref NATIVE_DBINFOMISC4 native)
         {
             this.SetFromNativeDbinfoMisc(ref native.dbinfo);
 
-            unchecked
-            {
+            unchecked {
                 this._genMinRequired = (int)native.genMinRequired;
                 this._genMaxRequired = (int)native.genMaxRequired;
                 this._logtimeGenMaxCreate = native.logtimeGenMaxCreate;
@@ -1074,16 +968,13 @@ namespace EsentLib.Jet
             }
         }
 
-        /// <summary>
-        /// Calculates the native version of the structure.
-        /// </summary>
+        /// <summary>Calculates the native version of the structure.</summary>
         /// <returns>The native version of the structure.</returns>
         internal NATIVE_DBINFOMISC GetNativeDbinfomisc()
         {
             NATIVE_DBINFOMISC native = new NATIVE_DBINFOMISC();
 
-            unchecked
-            {
+            unchecked {
                 native.ulVersion = (uint)this._ulVersion;
                 native.ulUpdate = (uint)this._ulUpdate;
                 native.signDb = this._signDb.GetNativeSignature();
@@ -1106,22 +997,16 @@ namespace EsentLib.Jet
                 native.lSPNumber = (uint)this._lSPNumber;
                 native.cbPageSize = (uint)this._cbPageSize;
             }
-
             return native;
         }
 
-        /// <summary>
-        /// Calculates the native version of the structure.
-        /// </summary>
+        /// <summary>Calculates the native version of the structure.</summary>
         /// <returns>The native version of the structure.</returns>
         internal NATIVE_DBINFOMISC4 GetNativeDbinfomisc4()
         {
             NATIVE_DBINFOMISC4 native = new NATIVE_DBINFOMISC4();
-
             native.dbinfo = this.GetNativeDbinfomisc();
-
-            unchecked
-            {
+            unchecked {
                 native.genMinRequired = (uint)this._genMinRequired;
                 native.genMaxRequired = (uint)this._genMaxRequired;
                 native.logtimeGenMaxCreate = this._logtimeGenMaxCreate;
@@ -1141,24 +1026,18 @@ namespace EsentLib.Jet
                 native.bkinfoCopyPrev = this._bkinfoCopyPrev;
                 native.bkinfoDiffPrev = this._bkinfoDiffPrev;
             }
-
             return native;
         }
 
-        /// <summary>
-        /// Provides a hook to allow comparison of additional fields in
-        /// a different file. These additonal fields are not yet published
-        /// on MSDN.
-        /// </summary>
+        /// <summary>Provides a hook to allow comparison of additional fields in a different
+        /// file. These additonal fields are not yet published on MSDN.</summary>
         /// <param name="other">The structure to compare with.</param>
         /// <param name="notYetPublishedEquals">Whether the additional fields in <paramref name="other"/>
         /// are the same as this.</param>
         partial void NotYetPublishedEquals(JET_DBINFOMISC other, ref bool notYetPublishedEquals);
 
-        /// <summary>
-        /// Provides a hook to allow additional fields to be calculated in the hashcode.
-        /// These additonal fields are not yet published on MSDN.
-        /// </summary>
+        /// <summary>Provides a hook to allow additional fields to be calculated in the hashcode.
+        /// These additonal fields are not yet published on MSDN.</summary>
         /// <param name="hashCodes">The list of hashcodes to add to.</param>
         partial void AddNotYetPublishedHashCodes(IList<int> hashCodes);
     }

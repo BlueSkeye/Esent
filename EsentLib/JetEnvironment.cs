@@ -10,10 +10,17 @@ using EsentLib.Jet.Types;
 namespace EsentLib
 {
     /// <summary></summary>
-    public static class JetEnvironment
+    [CLSCompliant(false)]
+    public class JetEnvironment : IJetEnvironment
     {
+        private JetEnvironment()
+        {
+            return;
+        }
+
+        #region PROPERTIES
         /// <summary>Gets the maximum size of a bookmark. <seealso cref="Api.JetGetBookmark"/>.</summary>
-        public static int BookmarkMost
+        public int BookmarkMost
         {
             // This correctly returns 256 on pre-Vista systems
             get { return KeyMost + 1; }
@@ -22,7 +29,7 @@ namespace EsentLib
         /// <summary>Gets or sets the size of the database cache in pages. By default the
         /// database cache will automatically tune its size, setting this property to a non-zero
         /// value will cause the cache to adjust itself to the target size. </summary>
-        public static int CacheSize
+        public int CacheSize
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.CacheSize); }
             set { SetParameter(JET_param.CacheSize, value); }
@@ -32,7 +39,7 @@ namespace EsentLib
         /// database pages. If this parameter is left to its default value, then the maximum
         /// size of the cache will be set to the size of physical memory when JetInit is called.
         /// </summary>
-        public static int CacheSizeMax
+        public int CacheSizeMax
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.CacheSizeMax); }
             set { SetParameter(JET_param.CacheSizeMax, value); }
@@ -40,14 +47,14 @@ namespace EsentLib
 
         /// <summary>Gets or sets the minimum size of the database page cache, in database pages.
         /// </summary>
-        public static int CacheSizeMin
+        public int CacheSizeMin
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.CacheSizeMin); }
             set { SetParameter(JET_param.CacheSizeMin, value); }
         }
 
         /// <summary>Gets the maximum number of components in a sort or index key.</summary>
-        public static int ColumnsKeyMost
+        public int ColumnsKeyMost
         {
             get { return Api.Impl.Capabilities.ColumnsKeyMost; }
         }
@@ -62,7 +69,7 @@ namespace EsentLib
         /// <para>Supported on Windows Vista and up. Ignored on Windows XP and Windows Server
         /// 2003.</para>
         /// </summary>
-        public static int Configuration
+        public int Configuration
         {
             get
             {
@@ -78,15 +85,22 @@ namespace EsentLib
             }
         }
 
+        /// <summary>Get the instance that will get you access to the JET environment.</summary>
+        [CLSCompliant(false)]
+        public static IJetEnvironment Current
+        {
+            get { return _singleton; }
+        }
+
         /// <summary>Gets or sets the size of the database pages, in bytes.</summary>
-        public static int DatabasePageSize
+        public int DatabasePageSize
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.DatabasePageSize); }
             set { SetParameter(JET_param.DatabasePageSize, value); }
         }
 
         /// <summary>Gets the true capabilities of this implementation of ESENT.</summary>
-        public static JetCapabilities DefaultCapabilities
+        public JetCapabilities DefaultCapabilities
         {
             get
             {
@@ -101,7 +115,7 @@ namespace EsentLib
         /// <summary>Gets or sets the detail level of eventlog messages that are emitted to the
         /// eventlog by the database engine. Higher numbers will result in more detailed eventlog
         /// messages.</summary>
-        public static int EventLoggingLevel
+        public int EventLoggingLevel
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.EventLoggingLevel); }
             set { SetParameter(JET_param.EventLoggingLevel, value); }
@@ -109,15 +123,30 @@ namespace EsentLib
 
         /// <summary>Gets or sets the value encoding what to do with exceptions generated
         /// within JET.</summary>
-        public static JET_ExceptionAction ExceptionAction
+        public JET_ExceptionAction ExceptionAction
         {
             get { return (JET_ExceptionAction)NativeHelpers.GetInt32Parameter(JET_param.ExceptionAction); }
             set { SetParameter(JET_param.ExceptionAction, (int)value); }
         }
 
+        /// <summary>Gets or sets the set of actions to be taken on IOs that appear hung.</summary>
+        public int HungIOActions
+        {
+            get { return NativeHelpers.GetInt32Parameter(JET_param.HungIOActions); }
+            set { JetEnvironment.SetParameter(JET_param.HungIOActions, value); }
+        }
+
+        /// <summary>Gets or sets the threshold for what is considered a hung IO that should
+        /// be acted upon.</summary>
+        public int HungIOThreshold
+        {
+            get { return NativeHelpers.GetInt32Parameter(JET_param.HungIOThreshold); }
+            set { SetParameter(JET_param.HungIOThreshold, value); }
+        }
+
         /// <summary>Gets the maximum key size. This depends on the Esent version and database
         /// page size.</summary>
-        public static int KeyMost
+        public int KeyMost
         {
             get
             {
@@ -129,7 +158,7 @@ namespace EsentLib
 
         /// <summary>Gets or sets backwards compatibility with the file naming conventions of earlier
         /// releases of the database engine.</summary>
-        public static int LegacyFileNames
+        public int LegacyFileNames
         {
             get
             {
@@ -146,7 +175,7 @@ namespace EsentLib
         }
 
         /// <summary>Gets the lv chunks size. This depends on the database page size.</summary>
-        public static int LVChunkSizeMost
+        public int LVChunkSizeMost
         {
             get
             {
@@ -160,19 +189,34 @@ namespace EsentLib
         }
 
         /// <summary>Gets or sets the maximum number of instances that can be created.</summary>
-        public static int MaxInstances
+        public int MaxInstances
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.MaxInstances); }
             set { SetParameter(JET_param.MaxInstances, value); }
         }
 
+        /// <summary>Gets or sets the smallest amount of data that should be compressed with xpress
+        /// compression.</summary>
+        public int MinDataForXpress
+        {
+            get { return NativeHelpers.GetInt32Parameter(JET_param.MinDataForXpress); }
+            set { JetEnvironment.SetParameter(JET_param.MinDataForXpress, value); }
+        }
+
         /// <summary>Gets or sets how many database file I/Os can be queued per-disk in the
         /// host operating system at one time. A larger value for this parameter can significantly
         /// help the performance of a large database application. </summary>
-        public static int OutstandingIOMax
+        public int OutstandingIOMax
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.OutstandingIOMax); }
             set { SetParameter(JET_param.OutstandingIOMax, value); }
+        }
+
+        /// <summary>Gets or sets the friendly name for this instance of the process.</summary>
+        public string ProcessFriendlyName
+        {
+            get { return NativeHelpers.GetStringParameter(JET_param.ProcessFriendlyName); }
+            set { SetParameter(JET_param.ProcessFriendlyName, value); }
         }
 
         /// <summary>Gets or sets the threshold at which the database page cache begins evicting
@@ -187,7 +231,7 @@ namespace EsentLib
         /// time to react. However, a high start threshold implies a higher stop threshold and
         /// that will reduce the effective size of the database page cache.</para>
         /// </summary>
-        public static int StartFlushThreshold
+        public int StartFlushThreshold
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.StartFlushThreshold); }
             set { SetParameter(JET_param.StartFlushThreshold, value); }
@@ -204,14 +248,14 @@ namespace EsentLib
         /// more likely that writes to neighboring pages may be combined. However, a high stop threshold
         /// will reduce the effective size of the database page cache.</para>
         /// </summary>
-        public static int StopFlushThreshold
+        public int StopFlushThreshold
         {
             get { return NativeHelpers.GetInt32Parameter(JET_param.StopFlushThreshold); }
             set { SetParameter(JET_param.StopFlushThreshold, value); }
         }
 
         /// <summary>Gets the true capabilities of this implementation of ESENT.</summary>
-        public static JetCapabilities TrueCapabilities
+        public JetCapabilities TrueCapabilities
         {
             get
             {
@@ -219,6 +263,7 @@ namespace EsentLib
                 return _trueCapabilities;
             }
         }
+        #endregion
 
         /// <summary>Calculates the capabilities of the current Esent version.</summary>
         internal static JetCapabilities DetermineCapabilities(uint versionOverride = 0)
@@ -284,6 +329,11 @@ namespace EsentLib
             Tracing.TraceResult(returnCode);
         }
 
+        internal static string GetErrorText(ref IntPtr errorNumber)
+        {
+            return NativeHelpers.GetErrorText(ref errorNumber);
+        }
+
         /// <summary>Create an instance and get the current version of Esent.</summary>
         /// <returns>The current version of Esent.</returns>
         private static uint GetInstalledVersion()
@@ -309,10 +359,21 @@ namespace EsentLib
             }
         }
 
+        /// <summary></summary>
+        /// <param name="name"></param>
+        /// <param name="displayName"></param>
+        /// <param name="grbit"></param>
+        /// <returns></returns>
+        [CLSCompliant(false)]
+        public IJetInstance GetInstance(string name, string displayName = null,
+            CreateInstanceGrbit grbit = CreateInstanceGrbit.None)
+        {
+            return JetInstance.Create(name, displayName, grbit);
+        }
+
         /// <summary>Retrieves information about the instances that are running.</summary>
         /// <returns>An error code if the call fails.</returns>
-        // TODO : Make this available through an interface in the JetEnironment
-        public static JET_INSTANCE_INFO[] GetRunningInstancesInfo()
+        public JET_INSTANCE_INFO[] GetRunningInstancesInfo()
         {
             Tracing.TraceFunctionCall("GetRunningInstancesInfo");
             unsafe {
@@ -326,10 +387,61 @@ namespace EsentLib
             }
         }
 
+        /// <summary>Retrieves performance information from the database engine for the
+        /// current thread. Multiple calls can be used to collect statistics that reflect
+        /// the activity of the database engine on this thread between those calls.</summary>
+        /// <returns>Returns the thread statistics.</returns>
+        public EsentLib.Jet.Vista.JET_THREADSTATS GetThreadStatistics()
+        {
+            Tracing.TraceFunctionCall("GetThreadStatistics");
+            TrueCapabilities.CheckSupportsVistaFeatures("GetThreadStatistics");
+
+            // To speed up the interop we use unsafe code to avoid initializing
+            // the out parameter. We just call the interop code.
+            EsentLib.Jet.Vista.JET_THREADSTATS result = new EsentLib.Jet.Vista.JET_THREADSTATS();
+            int returnCode;
+            unsafe {
+                returnCode = NativeMethods.JetGetThreadStats(&result, checked((uint)EsentLib.Jet.Vista.JET_THREADSTATS.Size));
+            }
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return result;
+        }
+
+        /// <summary>Retrieves performance information from the database engine for the current
+        /// thread. Multiple calls can be used to collect statistics that reflect the activity
+        /// of the database engine on this thread between those calls.</summary>
+        /// <returns>An error code if the operation fails.</returns>
+        public JET_THREADSTATS2 GetThreadStatisticsEx()
+        {
+            Tracing.TraceFunctionCall("GetThreadStatisticsEx");
+            TrueCapabilities.CheckSupportsVistaFeatures("JetGetThreadStats");
+            // To speed up the interop we use unsafe code to avoid initializing
+            // the out parameter. We just call the interop code.
+            unsafe {
+                JET_THREADSTATS2 result;
+                int returnCode = NativeMethods.JetGetThreadStats(&result, checked((uint)JET_THREADSTATS2.Size));
+                Tracing.TraceResult(returnCode);
+                EsentExceptionHelper.Check(returnCode);
+                return result;
+            }
+        }
+
+        /// <summary>Begins the preparations for a snapshot session. A snapshot session
+        /// is a short time interval in which the engine does not issue any write IOs to
+        /// disk, so that the engine can participate in a volume snapshot session (when
+        /// driven by a snapshot writer).</summary>
+        /// <param name="grbit">Snapshot options.</param>
+        /// <returns>A snapshot handler.</returns>
+        public IJetSnapshot PrepareSnapshot(SnapshotPrepareGrbit grbit)
+        {
+            return JetSnapshot.Create(grbit);
+        }
+
         /// <summary>Set a system parameter which is a boolean.</summary>
         /// <param name="param">The parameter to set.</param>
         /// <param name="value">The value to set.</param>
-        public static void SetParameter(JET_param param, bool value)
+        private static void SetParameter(JET_param param, bool value)
         {
             SetParameter(param, new IntPtr(value ? 1 : 0));
         }
@@ -372,6 +484,7 @@ namespace EsentLib
         }
 
         private static JetCapabilities _defaultCapabilities;
+        private static JetEnvironment _singleton = new JetEnvironment();
         // TODO : MUST iitialize this static member.
         private static JetCapabilities _trueCapabilities = null;
     }

@@ -195,7 +195,7 @@ namespace EsentLib.Jet
         /// <see cref="JET_param.DatabasePageSize"/>. The maximum key size can be retrieved with
         /// <see cref="JET_param.KeyMost"/>.
         /// <para>This parameter is ignored on Windows XP and Windows Server 2003.</para>
-        /// <para>Unlike the unmanaged API, <see cref="VistaGrbits.IndexKeyMost"/>
+        /// <para>Unlike the unmanaged API, <see cref="CreateIndexGrbit.IndexKeyMost"/>
         /// (JET_bitIndexKeyMost) is not needed, it will be added automatically.</para>
         /// </summary>
         public int cbKeyMost
@@ -355,7 +355,7 @@ namespace EsentLib.Jet
             if (0 != this.cbKeyMost)
             {
                 native.cbKeyMost = checked((uint)this.cbKeyMost);
-                native.indexcreate.grbit |= unchecked((uint)VistaGrbits.IndexKeyMost);
+                native.indexcreate.grbit |= unchecked((uint)CreateIndexGrbit.IndexKeyMost);
             }
 
             return native;

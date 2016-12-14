@@ -12,7 +12,6 @@ namespace EsentLib.Platform.Windows10
     /// <summary>Api calls introduced in Windows 10.</summary>
     public static class Windows10Api
     {
-        #region Session Parameters
         ///// <summary>Sets a parameter on the provided session state, used for the lifetime of this session
         ///// or until reset.</summary>
         ///// <param name="sesid">The session to set the parameter on.</param>
@@ -36,22 +35,17 @@ namespace EsentLib.Platform.Windows10
         //{
         //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, operationContext));
         //}
-        #endregion
 
-        #region Sessions
-
-        /// <summary>
-        /// Retrieves performance information from the database engine for the
-        /// current thread. Multiple calls can be used to collect statistics
-        /// that reflect the activity of the database engine on this thread
-        /// between those calls.
-        /// </summary>
-        /// <param name="threadstats">Returns the thread statistics data.</param>
-        public static void JetGetThreadStats(out JET_THREADSTATS2 threadstats)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetGetThreadStats(out threadstats));
-        }
-
-        #endregion
+        ///// <summary>
+        ///// Retrieves performance information from the database engine for the
+        ///// current thread. Multiple calls can be used to collect statistics
+        ///// that reflect the activity of the database engine on this thread
+        ///// between those calls.
+        ///// </summary>
+        ///// <param name="threadstats">Returns the thread statistics data.</param>
+        //public static void JetGetThreadStats(out JET_THREADSTATS2 threadstats)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetGetThreadStats(out threadstats));
+        //}
     }
 }

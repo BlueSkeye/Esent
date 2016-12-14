@@ -35,10 +35,9 @@ namespace EsentLib.Platform.Windows10
         /// <seealso cref="Api.JetCreateIndex2"/>
         public const CreateIndexGrbit IndexCreateImmutableStructure = (CreateIndexGrbit)0x80000;
 
-        /// <summary>
-        /// Passed back to durable commit callback to let it know that log is down (and all pending commits will not be flushed to disk).
-        /// Used with <see cref="Windows8Param.DurableCommitCallback"/>.
-        /// </summary>
+        /// <summary>Passed back to durable commit callback to let it know that log is down
+        /// (and all pending commits will not be flushed to disk).Used with
+        /// <see cref="EsentLib.Jet.JET_param.DurableCommitCallback"/>.</summary>
         /// <seealso cref="DurableCommitCallbackGrbit"/>
         public const DurableCommitCallbackGrbit LogUnavailable = (DurableCommitCallbackGrbit)0x1;
     }

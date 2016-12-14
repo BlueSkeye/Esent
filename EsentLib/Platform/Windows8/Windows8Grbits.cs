@@ -70,9 +70,7 @@ namespace EsentLib.Platform.Windows8
         NormalizedKey = 0x8,
     }
 
-    /// <summary>
-    /// Options for <see cref="Windows8Api.JetStopServiceInstance2"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="EsentLib.Implementation.JetInstance.Stop"/>.</summary>
     [Flags]
     public enum StopServiceGrbit
     {

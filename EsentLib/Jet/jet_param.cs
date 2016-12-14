@@ -12,18 +12,11 @@ using EsentLib.Platform.Windows8;
 
 namespace EsentLib.Jet
 {
-    /// <summary>ESENT system parameters. This list is not extensive. Some parameters
-    /// introduced later are in different classes, such as <see cref="Windows8Param"/>.
+    /// <summary>ESENT system parameters.
     /// <para>
-    /// <see cref="JET_param"/> is usually used with <see cref="EsentLib.Implementation.JetInstance.SetSystemParameter(JET_SESID,JET_param,int,string)"/>,
     /// <see cref="EsentLib.Implementation.JetInstance.SetSystemParameter(JET_SESID,JET_param,IntPtr,string)"/>,
-    /// <see cref="Api.JetGetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE,JET_SESID,JET_param,ref int, out string, int)"/>, and
-    /// <see cref="Api.JetGetSystemParameter(EsentLib.Jet.Types.JET_INSTANCE,JET_SESID,JET_param,ref IntPtr, out string, int)"/>.
-    /// Some of these parameters are exposed with the helper classes <see cref="SystemParameters"/>
-    /// and <see cref="InstanceParameters"/>.
     /// </para>
     /// </summary>
-    /// <seealso cref="Windows8Param"/>
     public enum JET_param
     {
         /// <summary>This parameter indicates the relative or absolute file system path of the
@@ -32,20 +25,16 @@ namespace EsentLib.Jet
         /// </summary>
         SystemPath = 0,
 
-        /// <summary>
-        /// This parameter indicates the relative or absolute file system path of
-        /// the folder or file that will contain the temporary database for the instance.
-        /// If the path is to a folder that will contain the temporary database then it
-        /// must be terminated with a backslash character.
-        /// </summary>
+        /// <summary>This parameter indicates the relative or absolute file system path of the
+        /// folder or file that will contain the temporary database for the instance. If the path
+        /// is to a folder that will contain the temporary database then it must be terminated
+        /// with a backslash character.</summary>
         TempPath = 1,
 
-        /// <summary>
-        /// This parameter indicates the relative or absolute file system path of the
-        /// folder that will contain the transaction logs for the instance. The path must
-        /// be terminated with a backslash character, which indicates that the target path
-        /// is a folder.
-        /// </summary>
+        /// <summary>This parameter indicates the relative or absolute file system path of the
+        /// folder that will contain the transaction logs for the instance. The path must be
+        /// terminated with a backslash character, which indicates that the target path is a
+        /// folder.</summary>
         LogFilePath = 2,
 
         /// <summary>
@@ -345,10 +334,8 @@ namespace EsentLib.Jet
         /// </remarks>
         DatabasePageSize = 64,
 
-        /// <summary>
-        /// This parameter can be used to convert a JET_ERR into a string.
-        /// This should only be used with JetGetSystemParameter.
-        /// </summary>
+        /// <summary>This parameter can be used to convert a JET_ERR into a string.
+        /// This should only be used with JetGetSystemParameter.</summary>
         ErrorToString = 70,
 
         /// <summary>
@@ -607,6 +594,39 @@ namespace EsentLib.Jet
 
         /// <summary>Maximum interval to allow the database scan to finish, in seconds.</summary>
         DbScanIntervalMaxSec = 172,
+
+        // --------- //
+        // WINDOWS 8 //
+        // --------- //
+        /// <summary>Per-instance property for relative cache priorities (default = 100).</summary>
+        CachePriority = 177,
+
+        /// <summary>Percentage of version store that can be used by oldest transaction
+        /// before <see cref="JET_err.VersionStoreOutOfMemory"/> (default = 100).
+        /// </summary>
+        MaxTransactionSize = 178,
+
+        /// <summary>Maximum number of I/O operations dispatched for a given purpose.</summary>
+        PrereadIOMax = 179,
+
+        /// <summary>Database Maintenance serialization is enabled for databases sharing the
+        /// same disk.</summary>
+        EnableDBScanSerialization = 180,
+
+        /// <summary>The threshold for what is considered a hung IO that should be acted upon.</summary>
+        HungIOThreshold = 181,
+
+        /// <summary>A set of actions to be taken on IOs that appear hung.</summary>
+        HungIOActions = 182,
+
+        /// <summary>Smallest amount of data that should be compressed with xpress compression.</summary>
+        MinDataForXpress = 183,
+
+        /// <summary>Friendly name for this instance of the process.</summary>
+        ProcessFriendlyName = 186,
+
+        /// <summary>Callback for when log is flushed.</summary>
+        DurableCommitCallback = 187,
 
         // ----------- //
         // WINDOWS 8.1 //

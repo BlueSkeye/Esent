@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using EsentLib.Jet;
 using EsentLib.Jet.Types;
 using EsentLib.Jet.Vista;
-using EsentLib.Platform.Vista;
+using EsentLib.Platform;
 using EsentLib.Platform.Windows7;
 using EsentLib.Platform.Windows8;
 using EsentLib.Platform.Windows2003;
@@ -20,11 +20,42 @@ namespace EsentLib.Implementation
     /// <summary>This interface describes all the methods which have a P/Invoke
     /// implementation. Concrete instances of this interface provide methods that
     /// call ESENT.</summary>
-    internal partial interface IJetApi : IDisposable
+    [CLSCompliant(false)]
+    public partial interface IJetInstance : IDisposable
     {
         /// <summary>Gets a description of the capabilities of the current version
         /// of ESENT.</summary>
         JetCapabilities Capabilities { get; }
+
+        /// <summary></summary>
+        IntPtr Id { get; }
+
+        /// <summary>Performs a streaming backup of an instance, including all the attached
+        /// databases, to a directory. With multiple backup methods supported by the engine,
+        /// this is the simplest and most encapsulated function.</summary>
+        /// <param name="destination">The directory where the backup is to be stored. If the
+        /// backup path is null to use the function will truncate the logs, if possible.</param>
+        /// <param name="grbit">Backup options.</param>
+        /// <param name="statusCallback">Optional status notification callback.</param>
+        /// <returns>An error code.</returns>
+        void Backup(string destination, BackupGrbit grbit, JET_PFNSTATUS statusCallback);
+
+        /// <summary>Initialize a new ESENT session.</summary>
+        /// <param name="username">The parameter is not used.</param>
+        /// <param name="password">The parameter is not used.</param>
+        /// <returns>A new session.</returns>
+        /* <seealso cref="Api.BeginSession"/> */
+        JetSession BeginSession(string username, string password);
+
+        /// <summary>Terminate an instance that was created with
+        /// <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
+        /// <param name="grbit">Termination options.</param>
+        void Close(TermGrbit grbit = TermGrbit.None);
+
+        /// <summary>Retrieves information about an instance.</summary>
+        /// <param name="infoLevel">The type of information to retrieve.</param>
+        /// <returns>An error code if the call fails.</returns>
+        JET_SIGNATURE GetInfo(JET_InstanceMiscInfo infoLevel);
 
         /// <summary>Initialize the ESENT database engine.</summary>
         /// <param name="grbit">Initialization options.</param>
@@ -34,442 +65,42 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         void Initialize(InitGrbit grbit = InitGrbit.None, JET_RSTINFO recoveryOptions = null);
 
-        #region Init/Term
-
-        ///// <summary>Allocates a new instance of the database engine.</summary>
-        ///// <param name="instance">Returns the new instance.</param>
-        ///// <param name="name">The name of the instance. Names must be unique.</param>
-        ///// <returns>An error if the call fails.</returns>
-        //int JetCreateInstance(out JET_INSTANCE instance, string name);
-
-        /// <summary>
-        /// Retrieves information about an instance.
-        /// </summary>
-        /// <param name="instance">The instance to get information about.</param>
-        /// <param name="signature">Retrieved information.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetGetInstanceMiscInfo(JET_INSTANCE instance, out JET_SIGNATURE signature, JET_InstanceMiscInfo infoLevel);
-
-        /// <summary>
-        /// Prevents streaming backup-related activity from continuing on a
-        /// specific running instance, thus ending the streaming backup in
-        /// a predictable way.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <returns>An error code.</returns>
-        int JetStopBackupInstance(JET_INSTANCE instance);
-
-        /// <summary>
-        /// Prepares an instance for termination.
-        /// </summary>
-        /// <param name="instance">The (running) instance to use.</param>
-        /// <returns>An error code.</returns>
-        int JetStopServiceInstance(JET_INSTANCE instance);
-
-        /// <summary>
-        /// Prepares an instance for termination. Can also be used to resume a previous quiescing.
-        /// </summary>
-        /// <param name="instance">The (running) instance to use.</param>
-        /// <param name="grbit">The options to stop or resume the instance.</param>
-        /// <returns>An error code.</returns>
-        int JetStopServiceInstance2(JET_INSTANCE instance, StopServiceGrbit grbit);
-
-        /// <summary>Terminate an instance that was created with <see cref="Initialize"/>
-        /// or <see cref="JetInstance.Create"/>.</summary>
-        /// <param name="instance">The instance to terminate.</param>
-        /// <param name="grbit">Termination options.</param>
-        /// <returns>An error or warning.</returns>
-        int JetTerm2(JET_INSTANCE instance, TermGrbit grbit);
-
-        /// <summary>Sets database configuration options. This overload is used when the
-        /// parameter being set is of type JET_CALLBACK.</summary>
-        /// <param name="instance">The instance to set the option on or <see cref="JET_INSTANCE.Nil"/>
-        /// to set the option on all instances.</param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to set.</param>
-        /// <param name="paramValue">The value of the parameter to set.</param>
-        /// <param name="paramString">The value of the string parameter to set.</param>
-        /// <returns>An error or warning.</returns>
-        int JetSetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid,
-            JET_CALLBACK paramValue, string paramString);
-
-        /// <summary>
-        /// Gets database configuration options.
-        /// </summary>
-        /// <param name="instance">The instance to retrieve the options from.</param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to get.</param>
-        /// <param name="paramValue">Returns the value of the parameter, if the value is an integer.</param>
-        /// <param name="paramString">Returns the value of the parameter, if the value is a string.</param>
-        /// <param name="maxParam">The maximum size of the parameter string.</param>
-        /// <remarks>
-        /// <see cref="JET_param.ErrorToString"/> passes in the error number in the paramValue, which is why it is
-        /// a ref parameter and not an out parameter.
-        /// </remarks>
-        /// <returns>An error or warning.</returns>
-        int JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, ref IntPtr paramValue, out string paramString, int maxParam);
-        #endregion
-
-        #region Databases
-
-        ///// <summary>Creates and attaches a database file.</summary>
-        ///// <param name="sesid">The session to use.</param>
-        ///// <param name="database">The path to the database file to create.</param>
-        ///// <param name="connect">The parameter is not used.</param>
-        ///// <param name="dbid">Returns the dbid of the new database.</param>
-        ///// <param name="grbit">Database creation options.</param>
-        ///// <returns>An error or warning.</returns>
-        //int JetCreateDatabase(JET_SESID sesid, string database, string connect, out JET_DBID dbid, CreateDatabaseGrbit grbit);
-
-        /// <summary>
-        /// Creates and attaches a database file with a maximum database size specified.
-        /// <seealso cref="JetAttachDatabase2"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The path to the database file to create.</param>
-        /// <param name="maxPages">
-        /// The maximum size, in database pages, of the database. Passing 0 means there is
-        /// no enforced maximum.
-        /// </param>
-        /// <param name="dbid">Returns the dbid of the new database.</param>
-        /// <param name="grbit">Database creation options.</param>
-        /// <returns>An error or warning.</returns>
-        int JetCreateDatabase2(JET_SESID sesid, string database, int maxPages, out JET_DBID dbid, CreateDatabaseGrbit grbit);
-
-        /// <summary>
-        /// Attaches a database file for use with a database instance. In order to use the
-        /// database, it will need to be subsequently opened with <see cref="IJetSession.OpenDatabase"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The database to attach.</param>
-        /// <param name="maxPages">
-        /// The maximum size, in database pages, of the database. Passing 0 means there is
-        /// no enforced maximum.
-        /// </param>
-        /// <param name="grbit">Attach options.</param>
-        /// <returns>An error or warning.</returns>
-        int JetAttachDatabase2(JET_SESID sesid, string database, int maxPages, AttachDatabaseGrbit grbit);
-
-        /// <summary>
-        /// Closes a database file that was previously opened with <see cref="IJetSession.OpenDatabase"/> or
-        /// created with <see cref="JetSession.CreateDatabase"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to close.</param>
-        /// <param name="grbit">Close options.</param>
-        /// <returns>An error or warning.</returns>
-        int JetCloseDatabase(JET_SESID sesid, JET_DBID dbid, CloseDatabaseGrbit grbit);
-
-        /// <summary>
-        /// Releases a database file that was previously attached to a database session.
-        /// </summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="database">The database to detach.</param>
-        /// <returns>An error or warning.</returns>
-        int JetDetachDatabase(JET_SESID sesid, string database);
-
-        /// <summary>
-        /// Releases a database file that was previously attached to a database session.
-        /// </summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="database">The database to detach.</param>
-        /// <param name="grbit">Detach options.</param>
-        /// <returns>An error or warning.</returns>
-        int JetDetachDatabase2(JET_SESID sesid, string database, DetachDatabaseGrbit grbit);
-
-        /// <summary>
-        /// Makes a copy of an existing database. The copy is compacted to a
-        /// state optimal for usage. Data in the copied data will be packed
-        /// according to the measures chosen for the indexes at index create.
-        /// In this way, compacted data may be stored as densely as possible.
-        /// Alternatively, compacted data may reserve space for subsequent
-        /// record growth or index insertions.
-        /// </summary>
-        /// <param name="sesid">The session to use for the call.</param>
-        /// <param name="sourceDatabase">The source database that will be compacted.</param>
-        /// <param name="destinationDatabase">The name to use for the compacted database.</param>
-        /// <param name="statusCallback">
-        /// A callback function that can be called periodically through the
-        /// database compact operation to report progress.
-        /// </param>
-        /// <param name="ignored">
-        /// This parameter is ignored and should be null.
-        /// </param>
-        /// <param name="grbit">Compact options.</param>
-        /// <returns>An error code.</returns>
-        int JetCompact(
-            JET_SESID sesid,
-            string sourceDatabase,
-            string destinationDatabase,
-            JET_PFNSTATUS statusCallback,
-            object ignored,
-            CompactGrbit grbit);
-
-        /// <summary>
-        /// Extends the size of a database that is currently open.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">
-        /// The size of the database, in pages, after the call.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGrowDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages, out int actualPages);
-
-        /// <summary>
-        /// Extends the size of a database that is currently open.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The name of the database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">
-        /// The size of the database, in pages, after the call.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        int JetSetDatabaseSize(JET_SESID sesid, string database, int desiredPages, out int actualPages);
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetDatabaseInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            out int value,
-            JET_DbInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetDatabaseInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            out string value,
-            JET_DbInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="dbinfomisc">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetDatabaseInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            out JET_DBINFOMISC dbinfomisc,
-            JET_DbInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetDatabaseFileInfo(
-            string databaseName,
-            out int value,
-            JET_DbInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetDatabaseFileInfo(
-            string databaseName,
-            out long value,
-            JET_DbInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="dbinfomisc">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetDatabaseFileInfo(
-            string databaseName,
-            out JET_DBINFOMISC dbinfomisc,
-            JET_DbInfo infoLevel);
-
-        #endregion
-
-        #region Backup/Restore
-
-        /// <summary>
-        /// Performs a streaming backup of an instance, including all the attached
-        /// databases, to a directory. With multiple backup methods supported by
-        /// the engine, this is the simplest and most encapsulated function.
-        /// </summary>
-        /// <param name="instance">The instance to backup.</param>
-        /// <param name="destination">
-        /// The directory where the backup is to be stored. If the backup path is
-        /// null to use the function will truncate the logs, if possible.
-        /// </param>
+        /// <summary>Initiates an external backup while the engine and database are online
+        /// and active.</summary>
         /// <param name="grbit">Backup options.</param>
-        /// <param name="statusCallback">
-        /// Optional status notification callback.
-        /// </param>
-        /// <returns>An error code.</returns>
-        int JetBackupInstance(
-            JET_INSTANCE instance, string destination, BackupGrbit grbit, JET_PFNSTATUS statusCallback);
+        void PrepareBackup(BeginExternalBackupGrbit grbit);
 
-        /// <summary>
-        /// Restores and recovers a streaming backup of an instance including all
-        /// the attached databases. It is designed to work with a backup created
-        /// with the <see cref="Api.JetBackupInstance"/> function. This is the
-        /// simplest and most encapsulated restore function. 
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="source">
-        /// Location of the backup. The backup should have been created with
-        /// <see cref="Api.JetBackupInstance"/>.
-        /// </param>
-        /// <param name="destination">
-        /// Name of the folder where the database files from the backup set will
-        /// be copied and recovered. If this is set to null, the database files
-        /// will be copied and recovered to their original location.
-        /// </param>
-        /// <param name="statusCallback">
-        /// Optional status notification callback.
-        /// </param>
+        /// <summary>Restores and recovers a streaming backup of an instance including all the
+        /// attached databases. It is designed to work with a backup created with the
+        /// <see cref="JetInstance.Backup"/> function. This is the simplest and most encapsulated
+        /// restore function.</summary>
+        /// <param name="source">Location of the backup. The backup should have been created with
+        /// <see cref="JetInstance.Backup"/>.</param>
+        /// <param name="destination">Name of the folder where the database files from the backup set
+        /// will be copied and recovered. If this is set to null, the database files will be copied
+        /// and recovered to their original location.</param>
+        /// <param name="statusCallback">Optional status notification callback.</param>
         /// <returns>An error code.</returns>
-        int JetRestoreInstance(JET_INSTANCE instance, string source, string destination, JET_PFNSTATUS statusCallback);
-        #endregion
+        void Restore(string source, string destination, JET_PFNSTATUS statusCallback);
+
+        /// <summary>Prepares an instance for termination.</summary>
+        /// <param name="grbit">The options to stop or resume the instance.</param>
+        void Stop(StopServiceGrbit grbit = StopServiceGrbit.All);
+
+        /// <summary>Prevents streaming backup-related activity from continuing on a specific
+        /// running instance, thus ending the streaming backup in a predictable way.</summary>
+        void StopBackup();
+
+        //---------------------------------------------------------------//
+        //---------------------------------------------------------------//
+        //---------------------------------------------------------------//
+        //---------------------------------------------------------------//
 
         #region Snapshot Backup
 
-        /// <summary>
-        /// Begins the preparations for a snapshot session. A snapshot session
-        /// is a short time interval in which the engine does not issue any
-        /// write IOs to disk, so that the engine can participate in a volume
-        /// snapshot session (when driven by a snapshot writer).
-        /// </summary>
-        /// <param name="snapid">Returns the ID of the snapshot session.</param>
-        /// <param name="grbit">Snapshot options.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotPrepare(out JET_OSSNAPID snapid, SnapshotPrepareGrbit grbit);
-
-        /// <summary>
-        /// Selects a specific instance to be part of the snapshot session.
-        /// </summary>
-        /// <param name="snapshot">The snapshot identifier.</param>
-        /// <param name="instance">The instance to add to the snapshot.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotPrepareInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotPrepareInstanceGrbit grbit);
-
-        /// <summary>
-        /// Starts a snapshot. While the snapshot is in progress, no
-        /// write-to-disk activity by the engine can take place.
-        /// </summary>
-        /// <param name="snapshot">The snapshot session.</param>
-        /// <param name="numInstances">
-        /// Returns the number of instances that are part of the snapshot session.
-        /// </param>
-        /// <param name="instances">
-        /// Returns information about the instances that are part of the snapshot session.
-        /// </param>
-        /// <param name="grbit">
-        /// Snapshot freeze options.
-        /// </param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotFreeze(JET_OSSNAPID snapshot, out int numInstances, out JET_INSTANCE_INFO[] instances, SnapshotFreezeGrbit grbit);
-
-        /// <summary>
-        /// Retrieves the list of instances and databases that are part of the
-        /// snapshot session at any given moment.
-        /// </summary>
-        /// <param name="snapshot">The identifier of the snapshot session.</param>
-        /// <param name="numInstances">Returns the number of instances.</param>
-        /// <param name="instances">Returns information about the instances.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotGetFreezeInfo(
-            JET_OSSNAPID snapshot,
-            out int numInstances,
-            out JET_INSTANCE_INFO[] instances,
-            SnapshotGetFreezeInfoGrbit grbit);
-
-        /// <summary>
-        /// Notifies the engine that it can resume normal IO operations after a
-        /// freeze period and a successful snapshot.
-        /// </summary>
-        /// <param name="snapid">The ID of the snapshot.</param>
-        /// <param name="grbit">Thaw options.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotThaw(JET_OSSNAPID snapid, SnapshotThawGrbit grbit);
-
-        /// <summary>
-        /// Enables log truncation for all instances that are part of the snapshot session.
-        /// </summary>
-        /// <remarks>
-        /// This function should be called only if the snapshot was created with the
-        /// <see cref="VistaGrbits.ContinueAfterThaw"/> option. Otherwise, the snapshot
-        /// session ends after the call to <see cref="Api.JetOSSnapshotThaw"/>.
-        /// </remarks>
-        /// <param name="snapshot">The snapshot identifier.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotTruncateLog(JET_OSSNAPID snapshot, SnapshotTruncateLogGrbit grbit);
-
-        /// <summary>
-        /// Truncates the log for a specified instance during a snapshot session.
-        /// </summary>
-        /// <remarks>
-        /// This function should be called only if the snapshot was created with the
-        /// <see cref="VistaGrbits.ContinueAfterThaw"/> option. Otherwise, the snapshot
-        /// session ends after the call to <see cref="Api.JetOSSnapshotThaw"/>.
-        /// </remarks>
-        /// <param name="snapshot">The snapshot identifier.</param>
-        /// <param name="instance">The instance to truncat the log for.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotTruncateLogInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotTruncateLogGrbit grbit);
-
-        /// <summary>
-        /// Notifies the engine that the snapshot session finished.
-        /// </summary>
-        /// <param name="snapid">The identifier of the snapshot session.</param>
-        /// <param name="grbit">Snapshot end options.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotEnd(JET_OSSNAPID snapid, SnapshotEndGrbit grbit);
-
-        /// <summary>
-        /// Notifies the engine that it can resume normal IO operations after a
-        /// freeze period ended with a failed snapshot.
-        /// </summary>
-        /// <param name="snapid">Identifier of the snapshot session.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOSSnapshotAbort(JET_OSSNAPID snapid, SnapshotAbortGrbit grbit);
         #endregion
 
         #region Streaming Backup/Restore
-
-        /// <summary>
-        /// Initiates an external backup while the engine and database are online and active. 
-        /// </summary>
-        /// <param name="instance">The instance prepare for backup.</param>
-        /// <param name="grbit">Backup options.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetBeginExternalBackupInstance(JET_INSTANCE instance, BeginExternalBackupGrbit grbit);
 
         /// <summary>
         /// Closes a file that was opened with JetOpenFileInstance after the
@@ -480,57 +111,44 @@ namespace EsentLib.Implementation
         /// <returns>An error code if the call fails.</returns>
         int JetCloseFileInstance(JET_INSTANCE instance, JET_HANDLE handle);
 
-        /// <summary>
-        /// Ends an external backup session. This API is the last API in a series
-        /// of APIs that must be called to execute a successful online
-        /// (non-VSS based) backup.
+        /// <summary>Ends an external backup session. This API is the last API in a series
+        /// of APIs that must be called to execute a successful online (non-VSS based) backup.
         /// </summary>
         /// <param name="instance">The instance to end the backup for.</param>
         /// <returns>An error code if the call fails.</returns>
         int JetEndExternalBackupInstance(JET_INSTANCE instance);
 
-        /// <summary>
-        /// Ends an external backup session. This API is the last API in a series
-        /// of APIs that must be called to execute a successful online
-        /// (non-VSS based) backup.
+        /// <summary>Ends an external backup session. This API is the last API in a series
+        /// of APIs that must be called to execute a successful online (non-VSS based) backup.
         /// </summary>
         /// <param name="instance">The instance to end the backup for.</param>
         /// <param name="grbit">Options that specify how the backup ended.</param>
         /// <returns>An error code if the call fails.</returns>
         int JetEndExternalBackupInstance2(JET_INSTANCE instance, EndExternalBackupGrbit grbit);
 
-        /// <summary>
-        /// Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
-        /// to query an instance for the names of database files that should become part of
-        /// the backup file set. Only databases that are currently attached to the instance
-        /// using <see cref="JetSession.AttachDatabase"/> will be considered. These files may
-        /// subsequently be opened using <see cref="JetOpenFileInstance"/> and read
-        /// using <see cref="JetReadFileInstance"/>.
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
+        /// to query an instance for the names of database files that should become part of the
+        /// backup file set. Only databases that are currently attached to the instance using
+        /// <see cref="JetSession.AttachDatabase"/> will be considered. These files may subsequently
+        /// be opened using <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.
         /// </summary>
-        /// <remarks>
-        /// It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be
-        /// part of the backup file set. 
-        /// </remarks>
+        /// <remarks>It is important to note that this API does not return an error or warning
+        /// if the output buffer is too small to accept the full list of files that should be
+        /// part of the backup file set.</remarks>
         /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">
-        /// Returns a list of null terminated strings describing the set of database files
-        /// that should be a part of the backup file set. The list of strings returned in
-        /// this buffer is in the same format as a multi-string used by the registry. Each
+        /// <param name="files">Returns a list of null terminated strings describing the set of
+        /// database files that should be a part of the backup file set. The list of strings returned
+        /// in this buffer is in the same format as a multi-string used by the registry. Each
         /// null-terminated string is returned in sequence followed by a final null terminator.
         /// </param>
-        /// <param name="maxChars">
-        /// Maximum number of characters to retrieve.
-        /// </param>
-        /// <param name="actualChars">
-        /// Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.
-        /// </param>
+        /// <param name="maxChars">Maximum number of characters to retrieve.</param>
+        /// <param name="actualChars">Actual size of the file list. If this is greater than maxChars
+        /// then the list has been truncated.</param>
         /// <returns>An error code if the call fails.</returns>
         int JetGetAttachInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars);
 
         /// <summary>
-        /// Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database patch files and logfiles that 
         /// should become part of the backup file set. These files may subsequently be 
         /// opened using <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.
@@ -558,7 +176,7 @@ namespace EsentLib.Implementation
         int JetGetLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars);
 
         /// <summary>
-        /// Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of the transaction log files that can be safely
         /// deleted after the backup has successfully completed.
         /// </summary>
@@ -624,12 +242,6 @@ namespace EsentLib.Implementation
 
         #region Sessions
 
-        /// <summary>Initialize a new ESENT session.</summary>
-        /// <param name="username">The parameter is not used.</param>
-        /// <param name="password">The parameter is not used.</param>
-        /// <returns>A new session.</returns>
-        JetSession BeginSession(string username, string password);
-
         /// <summary>
         /// Associates a session with the current thread using the given context
         /// handle. This association overrides the default engine requirement
@@ -657,17 +269,6 @@ namespace EsentLib.Implementation
         /// <returns>An error if the call fails.</returns>
         int JetDupSession(JET_SESID sesid, out JET_SESID newSesid);
 
-        /// <summary>
-        /// Retrieves performance information from the database engine for the
-        /// current thread. Multiple calls can be used to collect statistics
-        /// that reflect the activity of the database engine on this thread
-        /// between those calls. 
-        /// </summary>
-        /// <param name="threadstats">
-        /// Returns the thread statistics.
-        /// </param>
-        /// <returns>An error code if the operation fails.</returns>
-        int JetGetThreadStats(out JET_THREADSTATS threadstats);
 
         #endregion
 
@@ -1918,28 +1519,19 @@ namespace EsentLib.Implementation
         /// <returns>An error or warning.</returns>
         int JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, IntPtr data, int dataSize, out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo);
 
-        /// <summary>
-        /// The JetRetrieveColumns function retrieves multiple column values
-        /// from the current record in a single operation. An array of
-        /// <see cref="NATIVE_RETRIEVECOLUMN"/> structures is used to
-        /// describe the set of column values to be retrieved, and to describe
-        /// output buffers for each column value to be retrieved.
-        /// </summary>
+        /// <summary>The JetRetrieveColumns function retrieves multiple column values from
+        /// the current record in a single operation. An array of <see cref="NATIVE_RETRIEVECOLUMN"/>
+        /// structures is used to describe the set of column values to be retrieved, and
+        /// to describe output buffers for each column value to be retrieved.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve columns from.</param>
-        /// <param name="retrievecolumns">
-        /// An array of one or more JET_RETRIEVECOLUMN structures. Each
-        /// structure includes descriptions of which column value to retrieve
-        /// and where to store returned data.
-        /// </param>
-        /// <param name="numColumns">
-        /// Number of structures in the array given by retrievecolumns.
-        /// </param>
-        /// <returns>
-        /// An error or warning.
-        /// </returns>
-        unsafe int JetRetrieveColumns(
-            JET_SESID sesid, JET_TABLEID tableid, NATIVE_RETRIEVECOLUMN* retrievecolumns, int numColumns);
+        /// <param name="retrievecolumns">An array of one or more JET_RETRIEVECOLUMN structures.
+        /// Each structure includes descriptions of which column value to retrieve and where
+        /// to store returned data.</param>
+        /// <param name="numColumns">Number of structures in the array given by retrievecolumns.</param>
+        /// <returns>An error or warning.</returns>
+        unsafe int JetRetrieveColumns(JET_SESID sesid, JET_TABLEID tableid,
+            NATIVE_RETRIEVECOLUMN* retrievecolumns, int numColumns);
 
         /// <summary>
         /// Efficiently retrieves a set of columns and their values from the
@@ -2080,7 +1672,8 @@ namespace EsentLib.Implementation
         /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
         /// </remarks>
         /// <returns>An error if the call fails.</returns>
-        int JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize, UpdateGrbit grbit);
+        int JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize,
+            out int actualBookmarkSize, UpdateGrbit grbit);
 
         /// <summary>
         /// The JetSetColumn function modifies a single column value in a modified record to be inserted or to
@@ -2243,7 +1836,7 @@ namespace EsentLib.Implementation
         /// </param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code or warning.</returns>
-        /// <seealso cref="IJetApi.Defragment"/>.
+        /// <seealso cref="IJetInstance.Defragment"/>.
         int JetDefragment(JET_SESID sesid, JET_DBID dbid, string tableName, ref int passes,
             ref int seconds, DefragGrbit grbit);
 
@@ -2260,7 +1853,7 @@ namespace EsentLib.Implementation
         /// </param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code or warning.</returns>
-        /// <seealso cref="IJetApi.JetDefragment"/>.
+        /// <seealso cref="IJetInstance.JetDefragment"/>.
         int Defragment(
             JET_SESID sesid,
             JET_DBID dbid,
@@ -2505,12 +2098,5 @@ namespace EsentLib.Implementation
         ///// <param name="operationContext">An operation context to set.</param>
         ///// <returns>An error code.</returns>
         //int JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, JET_OPERATIONCONTEXT operationContext);
-
-        /// <summary>Retrieves performance information from the database engine for the current
-        /// thread. Multiple calls can be used to collect statistics that reflect the activity
-        /// of the database engine on this thread between those calls.</summary>
-        /// <param name="threadstats">Returns the thread statistics.</param>
-        /// <returns>An error code if the operation fails.</returns>
-        int JetGetThreadStats(out JET_THREADSTATS2 threadstats);
     }
 }

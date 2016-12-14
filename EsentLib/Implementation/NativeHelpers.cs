@@ -24,6 +24,17 @@ namespace EsentLib.Implementation
             return (0 != rawValue.ToInt32());
         }
 
+        /// <summary>Get a system parameter which is a string.</summary>
+        /// <param name="errorNumber"></param>
+        /// <returns>The value of the parameter.</returns>
+        internal static string GetErrorText(ref IntPtr errorNumber)
+        {
+            string result;
+            GetParameter(JET_INSTANCE.Nil, JET_SESID.Nil, JET_param.ErrorToString, ref errorNumber,
+                out result, 1024);
+            return result;
+        }
+
         /// <summary>Get a system parameter which is an integer.</summary>
         /// <param name="param">The parameter to get.</param>
         /// <returns>The value of the parameter.</returns>
@@ -50,10 +61,10 @@ namespace EsentLib.Implementation
         /// <returns>The value of the parameter.</returns>
         internal static IntPtr GetIntPtrParameter(JET_INSTANCE instance, JET_param param)
         {
-            IntPtr value = IntPtr.Zero;
-            string ignored;
-            Api.JetGetSystemParameter(instance, JET_SESID.Nil, param, ref value, out ignored, 0);
-            return value;
+            IntPtr rawValue = new IntPtr();
+            string trashString;
+            GetParameter(instance, JET_SESID.Nil, param, ref rawValue, out trashString, 0);
+            return rawValue;
         }
 
         /// <summary>Gets database configuration options.</summary>
@@ -83,6 +94,14 @@ namespace EsentLib.Implementation
             paramString = StringCache.TryToIntern(paramString);
             Tracing.TraceResult(err);
             EsentExceptionHelper.Check(err);
+        }
+
+        /// <summary>Get a system parameter which is a string.</summary>
+        /// <param name="param">The parameter to get.</param>
+        /// <returns>The value of the parameter.</returns>
+        internal static string GetStringParameter(JET_param param)
+        {
+            return GetStringParameter(JET_INSTANCE.Nil, param);
         }
 
         /// <summary>Get a system parameter which is a string.</summary>

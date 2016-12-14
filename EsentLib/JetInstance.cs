@@ -20,6 +20,7 @@ using EsentLib.Jet;
 using EsentLib.Jet.Types;
 using EsentLib.Jet.Vista;
 using EsentLib.Jet.Windows8;
+using EsentLib.Platform;
 using EsentLib.Platform.Vista;
 using EsentLib.Platform.Windows7;
 using EsentLib.Platform.Windows8;
@@ -33,7 +34,7 @@ namespace EsentLib.Implementation
     /// (e.g. JET_SESID) and return errors.</summary>
     internal sealed partial class JetInstance :
         // TODO : SafeHandleZeroOrMinusOneIsInvalid,
-        IJetApi, IDisposable
+        IJetInstance, IDisposable
     {
         /// <summary>Initializes static members of the JetApi class.</summary>
         static JetInstance()
@@ -55,19 +56,20 @@ namespace EsentLib.Implementation
         /// to be set.</summary>
         /// <param name="version">The version of Esent. This is used to override the results
         /// of JetGetVersion.</param>
-        public JetInstance(uint version)
+        private JetInstance(uint version)
         {
             this.versionOverride = version;
             _capabilities = JetEnvironment.DetermineCapabilities(version);
         }
 
         /// <summary>Initializes a new instance of the JetEngine class.</summary>
-        public JetInstance()
+        private JetInstance()
         {
             this.versionOverride = 8250 << 8;
-            _capabilities = JetEnvironment.DefaultCapabilities;
+            _capabilities = JetEnvironment.Current.DefaultCapabilities;
         }
 
+        #region PROPERTIES
         /// <summary>Gets or sets the relative or absolute file system path of the a folder
         /// where crash recovery or a restore operation can find the databases referenced in
         /// the transaction log in the specified folder.</summary>
@@ -130,15 +132,15 @@ namespace EsentLib.Implementation
         /// <summary>Gets or sets the per-instance property for relative cache priorities (default = 100). </summary>
         public int CachePriority
         {
-            get { return NativeHelpers.GetInt32Parameter(_instance, Windows8Param.CachePriority); }
-            set { NativeHelpers.SetParameter(_instance, Windows8Param.CachePriority, value); }
+            get { return NativeHelpers.GetInt32Parameter(_instance, JET_param.CachePriority); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.CachePriority, value); }
         }
 
         /// <summary>Gets a description of the capabilities of the current version
         /// of ESENT.</summary>
         public JetCapabilities Capabilities
         {
-            get { return _capabilities ?? JetEnvironment.DefaultCapabilities; }
+            get { return _capabilities ?? JetEnvironment.Current.DefaultCapabilities; }
         }
 
         /// <summary>Gets or sets the threshold in bytes for about how many transaction log
@@ -224,7 +226,7 @@ namespace EsentLib.Implementation
         {
             get
             {
-                IntPtr rawValue = NativeHelpers.GetIntPtrParameter(_instance, Windows8Param.DurableCommitCallback);
+                IntPtr rawValue = NativeHelpers.GetIntPtrParameter(_instance, JET_param.DurableCommitCallback);
                 return (IntPtr.Zero == rawValue)
                     ? null
                     : (NATIVE_JET_PFNDURABLECOMMITCALLBACK)Marshal.GetDelegateForFunctionPointer(rawValue,
@@ -235,7 +237,7 @@ namespace EsentLib.Implementation
                 IntPtr nativeDelegate = (null == value)
                     ? IntPtr.Zero
                     : Marshal.GetFunctionPointerForDelegate(value);
-                NativeHelpers.SetParameter(_instance, Windows8Param.DurableCommitCallback, nativeDelegate);
+                NativeHelpers.SetParameter(_instance, JET_param.DurableCommitCallback, nativeDelegate);
             }
         }
 
@@ -271,8 +273,8 @@ namespace EsentLib.Implementation
         /// is enabled for databases sharing the same disk.</summary>
         public bool EnableDBScanSerialization
         {
-            get { return NativeHelpers.GetBoolParameter(_instance, Windows8Param.EnableDBScanSerialization); }
-            set { NativeHelpers.SetParameter(_instance, Windows8Param.EnableDBScanSerialization, value); }
+            get { return NativeHelpers.GetBoolParameter(_instance, JET_param.EnableDBScanSerialization); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.EnableDBScanSerialization, value); }
         }
 
         /// <summary>Gets or sets a value indicating whether the database engine should use
@@ -367,20 +369,10 @@ namespace EsentLib.Implementation
             set { NativeHelpers.SetParameter(_instance, JET_param.EventSourceKey, value); }
         }
 
-        /// <summary>Gets or sets the relative or absolute file system path of the folder that
-        /// will contain the checkpoint file for the instance.</summary>
-        public string SystemDirectory
+        /// <summary></summary>
+        public IntPtr Id
         {
-            get
-            {
-                return Util.AddTrailingDirectorySeparator(
-                    NativeHelpers.GetStringParameter(_instance, JET_param.SystemPath));
-            }
-            set
-            {
-                NativeHelpers.SetParameter(_instance, JET_param.SystemPath,
-                    Util.AddTrailingDirectorySeparator(value));
-            }
+            get { return _instance.Value; }
         }
 
         /// <summary>Gets or sets the amount of memory used to cache log records before they
@@ -463,8 +455,8 @@ namespace EsentLib.Implementation
         /// before <see cref="JET_err.VersionStoreOutOfMemory"/> (default = 100).</summary>
         public int MaxTransactionSize
         {
-            get { return NativeHelpers.GetInt32Parameter(Windows8Param.MaxTransactionSize); }
-            set { NativeHelpers.SetParameter(_instance, Windows8Param.MaxTransactionSize, value); }
+            get { return NativeHelpers.GetInt32Parameter(JET_param.MaxTransactionSize); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.MaxTransactionSize, value); }
         }
 
         /// <summary>Gets or sets the maximum number of version store pages reserved for this
@@ -524,8 +516,8 @@ namespace EsentLib.Implementation
         /// <summary>Gets or sets the maximum number of I/O operations dispatched for a given purpose.</summary>
         public int PrereadIOMax
         {
-            get { return NativeHelpers.GetInt32Parameter(_instance, Windows8Param.PrereadIOMax); }
-            set { NativeHelpers.SetParameter(_instance, Windows8Param.PrereadIOMax, value); }
+            get { return NativeHelpers.GetInt32Parameter(_instance, JET_param.PrereadIOMax); }
+            set { NativeHelpers.SetParameter(_instance, JET_param.PrereadIOMax, value); }
         }
 
         /// <summary>Gets or sets a value indicating whether crash recovery is on.</summary>
@@ -537,6 +529,22 @@ namespace EsentLib.Implementation
                     "on", StringComparison.OrdinalIgnoreCase));
             }
             set { NativeHelpers.SetParameter(_instance, JET_param.Recovery, (value) ? "on" : "off"); }
+        }
+
+        /// <summary>Gets or sets the relative or absolute file system path of the folder that
+        /// will contain the checkpoint file for the instance.</summary>
+        public string SystemDirectory
+        {
+            get
+            {
+                return Util.AddTrailingDirectorySeparator(
+                    NativeHelpers.GetStringParameter(_instance, JET_param.SystemPath));
+            }
+            set
+            {
+                NativeHelpers.SetParameter(_instance, JET_param.SystemPath,
+                    Util.AddTrailingDirectorySeparator(value));
+            }
         }
 
         /// <summary>Gets or sets the relative or absolute file system path of the folder that
@@ -588,8 +596,32 @@ namespace EsentLib.Implementation
                 }
             }
         }
+        #endregion
 
-        #region Init/Term
+        /// <summary>Performs a streaming backup of an instance, including all the attached
+        /// databases, to a directory. With multiple backup methods supported by the engine,
+        /// this is the simplest and most encapsulated function.</summary>
+        /// <param name="destination">The directory where the backup is to be stored. If the
+        /// backup path isnull to use the function will truncate the logs, if possible.</param>
+        /// <param name="grbit">Backup options.</param>
+        /// <param name="statusCallback">Optional status notification callback.</param>
+        public void Backup(string destination, BackupGrbit grbit, JET_PFNSTATUS statusCallback)
+        {
+            Tracing.TraceFunctionCall("Backup");
+            StatusCallbackWrapper callbackWrapper = new StatusCallbackWrapper(statusCallback);
+            IntPtr functionPointer = (null == statusCallback)
+                ? IntPtr.Zero
+                : Marshal.GetFunctionPointerForDelegate(callbackWrapper.NativeCallback);
+#if DEBUG
+            GC.Collect();
+#endif
+            int returnCode = NativeMethods.JetBackupInstanceW(_instance.Value, destination,
+                (uint)grbit, functionPointer);
+            Tracing.TraceResult(returnCode);
+            callbackWrapper.ThrowSavedException();
+            EsentExceptionHelper.Check(returnCode);
+        }
+
         /// <summary>Initialize a new ESENT session.</summary>
         /// <param name="username">The parameter is not used.</param>
         /// <param name="password">The parameter is not used.</param>
@@ -605,6 +637,22 @@ namespace EsentLib.Implementation
             return new JetSession(this, sessionId);
         }
 
+        /// <summary>Terminate an instance that was created with
+        /// <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
+        /// <param name="grbit">Termination options.</param>
+        public void Close(TermGrbit grbit = TermGrbit.None)
+        {
+            Tracing.TraceFunctionCall("JetTerm");
+            this.callbackWrappers.Collect();
+            if (!_instance.IsInvalid) {
+                int returnCode = (TermGrbit.None == grbit)
+                    ? NativeMethods.JetTerm(_instance.Value)
+                    : NativeMethods.JetTerm2(_instance.Value, (uint)grbit);
+                Tracing.TraceResult(returnCode);
+                EsentExceptionHelper.Check(returnCode);
+            }
+        }
+
         /// <summary>Allocates a new instance of the database engine.</summary>
         /// <param name="name">The name of the instance. Names must be unique.</param>
         /// <param name="displayName">A display name for the instance to be created. This
@@ -612,11 +660,10 @@ namespace EsentLib.Implementation
         /// <param name="grbit">Creation options.</param>
         /// <returns>The new instance, otherwise throw an exception.</returns>
         [SecurityPermissionAttribute(SecurityAction.LinkDemand)]
-        public static JetInstance Create(string name, string displayName = null,
+        internal static JetInstance Create(string name, string displayName = null,
             CreateInstanceGrbit grbit = CreateInstanceGrbit.None)
         {
             // TOOD : Add TerminationBits initializer and associated parameter.
-
             Tracing.TraceFunctionCall("Create");
             JetInstance result = new JetInstance() {
                 DisplayName = displayName,
@@ -628,12 +675,12 @@ namespace EsentLib.Implementation
             if (string.IsNullOrEmpty(displayName)
                 && (CreateInstanceGrbit.None == grbit))
             {
-                nativeResult = (JetEnvironment.TrueCapabilities.SupportsUnicodePaths)
+                nativeResult = (JetEnvironment.Current.TrueCapabilities.SupportsUnicodePaths)
                     ? NativeMethods.JetCreateInstanceW(out result._instance.Value, name)
                     : NativeMethods.JetCreateInstance(out result._instance.Value, name);
             }
             else {
-                nativeResult = (JetEnvironment.TrueCapabilities.SupportsUnicodePaths)
+                nativeResult = (JetEnvironment.Current.TrueCapabilities.SupportsUnicodePaths)
                     ? NativeMethods.JetCreateInstance2W(out result._instance.Value, name,
                         displayName, (uint)grbit)
                     : NativeMethods.JetCreateInstance2(out result._instance.Value, name,
@@ -669,13 +716,24 @@ namespace EsentLib.Implementation
         {
             if (disposing) { GC.SuppressFinalize(this); }
             if (!_instance.IsNil) {
-                Tracing.TraceFunctionCall("JetTerm");
-                this.callbackWrappers.Collect();
-                if (!_instance.IsInvalid) {
-                    int returnCode = NativeMethods.JetTerm(_instance.Value);
-                    Tracing.TraceResult(returnCode);
-                }
+                Close();
             }
+        }
+
+        /// <summary>Retrieves information about an instance.</summary>
+        /// <param name="infoLevel">The type of information to retrieve.</param>
+        /// <returns>An error code if the call fails.</returns>
+        public JET_SIGNATURE GetInfo(JET_InstanceMiscInfo infoLevel)
+        {
+            Tracing.TraceFunctionCall("GetInfo");
+            _capabilities.CheckSupportsVistaFeatures("JetGetInstanceMiscInfo");
+
+            NATIVE_SIGNATURE nativeSignature = new NATIVE_SIGNATURE();
+            int returnCode = NativeMethods.JetGetInstanceMiscInfo(_instance.Value, ref nativeSignature,
+                checked((uint)NATIVE_SIGNATURE.Size), unchecked((uint)infoLevel));
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return new JET_SIGNATURE(nativeSignature);
         }
 
         /// <summary>Initialize the ESENT database engine.</summary>
@@ -735,27 +793,53 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
+        /// <summary>Initiates an external backup while the engine and database are online
+        /// and active.</summary>
+        /// <param name="grbit">Backup options.</param>
+        public void PrepareBackup(BeginExternalBackupGrbit grbit)
+        {
+            Tracing.TraceFunctionCall("PrepareBackup");
+            int returnCode = NativeMethods.JetBeginExternalBackupInstance(_instance.Value, (uint)grbit);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+        }
+
         /// <summary>Reports the exception to a central authority.</summary>
         /// <param name="exception">An unhandled exception.</param>
         /// <param name="description">A string description of the scenario.</param>
         internal static void ReportUnhandledException(Exception exception, string description)
         {
+            return;
         }
 
-        /// <summary>Sets database configuration options.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to set.</param>
-        /// <param name="paramValue">The value of the parameter to set, if the parameter
-        /// is an integer type.</param>
-        /// <param name="paramString">The value of the parameter to set, if the parameter
-        /// is a string type.</param>
-        /// <returns>An ESENT warning code.</returns>
-        public void SetSystemParameter(JET_SESID sesid, JET_param paramid, int paramValue,
-            string paramString)
+        /// <summary>Restores and recovers a streaming backup of an instance including all the
+        /// attached databases. It is designed to work with a backup created with the
+        /// <see cref="JetInstance.Backup"/> function. This is the simplest and most encapsulated
+        /// restore function.</summary>
+        /// <param name="source">Location of the backup. The backup should have been created with
+        /// <see cref="JetInstance.Backup"/>.</param>
+        /// <param name="destination">Name of the folder where the database files from the backup set
+        /// will be copied and recovered. If this is set to null, the database files will be copied
+        /// and recovered to their original location.</param>
+        /// <param name="statusCallback">Optional status notification callback.</param>
+        /// <returns>An error code.</returns>
+        public void Restore(string source, string destination, JET_PFNSTATUS statusCallback)
         {
-            // TODO : Make this usable without an instance to set the parameter on every
-            // instance.
-            this.SetSystemParameter(sesid, paramid, new IntPtr(paramValue), paramString);
+            Tracing.TraceFunctionCall("JetRestoreInstance");
+            Helpers.CheckNotNull(source, "source");
+            StatusCallbackWrapper callbackWrapper = new StatusCallbackWrapper(statusCallback);
+            IntPtr functionPointer = (null == statusCallback)
+                ? IntPtr.Zero
+                : Marshal.GetFunctionPointerForDelegate(callbackWrapper.NativeCallback);
+#if DEBUG
+            GC.Collect();
+#endif
+            int returnCode = NativeMethods.JetRestoreInstanceW(_instance.Value, source, destination,
+                functionPointer);
+            Tracing.TraceResult(returnCode);
+            callbackWrapper.ThrowSavedException();
+            EsentExceptionHelper.Check(returnCode);
+            return;
         }
 
         /// <summary>Sets database configuration options.</summary>
@@ -766,7 +850,7 @@ namespace EsentLib.Implementation
         /// <param name="paramString">The value of the parameter to set, if the parameter
         /// is a string type.</param>
         /// <returns>An ESENT warning code.</returns>
-        public void SetSystemParameter(JET_SESID sesid, JET_param paramid,
+        internal void SetSystemParameter(JET_SESID sesid, JET_param paramid,
             JET_CALLBACK paramValue, string paramString)
         {
             // TODO : Make this usable without an instance to set the parameter on every
@@ -780,7 +864,7 @@ namespace EsentLib.Implementation
         /// <param name="paramValue">The value of the parameter to set, if the parameter is an integer type.</param>
         /// <param name="paramString">The value of the parameter to set, if the parameter is a string type.</param>
         /// <returns>An error or warning.</returns>
-        public void SetSystemParameter(JET_SESID sesid, JET_param paramid, IntPtr paramValue,
+        internal void SetSystemParameter(JET_SESID sesid, JET_param paramid, IntPtr paramValue,
             string paramString)
         {
             // TODO : Make this usable without an instance to set the parameter on every
@@ -798,82 +882,39 @@ namespace EsentLib.Implementation
             }
         }
 
-        /// <summary>
-        /// Retrieves information about an instance.
-        /// </summary>
-        /// <param name="instance">The instance to get information about.</param>
-        /// <param name="signature">Retrieved information.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetGetInstanceMiscInfo(JET_INSTANCE instance, out JET_SIGNATURE signature, JET_InstanceMiscInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetInstanceMiscInfo");
-            _capabilities.CheckSupportsVistaFeatures("JetGetInstanceMiscInfo");
-
-            var nativeSignature = new NATIVE_SIGNATURE();
-            int err = NativeMethods.JetGetInstanceMiscInfo(
-                instance.Value,
-                ref nativeSignature,
-                checked((uint)NATIVE_SIGNATURE.Size),
-                unchecked((uint)infoLevel));
-
-            signature = new JET_SIGNATURE(nativeSignature);
-            return Tracing.TraceResult(err);
-        }
-
-        /// <summary>
-        /// Prevents streaming backup-related activity from continuing on a
-        /// specific running instance, thus ending the streaming backup in
-        /// a predictable way.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <returns>An error code.</returns>
-        public int JetStopBackupInstance(JET_INSTANCE instance)
-        {
-            Tracing.TraceFunctionCall("JetStopBackupInstance");
-            return Tracing.TraceResult(NativeMethods.JetStopBackupInstance(instance.Value));
-        }
-
-        /// <summary>
-        /// Prepares an instance for termination.
-        /// </summary>
-        /// <param name="instance">The (running) instance to use.</param>
-        /// <returns>An error code.</returns>
-        public int JetStopServiceInstance(JET_INSTANCE instance)
-        {
-            Tracing.TraceFunctionCall("JetStopServiceInstance");
-            return Tracing.TraceResult(NativeMethods.JetStopServiceInstance(instance.Value));
-        }
-
-        /// <summary>
-        /// Prepares an instance for termination. Can also be used to resume a previous quiescing.
-        /// </summary>
-        /// <param name="instance">The (running) instance to use.</param>
+        /// <summary>Prepares an instance for termination.</summary>
         /// <param name="grbit">The options to stop or resume the instance.</param>
-        /// <returns>An error code.</returns>
-        public int JetStopServiceInstance2(
-            JET_INSTANCE instance,
-            StopServiceGrbit grbit)
+        public void Stop(StopServiceGrbit grbit = StopServiceGrbit.All)
         {
-            Tracing.TraceFunctionCall("JetStopServiceInstance2");
-            _capabilities.CheckSupportsWindows8Features("JetStopServiceInstance2");
-            return Tracing.TraceResult(NativeMethods.JetStopServiceInstance2(instance.Value, unchecked((uint)grbit)));
+            Tracing.TraceFunctionCall("Stop");
+            int returnCode;
+            if (StopServiceGrbit.All == grbit) {
+                returnCode = NativeMethods.JetStopServiceInstance(_instance.Value);
+            }
+            else {
+                _capabilities.CheckSupportsWindows8Features("JetStopServiceInstance2");
+                returnCode = NativeMethods.JetStopServiceInstance2(_instance.Value,
+                    unchecked((uint)grbit));
+            }
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
         }
 
-        /// <summary>Terminate an instance that was created with
-        /// <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
-        /// <param name="instance">The instance to terminate.</param>
-        /// <param name="grbit">Termination options.</param>
-        /// <returns>An error or warning.</returns>
-        public int JetTerm2(JET_INSTANCE instance, TermGrbit grbit)
+        /// <summary>Prevents streaming backup-related activity from continuing on a specific
+        /// running instance, thus ending the streaming backup in a predictable way.</summary>
+        public void StopBackup()
         {
-            Tracing.TraceFunctionCall("JetTerm2");
-            this.callbackWrappers.Collect();
-            if (!instance.IsInvalid) {
-                return Tracing.TraceResult(NativeMethods.JetTerm2(instance.Value, (uint)grbit));
-            }
-            return (int)JET_err.Success;
+            Tracing.TraceFunctionCall("StopBackup");
+            int returnCode = NativeMethods.JetStopBackupInstance(_instance.Value);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
         }
+
+        // ----------------------------------------------------------------------------- //
+        // ----------------------------------------------------------------------------- //
+        // ----------------------------------------------------------------------------- //
+        // ----------------------------------------------------------------------------- //
+        // ----------------------------------------------------------------------------- //
 
         /// <summary>Sets database configuration options. This overload is used when the
         /// parameter being set is of type JET_CALLBACK.</summary>
@@ -906,42 +947,6 @@ namespace EsentLib.Implementation
                     functionPointer, paramString));
             }
         }
-
-        /// <summary>Gets database configuration options.</summary>
-        /// <param name="instance">The instance to retrieve the options from.</param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to get.</param>
-        /// <param name="paramValue">Returns the value of the parameter, if the value is an integer.</param>
-        /// <param name="paramString">Returns the value of the parameter, if the value is a string.</param>
-        /// <param name="maxParam">The maximum size of the parameter string.</param>
-        /// <returns>An ESENT warning code.</returns>
-        /// <remarks>
-        /// <see cref="JET_param.ErrorToString"/> passes in the error number in the paramValue, which is why it is
-        /// a ref parameter and not an out parameter.
-        /// </remarks>
-        /// <returns>An error or warning.</returns>
-        public int JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid, JET_param paramid, ref IntPtr paramValue, out string paramString, int maxParam)
-        {
-            Tracing.TraceFunctionCall("JetGetSystemParameter");
-            Helpers.CheckNotNegative(maxParam, "maxParam");
-
-            uint bytesMax = checked((uint)(_capabilities.SupportsUnicodePaths ? maxParam * sizeof(char) : maxParam));
-
-            var sb = new StringBuilder(maxParam);
-            int err;
-            if (_capabilities.SupportsUnicodePaths) {
-                err = Tracing.TraceResult(NativeMethods.JetGetSystemParameterW(instance.Value, sesid.Value, (uint)paramid, ref paramValue, sb, bytesMax));
-            }
-            else {
-                err = Tracing.TraceResult(NativeMethods.JetGetSystemParameter(instance.Value, sesid.Value, (uint)paramid, ref paramValue, sb, bytesMax));
-            }
-
-            paramString = sb.ToString();
-            paramString = StringCache.TryToIntern(paramString);
-            return err;
-        }
-
-        #endregion
 
         #region Databases
 
@@ -1001,658 +1006,9 @@ namespace EsentLib.Implementation
             return Tracing.TraceResult(NativeMethods.JetAttachDatabase2(sesid.Value, database, checked((uint)maxPages), (uint)grbit));
         }
 
-        /// <summary>
-        /// Closes a database file that was previously opened with <see cref="IJetSession.OpenDatabase"/> or
-        /// created with <see cref="IJetSession.CreateDatabase"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to close.</param>
-        /// <param name="grbit">Close options.</param>
-        /// <returns>An error or warning.</returns>
-        public int JetCloseDatabase(JET_SESID sesid, JET_DBID dbid, CloseDatabaseGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetCloseDatabase");
-            return Tracing.TraceResult(NativeMethods.JetCloseDatabase(sesid.Value, dbid.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Releases a database file that was previously attached to a database session.
-        /// </summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="database">The database to detach.</param>
-        /// <returns>An error or warning.</returns>
-        public int JetDetachDatabase(JET_SESID sesid, string database)
-        {
-            Tracing.TraceFunctionCall("JetDetachDatabase");
-
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                return Tracing.TraceResult(NativeMethods.JetDetachDatabaseW(sesid.Value, database));
-            }
-
-            return Tracing.TraceResult(NativeMethods.JetDetachDatabase(sesid.Value, database));
-        }
-
-        /// <summary>
-        /// Releases a database file that was previously attached to a database session.
-        /// </summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="database">The database to detach.</param>
-        /// <param name="grbit">Detach options.</param>
-        /// <returns>An error or warning.</returns>
-        public int JetDetachDatabase2(JET_SESID sesid, string database, DetachDatabaseGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetDetachDatabase2");
-
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                return Tracing.TraceResult(NativeMethods.JetDetachDatabase2W(sesid.Value, database, (uint)grbit));
-            }
-
-            return Tracing.TraceResult(NativeMethods.JetDetachDatabase2(sesid.Value, database, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Makes a copy of an existing database. The copy is compacted to a
-        /// state optimal for usage. Data in the copied data will be packed
-        /// according to the measures chosen for the indexes at index create.
-        /// In this way, compacted data may be stored as densely as possible.
-        /// Alternatively, compacted data may reserve space for subsequent
-        /// record growth or index insertions.
-        /// </summary>
-        /// <param name="sesid">The session to use for the call.</param>
-        /// <param name="sourceDatabase">The source database that will be compacted.</param>
-        /// <param name="destinationDatabase">The name to use for the compacted database.</param>
-        /// <param name="statusCallback">
-        /// A callback function that can be called periodically through the
-        /// database compact operation to report progress.
-        /// </param>
-        /// <param name="ignored">
-        /// This parameter is ignored and should be null.
-        /// </param>
-        /// <param name="grbit">Compact options.</param>
-        /// <returns>An error code.</returns>
-        public int JetCompact(
-            JET_SESID sesid,
-            string sourceDatabase,
-            string destinationDatabase,
-            JET_PFNSTATUS statusCallback,
-            object ignored,
-            CompactGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetCompact");
-            Helpers.CheckNotNull(sourceDatabase, "sourceDatabase");
-            Helpers.CheckNotNull(destinationDatabase, "destinationDatabase");
-            if (null != ignored)
-            {
-                throw new ArgumentException("must be null", "ignored");
-            }
-
-            var callbackWrapper = new StatusCallbackWrapper(statusCallback);
-            IntPtr functionPointer = (null == statusCallback) ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callbackWrapper.NativeCallback);
-#if DEBUG
-            GC.Collect();
-#endif
-
-            int err;
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetCompactW(
-                            sesid.Value, sourceDatabase, destinationDatabase, functionPointer, IntPtr.Zero, (uint)grbit));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetCompact(
-                            sesid.Value, sourceDatabase, destinationDatabase, functionPointer, IntPtr.Zero, (uint)grbit));
-            }
-
-            callbackWrapper.ThrowSavedException();
-            return err;
-        }
-
-        /// <summary>
-        /// Extends the size of a database that is currently open.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">
-        /// The size of the database, in pages, after the call.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGrowDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages, out int actualPages)
-        {
-            Tracing.TraceFunctionCall("JetGrowDatabase");
-            Helpers.CheckNotNegative(desiredPages, "desiredPages");
-
-            uint actualPagesNative = 0;
-            int err = Tracing.TraceResult(NativeMethods.JetGrowDatabase(
-                        sesid.Value, dbid.Value, checked((uint)desiredPages), out actualPagesNative));
-            actualPages = checked((int)actualPagesNative);
-            return err;
-        }
-
-        /// <summary>
-        /// Extends the size of a database that is currently open.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The name of the database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">
-        /// The size of the database, in pages, after the call.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetSetDatabaseSize(JET_SESID sesid, string database, int desiredPages, out int actualPages)
-        {
-            Tracing.TraceFunctionCall("JetSetDatabaseSize");
-            Helpers.CheckNotNegative(desiredPages, "desiredPages");
-            Helpers.CheckNotNull(database, "database");
-
-            uint actualPagesNative = 0;
-            int err;
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetSetDatabaseSizeW(
-                            sesid.Value, database, checked((uint)desiredPages), out actualPagesNative));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetSetDatabaseSize(
-                            sesid.Value, database, checked((uint)desiredPages), out actualPagesNative));
-            }
-
-            actualPages = checked((int)actualPagesNative);
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetDatabaseInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            out int value,
-            JET_DbInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetDatabaseInfo");
-            return Tracing.TraceResult(NativeMethods.JetGetDatabaseInfo(sesid.Value, dbid.Value, out value, sizeof(int), (uint)infoLevel));
-        }
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="dbinfomisc">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetDatabaseInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            out JET_DBINFOMISC dbinfomisc,
-            JET_DbInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetDatabaseInfo");
-            int err = (int)JET_err.Success;
-            dbinfomisc = null;
-
-            bool notYetPublishedSupported = false;
-            this.NotYetPublishedGetDbinfomisc(sesid, dbid, ref dbinfomisc, infoLevel, ref notYetPublishedSupported, ref err);
-
-            if (notYetPublishedSupported)
-            {
-                // The not-yet-published function in the other file set the 'ref' parameters.
-            }
-            else if (_capabilities.SupportsWindows7Features)
-            {
-                NATIVE_DBINFOMISC4 native;
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfoW(
-                    sesid.Value,
-                    dbid.Value,
-                    out native,
-                    (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC4)),
-                    (uint)infoLevel));
-
-                dbinfomisc = new JET_DBINFOMISC();
-                dbinfomisc.SetFromNativeDbinfoMisc(ref native);
-            }
-            else if (_capabilities.SupportsVistaFeatures)
-            {
-                NATIVE_DBINFOMISC native;
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfoW(
-                    sesid.Value,
-                    dbid.Value,
-                    out native,
-                    (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)),
-                    (uint)infoLevel));
-
-                dbinfomisc = new JET_DBINFOMISC();
-                dbinfomisc.SetFromNativeDbinfoMisc(ref native);
-            }
-            else
-            {
-                NATIVE_DBINFOMISC native;
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfo(
-                    sesid.Value,
-                    dbid.Value,
-                    out native,
-                    (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)),
-                    (uint)infoLevel));
-                dbinfomisc = new JET_DBINFOMISC();
-                dbinfomisc.SetFromNativeDbinfoMisc(ref native);
-            }
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetDatabaseInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            out string value,
-            JET_DbInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetDatabaseInfo");
-            int err;
-
-            const int MaxCharacters = 1024;
-            StringBuilder sb = new StringBuilder(MaxCharacters);
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfoW(sesid.Value, dbid.Value, sb, MaxCharacters, (uint)infoLevel));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseInfo(sesid.Value, dbid.Value, sb, MaxCharacters, (uint)infoLevel));
-            }
-
-            value = sb.ToString();
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetDatabaseFileInfo(
-            string databaseName,
-            out int value,
-            JET_DbInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetDatabaseFileInfo");
-            int err;
-
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out value, sizeof(int), (uint)infoLevel));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out value, sizeof(int), (uint)infoLevel));
-            }
-
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetDatabaseFileInfo(
-            string databaseName,
-            out long value,
-            JET_DbInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetDatabaseFileInfo");
-            int err;
-
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out value, sizeof(long), (uint)infoLevel));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out value, sizeof(long), (uint)infoLevel));
-            }
-
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves certain information about the given database.
-        /// </summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="dbinfomisc">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetDatabaseFileInfo(
-            string databaseName,
-            out JET_DBINFOMISC dbinfomisc,
-            JET_DbInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetDatabaseFileInfo");
-            int err = (int)JET_err.Success;
-            dbinfomisc = null;
-
-            bool notYetPublishedSupported = false;
-            this.NotYetPublishedGetDbinfomisc(databaseName, ref dbinfomisc, infoLevel, ref notYetPublishedSupported, ref err);
-
-            if (notYetPublishedSupported)
-            {
-                // The not-yet-published function in the other file set the 'ref' parameters.
-            }
-            else if (_capabilities.SupportsWindows7Features)
-            {
-                // Windows7 -> Unicode path support
-                NATIVE_DBINFOMISC4 native;
-                err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC4)), (uint)infoLevel));
-
-                dbinfomisc = new JET_DBINFOMISC();
-                dbinfomisc.SetFromNativeDbinfoMisc(ref native);
-            }
-            else
-            {
-                NATIVE_DBINFOMISC native;
-                if (_capabilities.SupportsUnicodePaths)
-                {
-                    err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfoW(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)), (uint)infoLevel));
-                }
-                else
-                {
-                    err = Tracing.TraceResult(NativeMethods.JetGetDatabaseFileInfo(databaseName, out native, (uint)Marshal.SizeOf(typeof(NATIVE_DBINFOMISC)), (uint)infoLevel));
-                }
-
-                dbinfomisc = new JET_DBINFOMISC();
-                dbinfomisc.SetFromNativeDbinfoMisc(ref native);
-            }
-
-            return err;
-        }
-
-        #endregion
-
-        #region Backup/Restore
-
-        /// <summary>
-        /// Performs a streaming backup of an instance, including all the attached
-        /// databases, to a directory. With multiple backup methods supported by
-        /// the engine, this is the simplest and most encapsulated function.
-        /// </summary>
-        /// <param name="instance">The instance to backup.</param>
-        /// <param name="destination">
-        /// The directory where the backup is to be stored. If the backup path is
-        /// null to use the function will truncate the logs, if possible.
-        /// </param>
-        /// <param name="grbit">Backup options.</param>
-        /// <param name="statusCallback">
-        /// Optional status notification callback.
-        /// </param>
-        /// <returns>An error code.</returns>
-        public int JetBackupInstance(
-            JET_INSTANCE instance, string destination, BackupGrbit grbit, JET_PFNSTATUS statusCallback)
-        {
-            Tracing.TraceFunctionCall("JetBackupInstance");
-
-            var callbackWrapper = new StatusCallbackWrapper(statusCallback);
-            IntPtr functionPointer = (null == statusCallback) ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callbackWrapper.NativeCallback);
-#if DEBUG
-            GC.Collect();
-#endif
-            int err;
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetBackupInstanceW(instance.Value, destination, (uint)grbit, functionPointer));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetBackupInstance(instance.Value, destination, (uint)grbit, functionPointer));
-            }
-
-            callbackWrapper.ThrowSavedException();
-            return err;
-        }
-
-        /// <summary>
-        /// Restores and recovers a streaming backup of an instance including all
-        /// the attached databases. It is designed to work with a backup created
-        /// with the <see cref="Api.JetBackupInstance"/> function. This is the
-        /// simplest and most encapsulated restore function.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="source">
-        /// Location of the backup. The backup should have been created with
-        /// <see cref="Api.JetBackupInstance"/>.
-        /// </param>
-        /// <param name="destination">
-        /// Name of the folder where the database files from the backup set will
-        /// be copied and recovered. If this is set to null, the database files
-        /// will be copied and recovered to their original location.
-        /// </param>
-        /// <param name="statusCallback">
-        /// Optional status notification callback.
-        /// </param>
-        /// <returns>An error code.</returns>
-        public int JetRestoreInstance(JET_INSTANCE instance, string source, string destination, JET_PFNSTATUS statusCallback)
-        {
-            Tracing.TraceFunctionCall("JetRestoreInstance");
-            Helpers.CheckNotNull(source, "source");
-
-            var callbackWrapper = new StatusCallbackWrapper(statusCallback);
-            IntPtr functionPointer = (null == statusCallback) ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callbackWrapper.NativeCallback);
-#if DEBUG
-            GC.Collect();
-#endif
-
-            int err;
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetRestoreInstanceW(instance.Value, source, destination, functionPointer));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetRestoreInstance(instance.Value, source, destination, functionPointer));
-            }
-
-            callbackWrapper.ThrowSavedException();
-            return err;
-        }
-        #endregion
-
-        #region Snapshot Backup
-
-
-        /// <summary>
-        /// Begins the preparations for a snapshot session. A snapshot session
-        /// is a short time interval in which the engine does not issue any
-        /// write IOs to disk, so that the engine can participate in a volume
-        /// snapshot session (when driven by a snapshot writer).
-        /// </summary>
-        /// <param name="snapid">Returns the ID of the snapshot session.</param>
-        /// <param name="grbit">Snapshot options.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotPrepare(out JET_OSSNAPID snapid, SnapshotPrepareGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotPrepare");
-            snapid = JET_OSSNAPID.Nil;
-            return Tracing.TraceResult(NativeMethods.JetOSSnapshotPrepare(out snapid.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Selects a specific instance to be part of the snapshot session.
-        /// </summary>
-        /// <param name="snapshot">The snapshot identifier.</param>
-        /// <param name="instance">The instance to add to the snapshot.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotPrepareInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotPrepareInstanceGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotPrepareInstance");
-            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotPrepareInstance");
-            return Tracing.TraceResult(NativeMethods.JetOSSnapshotPrepareInstance(snapshot.Value, instance.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Starts a snapshot. While the snapshot is in progress, no
-        /// write-to-disk activity by the engine can take place.
-        /// </summary>
-        /// <param name="snapshot">The snapshot session.</param>
-        /// <param name="numInstances">
-        /// Returns the number of instances that are part of the snapshot session.
-        /// </param>
-        /// <param name="instances">
-        /// Returns information about the instances that are part of the snapshot session.
-        /// </param>
-        /// <param name="grbit">
-        /// Snapshot freeze options.
-        /// </param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotFreeze(JET_OSSNAPID snapshot, out int numInstances, out JET_INSTANCE_INFO[] instances, SnapshotFreezeGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotFreeze");
-            unsafe {
-                uint nativeNumInstance = 0;
-                NATIVE_INSTANCE_INFO* nativeInstanceInfos = null;
-                int returnCode = NativeMethods.JetOSSnapshotFreezeW(snapshot.Value, out nativeNumInstance, out nativeInstanceInfos, (uint)grbit);
-                instances = JET_INSTANCE_INFO.FromNativeCollection(nativeNumInstance, nativeInstanceInfos);
-                numInstances = instances.Length;
-                return Tracing.TraceResult(returnCode);
-            }
-        }
-
-        /// <summary>
-        /// Retrieves the list of instances and databases that are part of the
-        /// snapshot session at any given moment.
-        /// </summary>
-        /// <param name="snapshot">The identifier of the snapshot session.</param>
-        /// <param name="numInstances">Returns the number of instances.</param>
-        /// <param name="instances">Returns information about the instances.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotGetFreezeInfo(JET_OSSNAPID snapshot, out int numInstances,
-            out JET_INSTANCE_INFO[] instances, SnapshotGetFreezeInfoGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotGetFreezeInfo");
-            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotGetFreezeInfo");
-            Debug.Assert(_capabilities.SupportsUnicodePaths, "JetOSSnapshotGetFreezeInfo is always Unicode");
-
-            unsafe {
-                uint nativeNumInstance = 0;
-                NATIVE_INSTANCE_INFO* nativeInstanceInfos = null;
-                int returncode = NativeMethods.JetOSSnapshotGetFreezeInfoW(snapshot.Value, out nativeNumInstance, out nativeInstanceInfos, (uint)grbit);
-                instances = JET_INSTANCE_INFO.FromNativeCollection(nativeNumInstance, nativeInstanceInfos);
-                numInstances = instances.Length;
-                return Tracing.TraceResult(returncode);
-            }
-        }
-
-        /// <summary>
-        /// Notifies the engine that it can resume normal IO operations after a
-        /// freeze period and a successful snapshot.
-        /// </summary>
-        /// <param name="snapid">The ID of the snapshot.</param>
-        /// <param name="grbit">Thaw options.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotThaw(JET_OSSNAPID snapid, SnapshotThawGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotThaw");
-            return Tracing.TraceResult(NativeMethods.JetOSSnapshotThaw(snapid.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Enables log truncation for all instances that are part of the snapshot session.
-        /// </summary>
-        /// <remarks>
-        /// This function should be called only if the snapshot was created with the
-        /// <see cref="VistaGrbits.ContinueAfterThaw"/> option. Otherwise, the snapshot
-        /// session ends after the call to <see cref="Api.JetOSSnapshotThaw"/>.
-        /// </remarks>
-        /// <param name="snapshot">The snapshot identifier.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotTruncateLog(JET_OSSNAPID snapshot, SnapshotTruncateLogGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotTruncateLog");
-            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotTruncateLog");
-            return Tracing.TraceResult(NativeMethods.JetOSSnapshotTruncateLog(snapshot.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Truncates the log for a specified instance during a snapshot session.
-        /// </summary>
-        /// <remarks>
-        /// This function should be called only if the snapshot was created with the
-        /// <see cref="VistaGrbits.ContinueAfterThaw"/> option. Otherwise, the snapshot
-        /// session ends after the call to <see cref="Api.JetOSSnapshotThaw"/>.
-        /// </remarks>
-        /// <param name="snapshot">The snapshot identifier.</param>
-        /// <param name="instance">The instance to truncat the log for.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOSSnapshotTruncateLogInstance(JET_OSSNAPID snapshot, JET_INSTANCE instance, SnapshotTruncateLogGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotTruncateLogInstance");
-            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotTruncateLogInstance");
-            return Tracing.TraceResult(NativeMethods.JetOSSnapshotTruncateLogInstance(snapshot.Value, instance.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Notifies the engine that the snapshot session finished.
-        /// </summary>
-        /// <param name="snapid">The identifier of the snapshot session.</param>
-        /// <param name="grbit">Snapshot end options.</param>
-        /// <returns>An error code.</returns>
-        public int JetOSSnapshotEnd(JET_OSSNAPID snapid, SnapshotEndGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotEnd");
-            _capabilities.CheckSupportsVistaFeatures("JetOSSnapshotEnd");
-            return Tracing.TraceResult(NativeMethods.JetOSSnapshotEnd(snapid.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Notifies the engine that it can resume normal IO operations after a
-        /// freeze period ended with a failed snapshot.
-        /// </summary>
-        /// <param name="snapid">Identifier of the snapshot session.</param>
-        /// <param name="grbit">Options for this call.</param>
-        /// <returns>An error code.</returns>
-        public int JetOSSnapshotAbort(JET_OSSNAPID snapid, SnapshotAbortGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetOSSnapshotAbort");
-            this.CheckSupportsServer2003Features("JetOSSnapshotAbort");
-            return Tracing.TraceResult(NativeMethods.JetOSSnapshotAbort(snapid.Value, (uint)grbit));
-        }
         #endregion
 
         #region Streaming Backup/Restore
-
-        /// <summary>
-        /// Initiates an external backup while the engine and database are online and active.
-        /// </summary>
-        /// <param name="instance">The instance prepare for backup.</param>
-        /// <param name="grbit">Backup options.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetBeginExternalBackupInstance(JET_INSTANCE instance, BeginExternalBackupGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetBeginExternalBackupInstance");
-            return Tracing.TraceResult(NativeMethods.JetBeginExternalBackupInstance(instance.Value, (uint)grbit));
-        }
 
         /// <summary>
         /// Closes a file that was opened with JetOpenFileInstance after the
@@ -1694,7 +1050,7 @@ namespace EsentLib.Implementation
             return Tracing.TraceResult(NativeMethods.JetEndExternalBackupInstance2(instance.Value, (uint)grbit));
         }
 
-        /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database files that should become part of the
         /// backup file set. Only databases that are currently attached to the instance using
         /// <see cref="IJetSession.AttachDatabase"/> will be considered. These files may
@@ -1738,7 +1094,7 @@ namespace EsentLib.Implementation
             return err;
         }
 
-        /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database patch files and logfiles that should
         /// become part of the backup file set. These files may subsequently be opened using
         /// <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.</summary>
@@ -1782,7 +1138,7 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>
-        /// Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of the transaction log files that can be safely
         /// deleted after the backup has successfully completed.
         /// </summary>
@@ -1855,20 +1211,10 @@ namespace EsentLib.Implementation
             Tracing.TraceFunctionCall("JetOpenFileInstance");
             Helpers.CheckNotNull(file, "file");
             handle = JET_HANDLE.Nil;
-            int err;
             uint nativeFileSizeLow;
             uint nativeFileSizeHigh;
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetOpenFileInstanceW(
+            int err = Tracing.TraceResult(NativeMethods.JetOpenFileInstanceW(
                             instance.Value, file, out handle.Value, out nativeFileSizeLow, out nativeFileSizeHigh));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetOpenFileInstance(
-                            instance.Value, file, out handle.Value, out nativeFileSizeLow, out nativeFileSizeHigh));
-            }
-
             fileSizeLow = nativeFileSizeLow;
             fileSizeHigh = nativeFileSizeHigh;
             return err;
@@ -1972,32 +1318,6 @@ namespace EsentLib.Implementation
             Tracing.TraceFunctionCall("JetDupSession");
             newSesid = JET_SESID.Nil;
             return Tracing.TraceResult(NativeMethods.JetDupSession(sesid.Value, out newSesid.Value));
-        }
-
-        /// <summary>
-        /// Retrieves performance information from the database engine for the
-        /// current thread. Multiple calls can be used to collect statistics
-        /// that reflect the activity of the database engine on this thread
-        /// between those calls.
-        /// </summary>
-        /// <param name="threadstats">
-        /// Returns the thread statistics..
-        /// </param>
-        /// <returns>An error code if the operation fails.</returns>
-        public int JetGetThreadStats(out JET_THREADSTATS threadstats)
-        {
-            Tracing.TraceFunctionCall("JetGetThreadStats");
-            _capabilities.CheckSupportsVistaFeatures("JetGetThreadStats");
-
-            // To speed up the interop we use unsafe code to avoid initializing
-            // the out parameter. We just call the interop code.
-            unsafe
-            {
-                fixed (JET_THREADSTATS* rawJetThreadstats = &threadstats)
-                {
-                    return Tracing.TraceResult(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS.Size)));
-                }
-            }
         }
 
         #endregion
@@ -3943,7 +3263,7 @@ namespace EsentLib.Implementation
         /// <summary>
         /// Positions a cursor to an index entry for the record that is associated with
         /// the specified bookmark. The bookmark can be used with any index defined over
-        /// a table. The bookmark for a record can be retrieved using <see cref="IJetApi.JetGetBookmark"/>.
+        /// a table. The bookmark for a record can be retrieved using <see cref="IJetInstance.JetGetBookmark"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to position.</param>
@@ -4003,7 +3323,7 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>
-        /// Constructs search keys that may then be used by <see cref="IJetApi.JetSeek"/> and <see cref="IJetApi.JetSetIndexRange"/>.
+        /// Constructs search keys that may then be used by <see cref="IJetInstance.JetSeek"/> and <see cref="IJetInstance.JetSetIndexRange"/>.
         /// </summary>
         /// <remarks>
         /// The MakeKey functions provide datatype-specific make key functionality.
@@ -4055,7 +3375,7 @@ namespace EsentLib.Implementation
 
         /// <summary>
         /// Temporarily limits the set of index entries that the cursor can walk using
-        /// <see cref="IJetApi.JetMove"/> to those starting
+        /// <see cref="IJetInstance.JetMove"/> to those starting
         /// from the current index entry and ending at the index entry that matches the
         /// search criteria specified by the search key in that cursor and the specified
         /// bound criteria. A search key must have been previously constructed using
@@ -4389,7 +3709,7 @@ namespace EsentLib.Implementation
         /// <summary>
         /// Retrieves the bookmark for the record that is associated with the index entry
         /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="IJetApi.JetGotoBookmark"/>.
+        /// reposition that cursor back to the same record using <see cref="IJetInstance.JetGotoBookmark"/>.
         /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
         /// bytes.
         /// </summary>
@@ -4859,7 +4179,7 @@ namespace EsentLib.Implementation
         /// <summary>
         /// The JetUpdate function performs an update operation including inserting a new row into
         /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="IJetApi.JetDelete"/>.
+        /// <see cref="IJetInstance.JetDelete"/>.
         /// </summary>
         /// <param name="sesid">The session which started the update.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
@@ -4868,7 +4188,7 @@ namespace EsentLib.Implementation
         /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
         /// <remarks>
         /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="IJetApi.JetPrepareUpdate"/> and then by calling
+        /// calling <see cref="IJetInstance.JetPrepareUpdate"/> and then by calling
         /// JetSetColumn
         /// one or more times to set the record state. Finally, JetUpdate
         /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
@@ -4904,12 +4224,12 @@ namespace EsentLib.Implementation
         /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
         /// </remarks>
         /// <returns>An error if the call fails.</returns>
-        public int JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize, UpdateGrbit grbit)
+        public int JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize,
+            UpdateGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetUpdate2");
             Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
-            this.CheckSupportsServer2003Features("JetUpdate2");
-
+            this.Capabilities.CheckSupportsServer2003Features("JetUpdate2");
             uint bytesActual;
             int err = Tracing.TraceResult(NativeMethods.JetUpdate2(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual, (uint)grbit));
             actualBookmarkSize = GetActualSize(bytesActual);
@@ -5543,13 +4863,11 @@ namespace EsentLib.Implementation
                 {
                     nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate();
 
-                    if (null != managedIndexCreates[i].pidxUnicode)
-                    {
+                    if (null != managedIndexCreates[i].pidxUnicode) {
                         NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
                         nativeIndices[i].pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
-                        nativeIndices[i].grbit |= (uint)VistaGrbits.IndexUnicode;
+                        nativeIndices[i].grbit |= (uint)CreateIndexGrbit.IndexUnicode;
                     }
-
                     nativeIndices[i].szKey = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedIndexCreates[i].szKey));
                     nativeIndices[i].szIndexName = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedIndexCreates[i].szIndexName));
                     nativeIndices[i].rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, false, ref handles);
@@ -5584,7 +4902,7 @@ namespace EsentLib.Implementation
                     {
                         NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
                         nativeIndices[i].indexcreate.pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
-                        nativeIndices[i].indexcreate.grbit |= (uint)VistaGrbits.IndexUnicode;
+                        nativeIndices[i].indexcreate.grbit |= (uint)CreateIndexGrbit.IndexUnicode;
                     }
 
                     nativeIndices[i].indexcreate.szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
@@ -5622,7 +4940,7 @@ namespace EsentLib.Implementation
                     {
                         NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
                         nativeIndices[i].indexcreate1.indexcreate.pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
-                        nativeIndices[i].indexcreate1.indexcreate.grbit |= (uint)VistaGrbits.IndexUnicode;
+                        nativeIndices[i].indexcreate1.indexcreate.grbit |= (uint)CreateIndexGrbit.IndexUnicode;
                     }
 
                     nativeIndices[i].indexcreate1.indexcreate.szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
@@ -5806,19 +5124,6 @@ namespace EsentLib.Implementation
         #endregion
 
         #region Capability Checking
-
-        /// <summary>
-        /// Check that ESENT supports Server 2003 features. Throws an exception if Server 2003 features
-        /// aren't supported.
-        /// </summary>
-        /// <param name="api">The API that is being called.</param>
-        private void CheckSupportsServer2003Features(string api)
-        {
-            if (!_capabilities.SupportsServer2003Features)
-            {
-                throw JetEnvironment.UnsupportedApiException(api);
-            }
-        }
 
         #endregion
 
@@ -6372,7 +5677,7 @@ namespace EsentLib.Implementation
                         NATIVE_UNICODEINDEX2 unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex2();
                         unicode.szLocaleName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].pidxUnicode.GetEffectiveLocaleName()));
                         nativeIndices[i].pidxUnicode = (NATIVE_UNICODEINDEX2*)handles.Add(unicode);
-                        nativeIndices[i].grbit |= (uint)VistaGrbits.IndexUnicode;
+                        nativeIndices[i].grbit |= (uint)CreateIndexGrbit.IndexUnicode;
                     }
 
                     nativeIndices[i].szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
@@ -6547,32 +5852,6 @@ namespace EsentLib.Implementation
         //}
 
         #region Sessions
-
-        /// <summary>
-        /// Retrieves performance information from the database engine for the
-        /// current thread. Multiple calls can be used to collect statistics
-        /// that reflect the activity of the database engine on this thread
-        /// between those calls. 
-        /// </summary>
-        /// <param name="threadstats">
-        /// Returns the thread statistics..
-        /// </param>
-        /// <returns>An error code if the operation fails.</returns>
-        public int JetGetThreadStats(out JET_THREADSTATS2 threadstats)
-        {
-            Tracing.TraceFunctionCall("JetGetThreadStats");
-            _capabilities.CheckSupportsVistaFeatures("JetGetThreadStats");
-
-            // To speed up the interop we use unsafe code to avoid initializing
-            // the out parameter. We just call the interop code.
-            unsafe
-            {
-                fixed (JET_THREADSTATS2* rawJetThreadstats = &threadstats)
-                {
-                    return Tracing.TraceResult(NativeMethods.JetGetThreadStats(rawJetThreadstats, checked((uint)JET_THREADSTATS2.Size)));
-                }
-            }
-        }
 
         #endregion
 

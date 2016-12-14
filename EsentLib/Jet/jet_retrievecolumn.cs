@@ -22,7 +22,8 @@ namespace EsentLib.Jet
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1307:AccessibleFieldsMustBeginWithUpperCaseLetter",
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
-    internal struct NATIVE_RETRIEVECOLUMN
+    [CLSCompliant(false)]
+    public struct NATIVE_RETRIEVECOLUMN
     {
         /// <summary>
         /// The column identifier for the column to retrieve.

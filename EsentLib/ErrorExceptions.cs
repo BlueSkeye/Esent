@@ -13817,13 +13817,11 @@ namespace EsentLib
                 case JET_err.FileCompressed:
                     return new EsentFileCompressedException();
                 default:
-                    // This could be a new error introduced in a newer version of Esent. Try to look up the description.
+                    // This could be a new error introduced in a newer version of Esent. Try
+                    // to look up the description.
                     IntPtr errNum = new IntPtr((int)err);
-                    string description;
-                    int wrn = Api.Impl.JetGetSystemParameter(JET_INSTANCE.Nil, JET_SESID.Nil,
-                        JET_param.ErrorToString, ref errNum, out description, 1024);
+                    string description = JetEnvironment.GetErrorText(ref errNum) ?? "Unknown error";
                     err = (JET_err)errNum.ToInt32();
-                    if ((int)JET_wrn.Success != wrn) { description = "Unknown error"; }
                     return new EsentErrorException(description, err);
             }
         }

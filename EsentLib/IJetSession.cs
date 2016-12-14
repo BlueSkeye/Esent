@@ -1,7 +1,9 @@
-﻿
+﻿using System;
+
 namespace EsentLib
 {
     /// <summary></summary>
+    [CLSCompliant(false)]
     public interface IJetSession
     {
         /// <summary>Attaches a database file for use with a database instance. In order to
@@ -9,8 +11,11 @@ namespace EsentLib
         /// <see cref="IJetSession.OpenDatabase"/>.</summary>
         /// <param name="database">The database to attach.</param>
         /// <param name="grbit">Attach options.</param>
+        /// <param name="maxPages">The maximum size, in database pages, of the database.
+        /// Passing 0 means there is no enforced maximum.</param>
         /// <returns>An error or warning.</returns>
-        void AttachDatabase(string database, AttachDatabaseGrbit grbit);
+        [CLSCompliant(false)]
+        void AttachDatabase(string database, AttachDatabaseGrbit grbit, uint maxPages = 0);
 
         /// <summary>Ends a session.</summary>
         /// <param name="grbit">This parameter is not used.</param>
@@ -19,10 +24,13 @@ namespace EsentLib
 
         /// <summary>Creates and attaches a database file.</summary>
         /// <param name="database">The path to the database file to create.</param>
-        /// <param name="connect">The parameter is not used.</param>
         /// <param name="grbit">Database creation options.</param>
-        /// <returns>An error or warning.</returns>
-        JetDatabase CreateDatabase(string database, string connect, CreateDatabaseGrbit grbit);
+        /// <param name="maxPages">The maximum size, in database pages, of the database.
+        /// Passing 0 means there is no enforced maximum.</param>
+        /// <returns>A database instance.</returns>
+        [CLSCompliant(false)]
+        IJetDatabase CreateDatabase(string database, CreateDatabaseGrbit grbit,
+            uint maxPages = 0);
 
         /// <summary>Opens a database previously attached with <see cref="AttachDatabase"/>,
         /// for use with a database session. This function can be called multiple times for
@@ -31,6 +39,6 @@ namespace EsentLib
         /// <param name="connect">Reserved for future use.</param>
         /// <param name="grbit">Open database options.</param>
         /// <returns>An error or warning.</returns>
-        JetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit);
+        IJetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit);
     }
 }

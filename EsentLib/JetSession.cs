@@ -16,6 +16,7 @@ namespace EsentLib.Implementation
             _owner = owner;
         }
 
+        #region PROPERTIES
         internal JetCapabilities Capabilities
         {
             get { return _owner.Capabilities; }
@@ -52,18 +53,24 @@ namespace EsentLib.Implementation
         {
             get { return GetInt32Parameter(JET_sesparam.TransactionLevel); }
         }
+        #endregion
 
         /// <summary>Attaches a database file for use with a database instance. In order to
         /// use the database, it will need to be subsequently opened with
         /// <see cref="IJetSession.OpenDatabase"/>.</summary>
         /// <param name="database">The database to attach.</param>
         /// <param name="grbit">Attach options.</param>
+        /// <param name="maxPages">The maximum size, in database pages, of the database.
+        /// Passing 0 means there is no enforced maximum.</param>
         /// <returns>An error or warning.</returns>
-        public void AttachDatabase(string database, AttachDatabaseGrbit grbit)
+        [CLSCompliant(false)]
+        public void AttachDatabase(string database, AttachDatabaseGrbit grbit, uint maxPages = 0)
         {
             Tracing.TraceFunctionCall("AttachDatabase");
             Helpers.CheckNotNull(database, "database");
-            int returnCode = NativeMethods.JetAttachDatabaseW(Id, database, (uint)grbit);
+            int returnCode = (0 == maxPages)
+                ? NativeMethods.JetAttachDatabaseW(Id, database, (uint)grbit)
+                : NativeMethods.JetAttachDatabase2W(Id, database, maxPages, (uint)grbit);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return;
@@ -94,19 +101,23 @@ namespace EsentLib.Implementation
 
         /// <summary>Creates and attaches a database file.</summary>
         /// <param name="database">The path to the database file to create.</param>
-        /// <param name="connect">The parameter is not used.</param>
         /// <param name="grbit">Database creation options.</param>
+        /// <param name="maxPages">The maximum size, in database pages, of the database.
+        /// Passing 0 means there is no enforced maximum.</param>
         /// <returns>An error or warning.</returns>
-        public JetDatabase CreateDatabase(string database, string connect, CreateDatabaseGrbit grbit)
+        [CLSCompliant(false)]
+        public IJetDatabase CreateDatabase(string database, CreateDatabaseGrbit grbit,
+            uint maxPages = 0)
         {
             Tracing.TraceFunctionCall("CreateDatabase");
             Helpers.CheckNotNull(database, "database");
             JET_DBID dbid = JET_DBID.Nil;
-            int returnCode = NativeMethods.JetCreateDatabaseW(Id, database, connect,
-                out dbid.Value, (uint)grbit);
+            int returnCode = (0 == maxPages)
+                ? NativeMethods.JetCreateDatabaseW(Id, database, null, out dbid.Value, (uint)grbit)
+                : NativeMethods.JetCreateDatabase2W(Id, database, maxPages, out dbid.Value, (uint)grbit);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetDatabase(dbid);
+            return new JetDatabase(this, dbid, database);
         }
 
         /// <summary></summary>
@@ -197,7 +208,7 @@ namespace EsentLib.Implementation
         /// <param name="connect">Reserved for future use.</param>
         /// <param name="grbit">Open database options.</param>
         /// <returns>A database instance.</returns>
-        public JetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit)
+        public IJetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit)
         {
             Tracing.TraceFunctionCall("OpenDatabase");
             Helpers.CheckNotNull(database, "database");
@@ -205,7 +216,7 @@ namespace EsentLib.Implementation
             int returnCode = NativeMethods.JetOpenDatabaseW(Id, database, connect, out dbid.Value,
                 (uint)grbit);
             Tracing.TraceResult(returnCode);
-            return new JetDatabase(dbid);
+            return new JetDatabase(this, dbid, database);
         }
 
         /// <summary>Sets a parameter on the provided session state, used for the lifetime of this session or until reset.</summary>

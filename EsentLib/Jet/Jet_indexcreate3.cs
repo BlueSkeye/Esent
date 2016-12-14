@@ -126,7 +126,7 @@ namespace EsentLib.Jet
             if (0 != this.cbKeyMost)
             {
                 native.cbKeyMost = checked((uint)this.cbKeyMost);
-                native.grbit |= unchecked((uint)VistaGrbits.IndexKeyMost);
+                native.grbit |= unchecked((uint)CreateIndexGrbit.IndexKeyMost);
             }
 
             return native;

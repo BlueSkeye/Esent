@@ -13,11 +13,9 @@ using EsentLib.Platform.Vista;
 
 namespace EsentLib
 {
-    /// <summary>
-    /// Provides a set of methods and properties that you can use to measure
-    /// ESENT work statistics for a thread. If the current version of ESENT
-    /// doesn't support <see cref="VistaApi.JetGetThreadStats"/> then all 
-    /// ESENT statistics will be 0.
+    /// <summary>Provides a set of methods and properties that you can use to measure ESENT
+    /// work statistics for a thread. If the current version of ESENT doesn't support
+    /// <see cref="JetEnvironment.GetThreadStatistics"/> then all ESENT statistics will be 0.
     /// </summary>
     public class EsentStopwatch
     {
@@ -77,9 +75,8 @@ namespace EsentLib
             this.Reset();
             this.stopwatch = Stopwatch.StartNew();
             this.IsRunning = true;
-            if (EsentVersion.SupportsVistaFeatures)
-            {
-                VistaApi.JetGetThreadStats(out this.statsAtStart);
+            if (EsentVersion.SupportsVistaFeatures) {
+                this.statsAtStart = JetEnvironment.Current.GetThreadStatistics();
             }
         }
 
@@ -93,10 +90,9 @@ namespace EsentLib
                 this.IsRunning = false;
                 this.stopwatch.Stop();
                 this.Elapsed = this.stopwatch.Elapsed;
-                if (EsentVersion.SupportsVistaFeatures)
-                {
-                    JET_THREADSTATS statsAtEnd;
-                    VistaApi.JetGetThreadStats(out statsAtEnd);
+                if (EsentVersion.SupportsVistaFeatures) {
+                    JET_THREADSTATS statsAtEnd =
+                        JetEnvironment.Current.GetThreadStatistics();
                     this.ThreadStats = statsAtEnd - this.statsAtStart;
                 }
             }

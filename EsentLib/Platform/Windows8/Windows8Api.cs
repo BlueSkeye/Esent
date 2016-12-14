@@ -20,21 +20,6 @@ namespace EsentLib.Platform.Windows8
     /// </summary>
     public static class Windows8Api
     {
-        #region Init / Term
-
-        /// <summary>
-        /// Prepares an instance for termination. Can also be used to resume a previous quiescing.
-        /// </summary>
-        /// <param name="instance">The (running) instance to use.</param>
-        /// <param name="grbit">The options to stop or resume the instance.</param>
-        public static void JetStopServiceInstance2(
-            JET_INSTANCE instance,
-            StopServiceGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetStopServiceInstance2(instance, grbit));
-        }
-
-        #endregion
 
         #region Transactions
         /// <summary>
@@ -90,7 +75,7 @@ namespace EsentLib.Platform.Windows8
         /// file.</summary>
         /// <remarks>Many APIs return the logical size of the file, not how many bytes it takes up on disk.
         /// Win32's GetCompressedFileSize returns the correct on-disk size.
-        /// <see cref="Api.JetGetDatabaseInfo(JET_SESID, JET_DBID, out int, JET_DbInfo)"/>
+        /// <see cref="IJetDatabase.GetInfo(JET_DbInfo)"/>
         /// returns the on-disk size when used with
         /// <see cref="Win81.Windows81DbInfo.FilesizeOnDisk"/></remarks>
         /// <param name="sesid">The session to use.</param>

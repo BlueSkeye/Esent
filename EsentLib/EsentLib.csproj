@@ -97,9 +97,12 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="IContentEquatable.cs" />
     <Compile Include="IDeepCloneable.cs" />
-    <Compile Include="IJetApi.cs" />
+    <Compile Include="IJetEnvironment.cs" />
+    <Compile Include="IJetInstance.cs" />
     <Compile Include="IJetDatabase.cs" />
     <Compile Include="IJetSession.cs" />
+    <Compile Include="IJetSnapshot.cs" />
+    <Compile Include="IJetSnapshotSession.cs" />
     <Compile Include="IJetTransaction.cs" />
     <Compile Include="ijet_logtime.cs" />
     <Compile Include="Constants.cs" />
@@ -107,7 +110,6 @@
     <Compile Include="IndexInfo.cs" />
     <Compile Include="IndexInfoEnumerator.cs" />
     <Compile Include="IndexSegment.cs" />
-    <Compile Include="InstanceParameters.cs" />
     <Compile Include="Int16ColumnValue.cs" />
     <Compile Include="Int32ColumnValue.cs" />
     <Compile Include="Int64ColumnValue.cs" />
@@ -120,6 +122,7 @@
     <Compile Include="JetCapabilities.cs" />
     <Compile Include="JetEnvironment.cs" />
     <Compile Include="JetSession.cs" />
+    <Compile Include="JetSnapshot.cs" />
     <Compile Include="Jet\JetEngineException.cs" />
     <Compile Include="Jet\jet_bkinfo.cs" />
     <Compile Include="Jet\jet_bklogtime.cs" />
@@ -217,7 +220,6 @@
     <Compile Include="SetColumnHelpers.cs" />
     <Compile Include="StringCache.cs" />
     <Compile Include="StringColumnValue.cs" />
-    <Compile Include="SystemParameters.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="TableColumnInfoEnumerator.cs" />
     <Compile Include="TableEnumerator.cs" />
@@ -251,8 +253,6 @@
     <Compile Include="Platform\Windows8\Windows8Api.cs" />
     <Compile Include="Platform\Windows8\Windows8Grbits.cs" />
     <Compile Include="Platform\Windows8\Windows8IdxInfo.cs" />
-    <Compile Include="Platform\Windows8\Windows8Param.cs" />
-    <Compile Include="Platform\Windows8\Windows8SystemParameters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

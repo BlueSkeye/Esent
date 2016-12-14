@@ -46,10 +46,12 @@ namespace EsentLib.Implementation
         public static extern int JetCreateInstanceW(out IntPtr instance, string szInstanceName);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetCreateInstance2(out IntPtr instance, string szInstanceName, string szDisplayName, uint grbit);
+        public static extern int JetCreateInstance2(out IntPtr instance, string szInstanceName,
+            string szDisplayName, uint grbit);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetCreateInstance2W(out IntPtr instance, string szInstanceName, string szDisplayName, uint grbit);
+        public static extern int JetCreateInstance2W(out IntPtr instance, string szInstanceName,
+            string szDisplayName, uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetInit(ref IntPtr instance);
@@ -59,20 +61,24 @@ namespace EsentLib.Implementation
 
         // JetInit3 was introduced in Vista, so therefore we'll only support the Unicode version.
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetInit3W(ref IntPtr instance, ref NATIVE_RSTINFO prstinfo, uint grbit);
+        public static extern int JetInit3W(ref IntPtr instance, ref NATIVE_RSTINFO prstinfo,
+            uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetInit3W(ref IntPtr instance, IntPtr prstinfo, uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern unsafe int JetGetInstanceInfo(out uint pcInstanceInfo, out NATIVE_INSTANCE_INFO* prgInstanceInfo);
+        public static extern unsafe int JetGetInstanceInfo(out uint pcInstanceInfo,
+            out NATIVE_INSTANCE_INFO* prgInstanceInfo);
 
         // Returns unicode strings in the NATIVE_INSTANCE_INFO.
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern unsafe int JetGetInstanceInfoW(out uint pcInstanceInfo, out NATIVE_INSTANCE_INFO* prgInstanceInfo);
+        public static extern unsafe int JetGetInstanceInfoW(out uint pcInstanceInfo,
+            out NATIVE_INSTANCE_INFO* prgInstanceInfo);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetGetInstanceMiscInfo(IntPtr instance, ref NATIVE_SIGNATURE pvResult, uint cbMax, uint infoLevel);
+        public static extern int JetGetInstanceMiscInfo(IntPtr instance, ref NATIVE_SIGNATURE pvResult,
+            uint cbMax, uint infoLevel);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetStopBackupInstance(IntPtr instance);
@@ -95,14 +101,17 @@ namespace EsentLib.Implementation
             uint paramid, IntPtr lParam, string szParam);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static unsafe extern int JetSetSystemParameterW(IntPtr* pinstance, IntPtr sesid, uint paramid, IntPtr lParam, string szParam);
+        public static unsafe extern int JetSetSystemParameterW(IntPtr* pinstance, IntPtr sesid,
+            uint paramid, IntPtr lParam, string szParam);
 
         // The param is ref because it is an 'in' parameter when getting error text
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetGetSystemParameter(IntPtr instance, IntPtr sesid, uint paramid, ref IntPtr plParam, [Out] StringBuilder szParam, uint cbMax);
+        public static extern int JetGetSystemParameter(IntPtr instance, IntPtr sesid, uint paramid,
+            ref IntPtr plParam, [Out] StringBuilder szParam, uint cbMax);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetGetSystemParameterW(IntPtr instance, IntPtr sesid, uint paramid, ref IntPtr plParam, [Out] StringBuilder szParam, uint cbMax);
+        public static extern int JetGetSystemParameterW(IntPtr instance, IntPtr sesid, uint paramid,
+            ref IntPtr plParam, [Out] StringBuilder szParam, uint cbMax);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGetVersion(IntPtr sesid, out uint dwVersion);
@@ -111,7 +120,6 @@ namespace EsentLib.Implementation
 
         #region Databases
 
-#if !MANAGEDESENT_ON_WSA // Not exposed in MSDK
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCreateDatabase(IntPtr sesid, string szFilename, string szConnect, out uint dbid, uint grbit);
 
@@ -120,7 +128,6 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetCreateDatabase2(IntPtr sesid, string szFilename, uint cpgDatabaseSizeMax, out uint dbid, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetCreateDatabase2W(IntPtr sesid, string szFilename, uint cpgDatabaseSizeMax, out uint dbid, uint grbit);
@@ -139,13 +146,11 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetAttachDatabase2W(IntPtr sesid, string szFilename, uint cpgDatabaseSizeMax, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDetachDatabase(IntPtr sesid, string szFilename);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetDetachDatabase2(IntPtr sesid, string szFilename, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetDetachDatabase2W(IntPtr sesid, string szFilename, uint grbit);
@@ -157,18 +162,19 @@ namespace EsentLib.Implementation
         //public static extern int JetOpenDatabase(IntPtr sesid, string database, string szConnect, out uint dbid, uint grbit);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetOpenDatabaseW(IntPtr sesid, string database, string szConnect, out uint dbid, uint grbit);
+        public static extern int JetOpenDatabaseW(IntPtr sesid, string database, string szConnect,
+            out uint dbid, uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetCloseDatabase(IntPtr sesid, uint dbid, uint grbit);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetCompact(
-            IntPtr sesid, string szDatabaseSrc, string szDatabaseDest, IntPtr pfnStatus, IntPtr pconvert, uint grbit);
+        public static extern int JetCompact(IntPtr sesid, string szDatabaseSrc, string szDatabaseDest,
+            IntPtr pfnStatus, IntPtr pconvert, uint grbit);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetCompactW(
-            IntPtr sesid, string szDatabaseSrc, string szDatabaseDest, IntPtr pfnStatus, IntPtr pconvert, uint grbit);
+        public static extern int JetCompactW(IntPtr sesid, string szDatabaseSrc, string szDatabaseDest,
+            IntPtr pfnStatus, IntPtr pconvert, uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGrowDatabase(IntPtr sesid, uint dbid, uint cpg, out uint pcpgReal);

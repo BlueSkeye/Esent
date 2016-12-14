@@ -26,346 +26,13 @@ namespace EsentLib
         /// <summary>Initializes static members of the Api class.</summary>
         static Api()
         {
-            Api.Impl = new JetInstance();
+            // Api.Impl = new JetInstance();
         }
         
         /// <summary>Gets or sets the IJetApi this is called for all functions.</summary>
-        internal static IJetApi Impl { get; set; }
-
-        #region Init/Term
-
-        /// <summary>
-        /// Prevents streaming backup-related activity from continuing on a
-        /// specific running instance, thus ending the streaming backup in
-        /// a predictable way.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        public static void JetStopBackupInstance(JET_INSTANCE instance)
-        {
-            EsentExceptionHelper.Check(Impl.JetStopBackupInstance(instance));
-        }
-
-        /// <summary>
-        /// Prepares an instance for termination.
-        /// </summary>
-        /// <param name="instance">The (running) instance to use.</param>
-        public static void JetStopServiceInstance(JET_INSTANCE instance)
-        {
-            EsentExceptionHelper.Check(Impl.JetStopServiceInstance(instance));            
-        }
-
-        /// <summary>Terminate an instance that was created with
-        /// <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
-        /// <param name="instance">The instance to terminate.</param>
-        /// <param name="grbit">Termination options.</param>
-        public static void JetTerm2(JET_INSTANCE instance, TermGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetTerm2(instance, grbit));
-        }
-
-        /// <summary>Gets database configuration options.</summary>
-        /// <param name="instance">The instance to retrieve the options from.</param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to get.</param>
-        /// <param name="paramValue">Returns the value of the parameter, if the value is
-        /// an integer.</param>
-        /// <param name="paramString">Returns the value of the parameter, if the value is
-        /// a string.</param>
-        /// <param name="maxParam">The maximum size of the parameter string.</param>
-        /// <returns>An ESENT warning code.</returns>
-        /// <remarks>
-        /// <see cref="JET_param.ErrorToString"/> passes in the error number in the paramValue,
-        /// which is why it is a ref parameter and not an out parameter.
-        /// </remarks>
-        public static JET_wrn JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid,
-            JET_param paramid, ref IntPtr paramValue, out string paramString, int maxParam)
-        {
-            return EsentExceptionHelper.Check(Impl.JetGetSystemParameter(instance, sesid, paramid, ref paramValue,
-                out paramString, maxParam));
-        }
-
-        /// <summary>Gets database configuration options.</summary>
-        /// <param name="instance">The instance to retrieve the options from.</param>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="paramid">The parameter to get.</param>
-        /// <param name="paramValue">Returns the value of the parameter, if the value is
-        /// an integer.</param>
-        /// <param name="paramString">Returns the value of the parameter, if the value is
-        /// a string.</param>
-        /// <param name="maxParam">The maximum size of the parameter string.</param>
-        /// <returns>An ESENT warning code.</returns>
-        /// <remarks>
-        /// <see cref="JET_param.ErrorToString"/> passes in the error number in the paramValue,
-        /// which is why it is a ref parameter and not an out parameter.</remarks>
-        public static JET_wrn JetGetSystemParameter(JET_INSTANCE instance, JET_SESID sesid,
-            JET_param paramid, ref int paramValue, out string paramString, int maxParam)
-        {
-            var intValue = new IntPtr(paramValue);
-            JET_wrn wrn = EsentExceptionHelper.Check(Impl.JetGetSystemParameter(instance, sesid, paramid,
-                ref intValue, out paramString, maxParam));
-            paramValue = intValue.ToInt32();
-            return wrn;
-        }
-
-        #endregion
-
-        #region Databases
-
-        /// <summary>Creates and attaches a database file with a maximum database size
-        /// specified.<seealso cref="JetAttachDatabase2"/>.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The path to the database file to create.</param>
-        /// <param name="maxPages">
-        /// The maximum size, in database pages, of the database. Passing 0 means there is
-        /// no enforced maximum.
-        /// </param>
-        /// <param name="dbid">Returns the dbid of the new database.</param>
-        /// <param name="grbit">Database creation options.</param>
-        public static void JetCreateDatabase2(JET_SESID sesid, string database, int maxPages,
-            out JET_DBID dbid, CreateDatabaseGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetCreateDatabase2(sesid, database, maxPages, out dbid, grbit));            
-        }
-
-        /// <summary>Attaches a database file for use with a database instance. In order
-        /// to use the database, it will need to be subsequently opened with
-        /// <see cref="IJetSession.OpenDatabase"/>.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The database to attach.</param>
-        /// <param name="maxPages">
-        /// The maximum size, in database pages, of the database. Passing 0 means there is
-        /// no enforced maximum.
-        /// </param>
-        /// <param name="grbit">Attach options.</param>
-        /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn JetAttachDatabase2(JET_SESID sesid, string database, int maxPages,
-            AttachDatabaseGrbit grbit)
-        {
-            return EsentExceptionHelper.Check(Impl.JetAttachDatabase2(sesid, database, maxPages, grbit));
-        }
-
-        /// <summary>Closes a database file that was previously opened with <see cref="IJetSession.OpenDatabase"/> or
-        /// created with <see cref="JetSession.CreateDatabase"/>.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to close.</param>
-        /// <param name="grbit">Close options.</param>
-        public static void JetCloseDatabase(JET_SESID sesid, JET_DBID dbid,
-            CloseDatabaseGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetCloseDatabase(sesid, dbid, grbit));
-        }
-
-        /// <summary>Releases a database file that was previously attached to a database
-        /// session.</summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="database">The database to detach.</param>
-        public static void JetDetachDatabase(JET_SESID sesid, string database)
-        {
-            EsentExceptionHelper.Check(Impl.JetDetachDatabase(sesid, database));
-        }
-
-        /// <summary>Releases a database file that was previously attached to a database
-        /// session.</summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="database">The database to detach.</param>
-        /// <param name="grbit">Detach options.</param>
-        public static void JetDetachDatabase2(JET_SESID sesid, string database,
-            DetachDatabaseGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetDetachDatabase2(sesid, database, grbit));
-        }
-
-#pragma warning disable 618,612 // Disable warning that JET_CONVERT is obsolete
-        /// <summary>Makes a copy of an existing database. The copy is compacted to a state
-        /// optimal for usage. Data in the copied data will be packed according to the measures
-        /// chosen for the indexes at index create. In this way, compacted data may be
-        /// stored as densely as possible. Alternatively, compacted data may reserve space
-        /// for subsequent record growth or index insertions.</summary>
-        /// <param name="sesid">The session to use for the call.</param>
-        /// <param name="sourceDatabase">The source database that will be compacted.</param>
-        /// <param name="destinationDatabase">The name to use for the compacted database.</param>
-        /// <param name="statusCallback">A callback function that can be called periodically
-        /// through the database compact operation to report progress.</param>
-        /// <param name="ignored">This parameter is ignored and should be null.</param>
-        /// <param name="grbit">Compact options.</param>
-        public static void JetCompact(JET_SESID sesid, string sourceDatabase, string destinationDatabase,
-            JET_PFNSTATUS statusCallback, JET_CONVERT ignored, CompactGrbit grbit)
-        {
-            EsentExceptionHelper.Check(
-                Impl.JetCompact(sesid, sourceDatabase, destinationDatabase, statusCallback, ignored, grbit));
-        }
-#pragma warning restore 618,612
-
-        /// <summary>Extends the size of a database that is currently open.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">The size of the database, in pages, after the call.</param>
-        public static void JetGrowDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages,
-            out int actualPages)
-        {
-            EsentExceptionHelper.Check(Impl.JetGrowDatabase(sesid, dbid, desiredPages, out actualPages));
-        }
-
-        /// <summary>Sets the size of an unopened database file.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="database">The name of the database.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">The size of the database, in pages, after the call.</param>
-        public static void JetSetDatabaseSize(JET_SESID sesid, string database, int desiredPages,
-            out int actualPages)
-        {
-            EsentExceptionHelper.Check(Impl.JetSetDatabaseSize(sesid, database, desiredPages, out actualPages));
-        }
-
-        /// <summary>Retrieves certain information about the given database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        public static void JetGetDatabaseInfo(JET_SESID sesid, JET_DBID dbid, out int value,
-            JET_DbInfo infoLevel)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out value, infoLevel));
-        }
-
-        /// <summary>Retrieves certain information about the given database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="dbinfomisc">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        public static void JetGetDatabaseInfo(JET_SESID sesid, JET_DBID dbid,
-            out JET_DBINFOMISC dbinfomisc, JET_DbInfo infoLevel)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out dbinfomisc, infoLevel));
-        }
-
-        /// <summary>Retrieves certain information about the given database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        public static void JetGetDatabaseInfo(JET_SESID sesid, JET_DBID dbid, out string value,
-            JET_DbInfo infoLevel)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetDatabaseInfo(sesid, dbid, out value, infoLevel));
-        }
-
-        /// <summary>Retrieves certain information about the given database.</summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        public static void JetGetDatabaseFileInfo(string databaseName, out int value,
-            JET_DbInfo infoLevel)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetDatabaseFileInfo(databaseName, out value, infoLevel));
-        }
-
-        /// <summary>Retrieves certain information about the given database.</summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="value">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        public static void JetGetDatabaseFileInfo(string databaseName, out long value,
-            JET_DbInfo infoLevel)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetDatabaseFileInfo(databaseName, out value, infoLevel));
-        }
-
-        /// <summary>Retrieves certain information about the given database.</summary>
-        /// <param name="databaseName">The file name of the database.</param>
-        /// <param name="dbinfomisc">The value to be retrieved.</param>
-        /// <param name="infoLevel">The specific data to retrieve.</param>
-        public static void JetGetDatabaseFileInfo(string databaseName, out JET_DBINFOMISC dbinfomisc,
-            JET_DbInfo infoLevel)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetDatabaseFileInfo(databaseName, out dbinfomisc, infoLevel));
-        }
-
-        #endregion
-
-        #region Backup/Restore
-
-        /// <summary>Performs a streaming backup of an instance, including all the attached
-        /// databases, to a directory. With multiple backup methods supported by the engine,
-        /// this is the simplest and most encapsulated function.</summary>
-        /// <param name="instance">The instance to backup.</param>
-        /// <param name="destination">The directory where the backup is to be stored. If the
-        /// backup path isnull to use the function will truncate the logs, if possible.</param>
-        /// <param name="grbit">Backup options.</param>
-        /// <param name="statusCallback">Optional status notification callback.</param>
-        public static void JetBackupInstance(JET_INSTANCE instance, string destination,
-            BackupGrbit grbit, JET_PFNSTATUS statusCallback)
-        {
-            EsentExceptionHelper.Check(Impl.JetBackupInstance(instance, destination, grbit, statusCallback));
-        }
-
-        /// <summary>Restores and recovers a streaming backup of an instance including
-        /// all the attached databases. It is designed to work with a backup created
-        /// with the <see cref="Api.JetBackupInstance"/> function. This is the simplest
-        /// and most encapsulated restore function. </summary>
-        /// <param name="instance">The instance to use. The instance should not be initialized.
-        /// Restoring the files will initialize the instance.</param>
-        /// <param name="source">Location of the backup. The backup should have been created
-        /// with<see cref="Api.JetBackupInstance"/>.</param>
-        /// <param name="destination">Name of the folder where the database files from
-        /// the backup set will be copied and recovered. If this is set to null, the database
-        /// files will be copied and recovered to their original location.</param>
-        /// <param name="statusCallback">Optional status notification callback.</param>
-        public static void JetRestoreInstance(JET_INSTANCE instance, string source,
-            string destination, JET_PFNSTATUS statusCallback)
-        {
-            EsentExceptionHelper.Check(Impl.JetRestoreInstance(instance, source, destination, statusCallback));
-        }
-        #endregion
-
-        #region Snapshot Backup
-
-        /// <summary>Starts a snapshot. While the snapshot is in progress, no write-to-disk
-        /// activity by the engine can take place.</summary>
-        /// <param name="snapshot">The snapshot session.</param>
-        /// <param name="numInstances">Returns the number of instances that are part of
-        /// the snapshot session.</param>
-        /// <param name="instances">Returns information about the instances that are part
-        /// of the snapshot session.</param>
-        /// <param name="grbit">Snapshot freeze options.</param>
-        public static void JetOSSnapshotFreeze(JET_OSSNAPID snapshot, out int numInstances,
-            out JET_INSTANCE_INFO[] instances, SnapshotFreezeGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetOSSnapshotFreeze(snapshot, out numInstances, out instances, grbit));
-        }
-
-        /// <summary>Begins the preparations for a snapshot session. A snapshot session
-        /// is a short time interval in which the engine does not issue any write IOs to
-        /// disk, so that the engine can participate in a volume snapshot session (when
-        /// driven by a snapshot writer).</summary>
-        /// <param name="snapshot">Returns the ID of the snapshot session.</param>
-        /// <param name="grbit">Snapshot options.</param>
-        public static void JetOSSnapshotPrepare(out JET_OSSNAPID snapshot, SnapshotPrepareGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetOSSnapshotPrepare(out snapshot, grbit));
-        }
-
-        /// <summary>Notifies the engine that it can resume normal IO operations after a
-        /// freeze period and a successful snapshot.</summary>
-        /// <param name="snapshot">The ID of the snapshot.</param>
-        /// <param name="grbit">Thaw options.</param>
-        public static void JetOSSnapshotThaw(JET_OSSNAPID snapshot, SnapshotThawGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetOSSnapshotThaw(snapshot, grbit));
-        }
-        #endregion
+        internal static IJetInstance Impl { get; set; }
 
         #region Streaming Backup/Restore
-
-        /// <summary>Initiates an external backup while the engine and database are online
-        /// and active. </summary>
-        /// <param name="instance">The instance prepare for backup.</param>
-        /// <param name="grbit">Backup options.</param>
-        public static void JetBeginExternalBackupInstance(JET_INSTANCE instance,
-            BeginExternalBackupGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetBeginExternalBackupInstance(instance, grbit));
-        }
 
         /// <summary>Closes a file that was opened with JetOpenFileInstance after the
         /// data from that file has been extracted using JetReadFileInstance.</summary>
@@ -395,7 +62,7 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetEndExternalBackupInstance2(instance, grbit));
         }
 
-        /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database files that should become part of
         /// the backup file set. Only databases that are currently attached to the instance
         /// using <see cref="JetSession.AttachDatabase"/> will be considered. These files may
@@ -419,7 +86,7 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetAttachInfoInstance(instance, out files, maxChars, out actualChars));
         }
 
-        /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database patch files and logfiles that 
         /// should become part of the backup file set. These files may subsequently be 
         /// opened using <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.
@@ -442,7 +109,7 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetLogInfoInstance(instance, out files, maxChars, out actualChars));
         }
 
-        /// <summary>Used during a backup initiated by <see cref="JetBeginExternalBackupInstance"/>
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of the transaction log files that can be safely
         /// deleted after the backup has successfully completed.</summary>
         /// <remarks>It is important to note that this API does not return an error or warning
