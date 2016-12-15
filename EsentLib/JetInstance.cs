@@ -653,6 +653,20 @@ namespace EsentLib.Implementation
             }
         }
 
+        /// <summary>Ends an external backup session. This API is the last API in a series
+        /// of APIs that must be called to execute a successful online (non-VSS based)
+        /// backup.</summary>
+        /// <param name="grbit">Options that specify how the backup ended.</param>
+        public void CompleteBackup(EndExternalBackupGrbit grbit = EndExternalBackupGrbit.None)
+        {
+            Tracing.TraceFunctionCall("CompleteBackup");
+            int returnCode = (EndExternalBackupGrbit.None == grbit)
+                ? NativeMethods.JetEndExternalBackupInstance(_instance.Value)
+                : NativeMethods.JetEndExternalBackupInstance2(_instance.Value, (uint)grbit);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+        }
+
         /// <summary>Allocates a new instance of the database engine.</summary>
         /// <param name="name">The name of the instance. Names must be unique.</param>
         /// <param name="displayName">A display name for the instance to be created. This
@@ -720,6 +734,66 @@ namespace EsentLib.Implementation
             }
         }
 
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
+        /// to query an instance for the names of database files that should become part of
+        /// the backup file set. Only databases that are currently attached to the instance
+        /// using <see cref="JetSession.AttachDatabase"/> will be considered. These files may
+        /// subsequently be opened using <see cref="IJetInstance.OpenFile"/> and read
+        /// using <see cref="JET_HANDLE.Read"/>.</summary>
+        /// <remarks>It is important to note that this API does not return an error or warning
+        /// if the output buffer is too small to accept the full list of files that should be
+        /// part of the backup file set. </remarks>
+        /// <returns>Returns a list of strings describing the set of database files that should
+        /// be a part of the backup file set. The list of strings returned .</returns>
+        public List<string> GetBackupFiles()
+        {
+            Tracing.TraceFunctionCall("GetBackupFiles");
+            // Strings have embedded nulls so we can't use a StringBuilder.
+            while (true) {
+                uint bytesMax = 4096;
+                byte[] tempBuffer = new byte[bytesMax];
+                uint bytesActual = 0;
+                int returnCode = NativeMethods.JetGetAttachInfoInstanceW(_instance.Value, tempBuffer,
+                    bytesMax, out bytesActual);
+                Tracing.TraceResult(returnCode);
+                if (bytesActual >= bytesMax) {
+                    bytesMax *= 2;
+                    continue;
+                }
+                EsentExceptionHelper.Check(returnCode);
+                string decoded = Encoding.Unicode.GetString(tempBuffer, 0, (int)bytesActual);
+                return new List<string>(decoded.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries));
+            }
+        }
+
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
+        /// to query an instance for the names of database patch files and logfiles that should
+        /// become part of the backup file set. These files may subsequently be opened using
+        /// <see cref="IJetInstance.OpenFile"/> and read using <see cref="JET_HANDLE.Read"/>.
+        /// </summary>
+        /// <returns>Returns a list of strings describing the set of database files that should
+        /// be a part of the backup file set. The list of strings returned .</returns>
+        public List<string> GetBackupLogFiles()
+        {
+            Tracing.TraceFunctionCall("GetBackupLogFiles");
+            // Strings have embedded nulls so we can't use a StringBuilder.
+            while (true) {
+                uint bytesMax = 4096;
+                byte[] tempBuffer = new byte[bytesMax];
+                uint bytesActual = 0;
+                int returnCode = NativeMethods.JetGetLogInfoInstanceW(_instance.Value, tempBuffer,
+                    bytesMax, out bytesActual);
+                Tracing.TraceResult(returnCode);
+                if (bytesActual >= bytesMax) {
+                    bytesMax *= 2;
+                    continue;
+                }
+                EsentExceptionHelper.Check(returnCode);
+                string decoded = Encoding.Unicode.GetString(tempBuffer, 0, (int)bytesActual);
+                return new List<string>(decoded.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries));
+            }
+        }
+
         /// <summary>Retrieves information about an instance.</summary>
         /// <param name="infoLevel">The type of information to retrieve.</param>
         /// <returns>An error code if the call fails.</returns>
@@ -734,6 +808,35 @@ namespace EsentLib.Implementation
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return new JET_SIGNATURE(nativeSignature);
+        }
+
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
+        /// to query an instance for the names of the transaction log files that can be safely
+        /// deleted after the backup has successfully completed.</summary>
+        /// <remarks>It is important to note that this API does not return an error or warning
+        /// if the output buffer is too small to accept the full list of files that should be
+        /// part of the backup file set.</remarks>
+        /// <returns>Returns a list of strings describing the set of files that are ready for
+        /// truncation.</returns>
+        public List<string> GetBackupTruncateReadyLogFiles()
+        {
+            Tracing.TraceFunctionCall("GetBackupTruncateReadyLogFiles");
+            // Strings have embedded nulls so we can't use a StringBuilder.
+            while (true) {
+                uint bytesMax = 4096;
+                byte[] tempBuffer = new byte[bytesMax];
+                uint bytesActual = 0;
+                int returnCode = NativeMethods.JetGetTruncateLogInfoInstanceW(_instance.Value, tempBuffer,
+                    bytesMax, out bytesActual);
+                Tracing.TraceResult(returnCode);
+                if (bytesActual >= bytesMax) {
+                    bytesMax *= 2;
+                    continue;
+                }
+                EsentExceptionHelper.Check(returnCode);
+                string decoded = Encoding.Unicode.GetString(tempBuffer, 0, (int)bytesActual);
+                return new List<string>(decoded.Split(new char[] { '\0' }, StringSplitOptions.RemoveEmptyEntries));
+            }
         }
 
         /// <summary>Initialize the ESENT database engine.</summary>
@@ -793,6 +896,30 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
+        /// <summary>Opens an attached database, database patch file, or transaction log file
+        /// of an active instance for the purpose of performing a streaming fuzzy backup. The
+        /// data from these files can subsequently be read through the returned handle using
+        /// JET_HANDLE.Read. The returned handle must be closed using JET_HANDLE.Close.
+        /// An external backup of the instance must have been previously initiated using
+        /// JetBeginExternalBackupInstance.</summary>
+        /// <param name="file">The file to open.</param>
+        /// <param name="fileSize">Returns the file size.</param>
+        ///<returns>Handle tà ely opeed file.</returns>
+        public JET_HANDLE OpenFile(string file, out long fileSize)
+        {
+            Tracing.TraceFunctionCall("OpenFile");
+            Helpers.CheckNotNull(file, "file");
+            JET_HANDLE handle = JET_HANDLE.Nil;
+            uint nativeFileSizeLow;
+            uint nativeFileSizeHigh;
+            int returnCode = NativeMethods.JetOpenFileInstanceW(_instance.Value, file,
+                out handle._nativeHandle, out nativeFileSizeLow, out nativeFileSizeHigh);
+            Tracing.TraceResult(returnCode);
+            fileSize = (nativeFileSizeLow + (nativeFileSizeHigh << 32));
+            EsentExceptionHelper.Check(returnCode);
+            return handle;
+        }
+
         /// <summary>Initiates an external backup while the engine and database are online
         /// and active.</summary>
         /// <param name="grbit">Backup options.</param>
@@ -825,7 +952,7 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         public void Restore(string source, string destination, JET_PFNSTATUS statusCallback)
         {
-            Tracing.TraceFunctionCall("JetRestoreInstance");
+            Tracing.TraceFunctionCall("Restore");
             Helpers.CheckNotNull(source, "source");
             StatusCallbackWrapper callbackWrapper = new StatusCallbackWrapper(statusCallback);
             IntPtr functionPointer = (null == statusCallback)
@@ -908,6 +1035,18 @@ namespace EsentLib.Implementation
             int returnCode = NativeMethods.JetStopBackupInstance(_instance.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
+        }
+
+        /// <summary>Used during a backup initiated by PrepareBackup to delete any transaction
+        /// log files that will no longer be needed once the current backup completes
+        /// successfully.</summary>
+        public void TruncateBackupLogs()
+        {
+            Tracing.TraceFunctionCall("TruncateBackupLogs");
+            int returnCode = NativeMethods.JetTruncateLogInstance(_instance.Value);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return;
         }
 
         // ----------------------------------------------------------------------------- //
@@ -1006,276 +1145,6 @@ namespace EsentLib.Implementation
             return Tracing.TraceResult(NativeMethods.JetAttachDatabase2(sesid.Value, database, checked((uint)maxPages), (uint)grbit));
         }
 
-        #endregion
-
-        #region Streaming Backup/Restore
-
-        /// <summary>
-        /// Closes a file that was opened with JetOpenFileInstance after the
-        /// data from that file has been extracted using JetReadFileInstance.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="handle">The handle to close.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetCloseFileInstance(JET_INSTANCE instance, JET_HANDLE handle)
-        {
-            Tracing.TraceFunctionCall("JetCloseFileInstance");
-            return Tracing.TraceResult(NativeMethods.JetCloseFileInstance(instance.Value, handle.Value));
-        }
-
-        /// <summary>
-        /// Ends an external backup session. This API is the last API in a series
-        /// of APIs that must be called to execute a successful online
-        /// (non-VSS based) backup.
-        /// </summary>
-        /// <param name="instance">The instance to end the backup for.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetEndExternalBackupInstance(JET_INSTANCE instance)
-        {
-            Tracing.TraceFunctionCall("JetEndExternalBackupInstance");
-            return Tracing.TraceResult(NativeMethods.JetEndExternalBackupInstance(instance.Value));
-        }
-
-        /// <summary>
-        /// Ends an external backup session. This API is the last API in a series
-        /// of APIs that must be called to execute a successful online
-        /// (non-VSS based) backup.
-        /// </summary>
-        /// <param name="instance">The instance to end the backup for.</param>
-        /// <param name="grbit">Options that specify how the backup ended.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetEndExternalBackupInstance2(JET_INSTANCE instance, EndExternalBackupGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetEndExternalBackupInstance2");
-            return Tracing.TraceResult(NativeMethods.JetEndExternalBackupInstance2(instance.Value, (uint)grbit));
-        }
-
-        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
-        /// to query an instance for the names of database files that should become part of the
-        /// backup file set. Only databases that are currently attached to the instance using
-        /// <see cref="IJetSession.AttachDatabase"/> will be considered. These files may
-        /// subsequently be opened using <see cref="JetOpenFileInstance"/> and read using
-        /// <see cref="JetReadFileInstance"/>.</summary>
-        /// <remarks>It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be part of
-        /// the backup file set.</remarks>
-        /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">Returns a list of null terminated strings describing the set of
-        /// database files that should be a part of the backup file set. The list of strings
-        /// returned in this buffer is in the same format as a multi-string used by the registry.
-        /// Each null-terminated string is returned in sequence followed by a final null terminator.</param>
-        /// <param name="maxChars">Maximum number of characters to retrieve.</param>
-        /// <param name="actualChars">Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetGetAttachInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
-        {
-            Tracing.TraceFunctionCall("JetGetAttachInfoInstance");
-            Helpers.CheckNotNegative(maxChars, "maxChars");
-
-            // These strings have embedded nulls so we can't use a StringBuilder.
-            int err;
-            if (_capabilities.SupportsUnicodePaths) {
-                uint bytesMax = checked((uint)maxChars) * sizeof(char);
-                byte[] szz = new byte[bytesMax];
-                uint bytesActual = 0;
-                err = Tracing.TraceResult(NativeMethods.JetGetAttachInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
-                actualChars = checked((int)bytesActual) / sizeof(char);
-                files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
-            }
-            else {
-                uint bytesMax = checked((uint)maxChars);
-                byte[] szz = new byte[bytesMax];
-                uint bytesActual = 0;
-                err = Tracing.TraceResult(NativeMethods.JetGetAttachInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
-                actualChars = checked((int)bytesActual);
-                files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
-            }
-            return err;
-        }
-
-        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
-        /// to query an instance for the names of database patch files and logfiles that should
-        /// become part of the backup file set. These files may subsequently be opened using
-        /// <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.</summary>
-        /// <remarks>It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be part
-        /// of the backup file set.</remarks>
-        /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">Returns a list of null terminated strings describing the set of
-        /// database patch files and log files that should be a part of the backup file set.
-        /// The list of strings returned in this buffer is in the same format as a multi-string
-        /// used by the registry. Each null-terminated string is returned in sequence followed
-        /// by a final null terminator.</param>
-        /// <param name="maxChars">Maximum number of characters to retrieve.</param>
-        /// <param name="actualChars">Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetGetLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
-        {
-            Tracing.TraceFunctionCall("JetGetLogInfoInstance");
-            Helpers.CheckNotNegative(maxChars, "maxChars");
-
-            // These strings have embedded nulls so we can't use a StringBuilder.
-            int err;
-            if (_capabilities.SupportsUnicodePaths) {
-                uint bytesMax = checked((uint)maxChars) * sizeof(char);
-                byte[] szz = new byte[bytesMax];
-                uint bytesActual = 0;
-                err = Tracing.TraceResult(NativeMethods.JetGetLogInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
-                actualChars = checked((int)bytesActual) / sizeof(char);
-                files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
-            }
-            else {
-                uint bytesMax = checked((uint)maxChars);
-                byte[] szz = new byte[bytesMax];
-                uint bytesActual = 0;
-                err = Tracing.TraceResult(NativeMethods.JetGetLogInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
-                actualChars = checked((int)bytesActual);
-                files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
-            }
-            return err;
-        }
-
-        /// <summary>
-        /// Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
-        /// to query an instance for the names of the transaction log files that can be safely
-        /// deleted after the backup has successfully completed.
-        /// </summary>
-        /// <remarks>
-        /// It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be
-        /// part of the backup file set.
-        /// </remarks>
-        /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">
-        /// Returns a list of null terminated strings describing the set of database log files
-        /// that can be safely deleted after the backup completes. The list of strings returned in
-        /// this buffer is in the same format as a multi-string used by the registry. Each
-        /// null-terminated string is returned in sequence followed by a final null terminator.
-        /// </param>
-        /// <param name="maxChars">
-        /// Maximum number of characters to retrieve.
-        /// </param>
-        /// <param name="actualChars">
-        /// Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.
-        /// </param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetGetTruncateLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars)
-        {
-            Tracing.TraceFunctionCall("JetGetTruncateLogInfoInstance");
-            Helpers.CheckNotNegative(maxChars, "maxChars");
-
-            // These strings have embedded nulls so we can't use a StringBuilder.
-            int err;
-            if (_capabilities.SupportsUnicodePaths)
-            {
-                uint bytesMax = checked((uint)maxChars) * sizeof(char);
-                byte[] szz = new byte[bytesMax];
-                uint bytesActual = 0;
-                err = Tracing.TraceResult(NativeMethods.JetGetTruncateLogInfoInstanceW(instance.Value, szz, bytesMax, out bytesActual));
-                actualChars = checked((int)bytesActual) / sizeof(char);
-                files = Encoding.Unicode.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
-            }
-            else
-            {
-                uint bytesMax = checked((uint)maxChars);
-                byte[] szz = new byte[bytesMax];
-                uint bytesActual = 0;
-                err = Tracing.TraceResult(NativeMethods.JetGetTruncateLogInfoInstance(instance.Value, szz, bytesMax, out bytesActual));
-                actualChars = checked((int)bytesActual);
-                files = LibraryHelpers.EncodingASCII.GetString(szz, 0, Math.Min(szz.Length, (int)bytesActual));
-            }
-
-            return err;
-        }
-
-        /// <summary>
-        /// Opens an attached database, database patch file, or transaction log
-        /// file of an active instance for the purpose of performing a streaming
-        /// fuzzy backup. The data from these files can subsequently be read
-        /// through the returned handle using JetReadFileInstance. The returned
-        /// handle must be closed using JetCloseFileInstance. An external backup
-        /// of the instance must have been previously initiated using
-        /// JetBeginExternalBackupInstance.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="file">The file to open.</param>
-        /// <param name="handle">Returns a handle to the file.</param>
-        /// <param name="fileSizeLow">Returns the least significant 32 bits of the file size.</param>
-        /// <param name="fileSizeHigh">Returns the most significant 32 bits of the file size.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetOpenFileInstance(JET_INSTANCE instance, string file, out JET_HANDLE handle, out long fileSizeLow, out long fileSizeHigh)
-        {
-            Tracing.TraceFunctionCall("JetOpenFileInstance");
-            Helpers.CheckNotNull(file, "file");
-            handle = JET_HANDLE.Nil;
-            uint nativeFileSizeLow;
-            uint nativeFileSizeHigh;
-            int err = Tracing.TraceResult(NativeMethods.JetOpenFileInstanceW(
-                            instance.Value, file, out handle.Value, out nativeFileSizeLow, out nativeFileSizeHigh));
-            fileSizeLow = nativeFileSizeLow;
-            fileSizeHigh = nativeFileSizeHigh;
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves the contents of a file opened with <see cref="Api.JetOpenFileInstance"/>.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="file">The file to read from.</param>
-        /// <param name="buffer">The buffer to read into.</param>
-        /// <param name="bufferSize">The size of the buffer.</param>
-        /// <param name="bytesRead">Returns the amount of data read into the buffer.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetReadFileInstance(JET_INSTANCE instance, JET_HANDLE file, byte[] buffer, int bufferSize, out int bytesRead)
-        {
-            Tracing.TraceFunctionCall("JetReadFileInstance");
-            Helpers.CheckNotNull(buffer, "buffer");
-            Helpers.CheckDataSize(buffer, bufferSize, "bufferSize");
-
-            // ESENT requires that the buffer be aligned on a page allocation boundary.
-            // VirtualAlloc is the API used to do that, so we use P/Invoke to call it.
-            IntPtr alignedBuffer = Win32.NativeMethods.VirtualAlloc(
-                IntPtr.Zero,
-                (UIntPtr)bufferSize,
-                (uint)(Win32.AllocationType.MEM_COMMIT | Win32.AllocationType.MEM_RESERVE),
-                (uint)Win32.MemoryProtection.PAGE_READWRITE);
-            Win32.NativeMethods.ThrowExceptionOnNull(alignedBuffer, "VirtualAlloc");
-
-            try
-            {
-                uint nativeBytesRead = 0;
-                int err =
-                    Tracing.TraceResult(
-                        NativeMethods.JetReadFileInstance(
-                            instance.Value, file.Value, alignedBuffer, checked((uint)bufferSize), out nativeBytesRead));
-                bytesRead = checked((int)nativeBytesRead);
-
-                // Copy the memory out of the aligned buffer into the user buffer.
-                Marshal.Copy(alignedBuffer, buffer, 0, bytesRead);
-                return err;
-            }
-            finally
-            {
-                bool freeSucceded = Win32.NativeMethods.VirtualFree(alignedBuffer, UIntPtr.Zero, (uint)Win32.FreeType.MEM_RELEASE);
-                Win32.NativeMethods.ThrowExceptionOnFailure(freeSucceded, "VirtualFree");
-            }
-        }
-
-        /// <summary>
-        /// Used during a backup initiated by JetBeginExternalBackup to delete
-        /// any transaction log files that will no longer be needed once the
-        /// current backup completes successfully.
-        /// </summary>
-        /// <param name="instance">The instance to truncate.</param>
-        /// <returns>An error code if the call fails.</returns>
-        public int JetTruncateLogInstance(JET_INSTANCE instance)
-        {
-            Tracing.TraceFunctionCall("JetTruncateLogInstance");
-            return Tracing.TraceResult(NativeMethods.JetTruncateLogInstance(instance.Value));
-        }
         #endregion
 
         #region Sessions
@@ -4398,7 +4267,7 @@ namespace EsentLib.Implementation
             callbackId = JET_HANDLE.Nil;
             return Tracing.TraceResult(NativeMethods.JetRegisterCallback(sesid.Value, tableid.Value,
                 unchecked((uint)cbtyp), this.callbackWrappers.Add(callback).NativeCallback,
-                context, out callbackId.Value));
+                context, out callbackId._nativeHandle));
         }
 
         /// <summary>Configures the database engine to stop issuing notifications to the
@@ -4420,7 +4289,7 @@ namespace EsentLib.Implementation
                 sesid.Value,
                 tableid.Value,
                 unchecked((uint)cbtyp),
-                callbackId.Value));
+                callbackId._nativeHandle));
         }
 
         #endregion

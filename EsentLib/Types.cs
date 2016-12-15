@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+using EsentLib.Implementation;
+
 namespace EsentLib
 {
     /// <summary>A JET_SESID contains a handle to the session to use for calls to the JET Api.
@@ -629,49 +631,39 @@ namespace EsentLib
         }
     }
 
-    /// <summary>
-    /// A JET_HANDLE contains a generic handle.
-    /// </summary>
-    public struct JET_HANDLE : IEquatable<JET_HANDLE>, IFormattable
+    /// <summary>A JET_HANDLE contains a generic handle.</summary>
+    public class JET_HANDLE : IEquatable<JET_HANDLE>, IFormattable
     {
-        /// <summary>
-        /// The native value.
-        /// </summary>
-        internal IntPtr Value;
+        private JET_HANDLE(IJetInstance owner)
+        {
+            _owner = owner;
+            return;
+        }
+        
+        /// <summary>Gets a value indicating whether the <see cref="JET_HANDLE"/> is valid (checks
+        /// against 0 and -1).</summary>
+        public bool IsInvalid
+        {
+            get { return this._nativeHandle == IntPtr.Zero || this._nativeHandle == new IntPtr(~0); }
+        }
 
-        /// <summary>
-        /// Gets a null JET_HANDLE.
-        /// </summary>
+        /// <summary>Gets a null JET_HANDLE.</summary>
         public static JET_HANDLE Nil
         {
             [DebuggerStepThrough]
-            get { return new JET_HANDLE(); }
+            get { return new JET_HANDLE(null); }
         }
 
-        /// <summary>
-        /// Gets a value indicating whether the <see cref="JET_HANDLE"/> is valid (checks against 0 and -1).
-        /// </summary>
-        public bool IsInvalid
-        {
-            get { return this.Value == IntPtr.Zero || this.Value == new IntPtr(~0); }
-        }
-
-        /// <summary>
-        /// Determines whether two specified instances of JET_HANDLE
-        /// are equal.
-        /// </summary>
+        /// <summary>Determines whether two specified instances of JET_HANDLE are equal.</summary>
         /// <param name="lhs">The first instance to compare.</param>
         /// <param name="rhs">The second instance to compare.</param>
         /// <returns>True if the two instances are equal.</returns>
         public static bool operator ==(JET_HANDLE lhs, JET_HANDLE rhs)
         {
-            return lhs.Value == rhs.Value;
+            return lhs._nativeHandle == rhs._nativeHandle;
         }
 
-        /// <summary>
-        /// Determines whether two specified instances of JET_HANDLE
-        /// are not equal.
-        /// </summary>
+        /// <summary>Determines whether two specified instances of JET_HANDLE are not equal.</summary>
         /// <param name="lhs">The first instance to compare.</param>
         /// <param name="rhs">The second instance to compare.</param>
         /// <returns>True if the two instances are not equal.</returns>
@@ -680,69 +672,110 @@ namespace EsentLib
             return !(lhs == rhs);
         }
 
-        /// <summary>
-        /// Generate a string representation of the structure.
-        /// </summary>
-        /// <returns>The structure as a string.</returns>
-        public override string ToString()
+        /// <summary></summary>
+        /// <param name="owner"></param>
+        /// <returns></returns>
+        [CLSCompliant(false)]
+        public static JET_HANDLE Create(IJetInstance owner)
         {
-            return string.Format(CultureInfo.InvariantCulture, "JET_HANDLE(0x{0:x})", this.Value.ToInt64());
+            return new JET_HANDLE(owner);
         }
 
-        /// <summary>
-        /// Formats the value of the current instance using the specified format.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="T:System.String"/> containing the value of the current instance in the specified format.
-        /// </returns>
-        /// <param name="format">The <see cref="T:System.String"/> specifying the format to use.
-        /// -or- 
-        /// null to use the default format defined for the type of the <see cref="T:System.IFormattable"/> implementation. 
-        /// </param>
-        /// <param name="formatProvider">The <see cref="T:System.IFormatProvider"/> to use to format the value.
-        /// -or- 
-        /// null to obtain the numeric format information from the current locale setting of the operating system. 
-        /// </param>
-        public string ToString(string format, IFormatProvider formatProvider)
+        /// <summary>Closes a file that was opened with IJetInstance.OpenFile after the
+        /// data from that file has been extracted using JetReadFileInstance.</summary>
+        public void Close()
         {
-            return string.IsNullOrEmpty(format) || "G" == format ? this.ToString() : this.Value.ToInt64().ToString(format, formatProvider);
+            Tracing.TraceFunctionCall("Close");
+            int returnCode = NativeMethods.JetCloseFileInstance(_owner.Id, _nativeHandle);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
         }
 
-        /// <summary>
-        /// Returns a value indicating whether this instance is equal
-        /// to another instance.
-        /// </summary>
+        /// <summary>Returns a value indicating whether this instance is equal to another
+        /// instance.</summary>
         /// <param name="obj">An object to compare with this instance.</param>
         /// <returns>True if the two instances are equal.</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-
+            if (obj == null || GetType() != obj.GetType()) { return false; }
             return this.Equals((JET_HANDLE)obj);
         }
 
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns>The hash code for this instance.</returns>
-        public override int GetHashCode()
-        {
-            return this.Value.GetHashCode();
-        }
-
-        /// <summary>
-        /// Returns a value indicating whether this instance is equal
-        /// to another instance.
-        /// </summary>
+        /// <summary>Returns a value indicating whether this instance is equal to another
+        /// instance.</summary>
         /// <param name="other">An instance to compare with this instance.</param>
         /// <returns>True if the two instances are equal.</returns>
         public bool Equals(JET_HANDLE other)
         {
-            return this.Value.Equals(other.Value);
+            return _nativeHandle.Equals(other._nativeHandle);
         }
+
+        /// <summary>Returns the hash code for this instance.</summary>
+        /// <returns>The hash code for this instance.</returns>
+        public override int GetHashCode()
+        {
+            return _nativeHandle.GetHashCode();
+        }
+
+        /// <summary>Retrieves the contents of a file opened with <see cref="IJetInstance.OpenFile"/>.
+        /// </summary>
+        /// <param name="buffer">The buffer to read into.</param>
+        /// <param name="bufferSize">The size of the buffer.</param>
+        /// <returns>Number of bytes read.</returns>
+        public int Read(byte[] buffer, int bufferSize)
+        {
+            Tracing.TraceFunctionCall("Read");
+            Helpers.CheckNotNull(buffer, "buffer");
+            Helpers.CheckDataSize(buffer, bufferSize, "bufferSize");
+
+            // ESENT requires that the buffer be aligned on a page allocation boundary.
+            // VirtualAlloc is the API used to do that, so we use P/Invoke to call it.
+            IntPtr alignedBuffer = Win32.NativeMethods.VirtualAlloc(IntPtr.Zero, (UIntPtr)bufferSize,
+                (uint)(Win32.AllocationType.MEM_COMMIT | Win32.AllocationType.MEM_RESERVE),
+                (uint)Win32.MemoryProtection.PAGE_READWRITE);
+            Win32.NativeMethods.ThrowExceptionOnNull(alignedBuffer, "VirtualAlloc");
+            try {
+                uint nativeBytesRead = 0;
+                int returnCode = NativeMethods.JetReadFileInstance(_owner.Id, _nativeHandle, alignedBuffer,
+                    checked((uint)bufferSize), out nativeBytesRead);
+                Tracing.TraceResult(returnCode);
+                int bytesRead = checked((int)nativeBytesRead);
+                // Copy the memory out of the aligned buffer into the user buffer.
+                Marshal.Copy(alignedBuffer, buffer, 0, bytesRead);
+                EsentExceptionHelper.Check(returnCode);
+                return bytesRead;
+            }
+            finally {
+                Win32.NativeMethods.ThrowExceptionOnFailure(
+                    Win32.NativeMethods.VirtualFree(alignedBuffer, UIntPtr.Zero, (uint)Win32.FreeType.MEM_RELEASE),
+                    "VirtualFree");
+            }
+        }
+
+        /// <summary>Generate a string representation of the structure.</summary>
+        /// <returns>The structure as a string.</returns>
+        public override string ToString()
+        {
+            return string.Format(CultureInfo.InvariantCulture, "JET_HANDLE(0x{0:x})", this._nativeHandle.ToInt64());
+        }
+
+        /// <summary>Formats the value of the current instance using the specified format.</summary>
+        /// <returns>A <see cref="T:System.String"/> containing the value of the current instance in the
+        /// specified format.</returns>
+        /// <param name="format">The <see cref="T:System.String"/> specifying the format to use.
+        /// -or- null to use the default format defined for the type of the <see cref="T:System.IFormattable"/>
+        /// implementation. </param>
+        /// <param name="formatProvider">The <see cref="T:System.IFormatProvider"/> to use to format
+        /// the value. -or-  null to obtain the numeric format information from the current locale
+        /// setting of the operating system. </param>
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            return string.IsNullOrEmpty(format) || "G" == format ? this.ToString() : this._nativeHandle.ToInt64().ToString(format, formatProvider);
+        }
+
+        /// <summary>The native value.</summary>
+        internal IntPtr _nativeHandle;
+        private IJetInstance _owner;
     }
 
     /// <summary>

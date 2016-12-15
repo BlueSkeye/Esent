@@ -338,16 +338,16 @@ namespace EsentLib.Implementation
         public static extern int JetGetTruncateLogInfoInstanceW(IntPtr instance, [Out] byte[] szz, uint cbMax, out uint pcbActual);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetOpenFileInstance(
-            IntPtr instance, string szFileName, out IntPtr phfFile, out uint pulFileSizeLow, out uint pulFileSizeHigh);
+        public static extern int JetOpenFileInstance(IntPtr instance, string szFileName,
+            out IntPtr phfFile, out uint pulFileSizeLow, out uint pulFileSizeHigh);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetOpenFileInstanceW(
-            IntPtr instance, string szFileName, out IntPtr phfFile, out uint pulFileSizeLow, out uint pulFileSizeHigh);
+        public static extern int JetOpenFileInstanceW(IntPtr instance, string szFileName,
+            out IntPtr phfFile, out uint pulFileSizeLow, out uint pulFileSizeHigh);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetReadFileInstance(
-            IntPtr instance, IntPtr handle, IntPtr pv, uint cb, out uint pcbActual);
+        public static extern int JetReadFileInstance(IntPtr instance, IntPtr handle,
+            IntPtr pv, uint cb, out uint pcbActual);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetTruncateLogInstance(IntPtr instance);

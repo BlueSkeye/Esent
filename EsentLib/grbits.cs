@@ -253,7 +253,7 @@ namespace EsentLib
         Incremental = 0x1,
     }
 
-    /// <summary>Options for <see cref="Api.JetEndExternalBackupInstance"/>.</summary>
+    /// <summary>Options for <see cref="IJetInstance.CompleteBackup"/>.</summary>
     [Flags]
     public enum EndExternalBackupGrbit
     {

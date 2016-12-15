@@ -52,6 +52,41 @@ namespace EsentLib.Implementation
         /// <param name="grbit">Termination options.</param>
         void Close(TermGrbit grbit = TermGrbit.None);
 
+        /// <summary>Ends an external backup session. This API is the last API in a series
+        /// of APIs that must be called to execute a successful online (non-VSS based)
+        /// backup.</summary>
+        /// <param name="grbit">Options that specify how the backup ended.</param>
+        void CompleteBackup(EndExternalBackupGrbit grbit = EndExternalBackupGrbit.None);
+
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
+        /// to query an instance for the names of database files that should become part of
+        /// the backup file set. Only databases that are currently attached to the instance
+        /// using <see cref="JetSession.AttachDatabase"/> will be considered. These files may
+        /// subsequently be opened using <see cref="IJetInstance.OpenFile"/> and read
+        /// using <see cref="JET_HANDLE.Read"/>.</summary>
+        /// <returns>Returns a list of strings describing the set of database files that should
+        /// be a part of the backup file set. The list of strings returned .</returns>
+        List<string> GetBackupFiles();
+
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
+        /// to query an instance for the names of database patch files and logfiles that should
+        /// become part of the backup file set. These files may subsequently be opened using
+        /// <see cref="IJetInstance.OpenFile"/> and read using <see cref="JET_HANDLE.Read"/>.
+        /// </summary>
+        /// <returns>Returns a list of strings describing the set of database files that should
+        /// be a part of the backup file set. The list of strings returned .</returns>
+        List<string> GetBackupLogFiles();
+
+        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
+        /// to query an instance for the names of the transaction log files that can be safely
+        /// deleted after the backup has successfully completed.</summary>
+        /// <remarks>It is important to note that this API does not return an error or warning
+        /// if the output buffer is too small to accept the full list of files that should be
+        /// part of the backup file set.</remarks>
+        /// <returns>Returns a list of strings describing the set of files that are ready for
+        /// truncation.</returns>
+        List<string> GetBackupTruncateReadyLogFiles();
+
         /// <summary>Retrieves information about an instance.</summary>
         /// <param name="infoLevel">The type of information to retrieve.</param>
         /// <returns>An error code if the call fails.</returns>
@@ -64,6 +99,17 @@ namespace EsentLib.Implementation
         /// status.</param>
         /// <returns>An error if the call fails.</returns>
         void Initialize(InitGrbit grbit = InitGrbit.None, JET_RSTINFO recoveryOptions = null);
+
+        /// <summary>Opens an attached database, database patch file, or transaction log file
+        /// of an active instance for the purpose of performing a streaming fuzzy backup. The
+        /// data from these files can subsequently be read through the returned handle using
+        /// JET_HANDLE.Read. The returned handle must be closed using JET_HANDLE.Close.
+        /// An external backup of the instance must have been previously initiated using
+        /// JetBeginExternalBackupInstance.</summary>
+        /// <param name="file">The file to open.</param>
+        /// <param name="fileSize">Returns the file size.</param>
+        ///<returns>Handle tà ely opeed file.</returns>
+        JET_HANDLE OpenFile(string file, out long fileSize);
 
         /// <summary>Initiates an external backup while the engine and database are online
         /// and active.</summary>
@@ -91,154 +137,15 @@ namespace EsentLib.Implementation
         /// running instance, thus ending the streaming backup in a predictable way.</summary>
         void StopBackup();
 
+        /// <summary>Used during a backup initiated by PrepareBackup to delete any transaction
+        /// log files that will no longer be needed once the current backup completes
+        /// successfully.</summary>
+        void TruncateBackupLogs();
+
         //---------------------------------------------------------------//
         //---------------------------------------------------------------//
         //---------------------------------------------------------------//
         //---------------------------------------------------------------//
-
-        #region Snapshot Backup
-
-        #endregion
-
-        #region Streaming Backup/Restore
-
-        /// <summary>
-        /// Closes a file that was opened with JetOpenFileInstance after the
-        /// data from that file has been extracted using JetReadFileInstance.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="handle">The handle to close.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetCloseFileInstance(JET_INSTANCE instance, JET_HANDLE handle);
-
-        /// <summary>Ends an external backup session. This API is the last API in a series
-        /// of APIs that must be called to execute a successful online (non-VSS based) backup.
-        /// </summary>
-        /// <param name="instance">The instance to end the backup for.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetEndExternalBackupInstance(JET_INSTANCE instance);
-
-        /// <summary>Ends an external backup session. This API is the last API in a series
-        /// of APIs that must be called to execute a successful online (non-VSS based) backup.
-        /// </summary>
-        /// <param name="instance">The instance to end the backup for.</param>
-        /// <param name="grbit">Options that specify how the backup ended.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetEndExternalBackupInstance2(JET_INSTANCE instance, EndExternalBackupGrbit grbit);
-
-        /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
-        /// to query an instance for the names of database files that should become part of the
-        /// backup file set. Only databases that are currently attached to the instance using
-        /// <see cref="JetSession.AttachDatabase"/> will be considered. These files may subsequently
-        /// be opened using <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.
-        /// </summary>
-        /// <remarks>It is important to note that this API does not return an error or warning
-        /// if the output buffer is too small to accept the full list of files that should be
-        /// part of the backup file set.</remarks>
-        /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">Returns a list of null terminated strings describing the set of
-        /// database files that should be a part of the backup file set. The list of strings returned
-        /// in this buffer is in the same format as a multi-string used by the registry. Each
-        /// null-terminated string is returned in sequence followed by a final null terminator.
-        /// </param>
-        /// <param name="maxChars">Maximum number of characters to retrieve.</param>
-        /// <param name="actualChars">Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetGetAttachInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars);
-
-        /// <summary>
-        /// Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
-        /// to query an instance for the names of database patch files and logfiles that 
-        /// should become part of the backup file set. These files may subsequently be 
-        /// opened using <see cref="JetOpenFileInstance"/> and read using <see cref="JetReadFileInstance"/>.
-        /// </summary>
-        /// <remarks>
-        /// It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be
-        /// part of the backup file set. 
-        /// </remarks>
-        /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">
-        /// Returns a list of null terminated strings describing the set of database patch files
-        /// and log files that should be a part of the backup file set. The list of strings returned in
-        /// this buffer is in the same format as a multi-string used by the registry. Each
-        /// null-terminated string is returned in sequence followed by a final null terminator.
-        /// </param>
-        /// <param name="maxChars">
-        /// Maximum number of characters to retrieve.
-        /// </param>
-        /// <param name="actualChars">
-        /// Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.
-        /// </param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetGetLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars);
-
-        /// <summary>
-        /// Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
-        /// to query an instance for the names of the transaction log files that can be safely
-        /// deleted after the backup has successfully completed.
-        /// </summary>
-        /// <remarks>
-        /// It is important to note that this API does not return an error or warning if
-        /// the output buffer is too small to accept the full list of files that should be
-        /// part of the backup file set. 
-        /// </remarks>
-        /// <param name="instance">The instance to get the information for.</param>
-        /// <param name="files">
-        /// Returns a list of null terminated strings describing the set of database log files
-        /// that can be safely deleted after the backup completes. The list of strings returned in
-        /// this buffer is in the same format as a multi-string used by the registry. Each
-        /// null-terminated string is returned in sequence followed by a final null terminator.
-        /// </param>
-        /// <param name="maxChars">
-        /// Maximum number of characters to retrieve.
-        /// </param>
-        /// <param name="actualChars">
-        /// Actual size of the file list. If this is greater than maxChars
-        /// then the list has been truncated.
-        /// </param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetGetTruncateLogInfoInstance(JET_INSTANCE instance, out string files, int maxChars, out int actualChars);
-
-        /// <summary>
-        /// Opens an attached database, database patch file, or transaction log
-        /// file of an active instance for the purpose of performing a streaming
-        /// fuzzy backup. The data from these files can subsequently be read
-        /// through the returned handle using JetReadFileInstance. The returned
-        /// handle must be closed using JetCloseFileInstance. An external backup
-        /// of the instance must have been previously initiated using
-        /// JetBeginExternalBackupInstance.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="file">The file to open.</param>
-        /// <param name="handle">Returns a handle to the file.</param>
-        /// <param name="fileSizeLow">Returns the least significant 32 bits of the file size.</param>
-        /// <param name="fileSizeHigh">Returns the most significant 32 bits of the file size.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetOpenFileInstance(JET_INSTANCE instance, string file, out JET_HANDLE handle, out long fileSizeLow, out long fileSizeHigh);
-
-        /// <summary>
-        /// Retrieves the contents of a file opened with <see cref="Api.JetOpenFileInstance"/>.
-        /// </summary>
-        /// <param name="instance">The instance to use.</param>
-        /// <param name="file">The file to read from.</param>
-        /// <param name="buffer">The buffer to read into.</param>
-        /// <param name="bufferSize">The size of the buffer.</param>
-        /// <param name="bytesRead">Returns the amount of data read into the buffer.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetReadFileInstance(JET_INSTANCE instance, JET_HANDLE file, byte[] buffer, int bufferSize, out int bytesRead);
-
-        /// <summary>
-        /// Used during a backup initiated by JetBeginExternalBackup to delete
-        /// any transaction log files that will no longer be needed once the
-        /// current backup completes successfully.
-        /// </summary>
-        /// <param name="instance">The instance to truncate.</param>
-        /// <returns>An error code if the call fails.</returns>
-        int JetTruncateLogInstance(JET_INSTANCE instance);
-        #endregion
 
         #region Sessions
 
