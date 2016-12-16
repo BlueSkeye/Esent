@@ -147,60 +147,7 @@ namespace EsentLib.Implementation
         //---------------------------------------------------------------//
         //---------------------------------------------------------------//
 
-        #region Sessions
-
-        /// <summary>
-        /// Associates a session with the current thread using the given context
-        /// handle. This association overrides the default engine requirement
-        /// that a transaction for a given session must occur entirely on the
-        /// same thread. 
-        /// </summary>
-        /// <param name="sesid">The session to set the context on.</param>
-        /// <param name="context">The context to set.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetSetSessionContext(JET_SESID sesid, IntPtr context);
-
-        /// <summary>
-        /// Disassociates a session from the current thread. This should be
-        /// used in conjunction with JetSetSessionContext.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetResetSessionContext(JET_SESID sesid);
-
-        /// <summary>
-        /// Initialize a new ESE session in the same instance as the given sesid.
-        /// </summary>
-        /// <param name="sesid">The session to duplicate.</param>
-        /// <param name="newSesid">Returns the new session.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetDupSession(JET_SESID sesid, out JET_SESID newSesid);
-
-
-        #endregion
-
         #region Tables
-
-        /// <summary>
-        /// Opens a cursor on a previously created table.
-        /// </summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="dbid">The database to open the table in.</param>
-        /// <param name="tablename">The name of the table to open.</param>
-        /// <param name="parameters">The parameter is not used.</param>
-        /// <param name="parametersLength">The parameter is not used.</param>
-        /// <param name="grbit">Table open options.</param>
-        /// <param name="tableid">Returns the opened table.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetOpenTable(JET_SESID sesid, JET_DBID dbid, string tablename, byte[] parameters, int parametersLength, OpenTableGrbit grbit, out JET_TABLEID tableid);
-
-        /// <summary>
-        /// Close an open table.
-        /// </summary>
-        /// <param name="sesid">The session which opened the table.</param>
-        /// <param name="tableid">The table to close.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetCloseTable(JET_SESID sesid, JET_TABLEID tableid);
 
         /// <summary>
         /// Duplicates an open cursor and returns a handle to the duplicated cursor.
@@ -218,19 +165,6 @@ namespace EsentLib.Implementation
         /// <param name="grbit">Reserved for future use.</param>
         /// <returns>An error if the call fails.</returns>
         int JetDupCursor(JET_SESID sesid, JET_TABLEID tableid, out JET_TABLEID newTableid, DupCursorGrbit grbit);
-
-        /// <summary>
-        /// Walks each index of a table to exactly compute the number of entries
-        /// in an index, and the number of distinct keys in an index. This
-        /// information, together with the number of database pages allocated
-        /// for an index and the current time of the computation is stored in
-        /// index metadata in the database. This data can be subsequently retrieved
-        /// with information operations.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table that the statistics will be computed on.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetComputeStats(JET_SESID sesid, JET_TABLEID tableid);
 
         /// <summary>
         /// Enables the application to associate a context handle known as
@@ -322,61 +256,6 @@ namespace EsentLib.Implementation
         #endregion
 
         #region DDL
-
-        /// <summary>
-        /// Create an empty table. The newly created table is opened exclusively.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to create the table in.</param>
-        /// <param name="table">The name of the table to create.</param>
-        /// <param name="pages">Initial number of pages in the table.</param>
-        /// <param name="density">
-        /// The default density of the table. This is used when doing sequential inserts.
-        /// </param>
-        /// <param name="tableid">Returns the tableid of the new table.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetCreateTable(JET_SESID sesid, JET_DBID dbid, string table, int pages, int density, out JET_TABLEID tableid);
-
-        /// <summary>
-        /// Add a new column to an existing table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to add the column to.</param>
-        /// <param name="column">The name of the column.</param>
-        /// <param name="columndef">The definition of the column.</param>
-        /// <param name="defaultValue">The default value of the column.</param>
-        /// <param name="defaultValueSize">The size of the default value.</param>
-        /// <param name="columnid">Returns the columnid of the new column.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetAddColumn(JET_SESID sesid, JET_TABLEID tableid, string column, JET_COLUMNDEF columndef, byte[] defaultValue, int defaultValueSize, out JET_COLUMNID columnid);
-
-        /// <summary>
-        /// Deletes a column from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the column from.</param>
-        /// <param name="column">The name of the column to be deleted.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetDeleteColumn(JET_SESID sesid, JET_TABLEID tableid, string column);
-
-        /// <summary>
-        /// Deletes a column from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the column from.</param>
-        /// <param name="column">The name of the column to be deleted.</param>
-        /// <param name="grbit">Column deletion options.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetDeleteColumn2(JET_SESID sesid, JET_TABLEID tableid, string column, DeleteColumnGrbit grbit);
-
-        /// <summary>
-        /// Deletes an index from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the index from.</param>
-        /// <param name="index">The name of the index to be deleted.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetDeleteIndex(JET_SESID sesid, JET_TABLEID tableid, string index);
 
         /// <summary>
         /// Deletes a table from a database.

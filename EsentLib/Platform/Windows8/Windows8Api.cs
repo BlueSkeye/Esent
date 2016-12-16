@@ -97,10 +97,10 @@ namespace EsentLib.Platform.Windows8
         /// When creating multiple indexes (i.e. with numIndexCreates
         /// greater than 1) this method MUST be called
         /// outside of any transactions and with exclusive access to the
-        /// table. The JET_TABLEID returned by "Api.JetCreateTable"
+        /// table. The JET_TABLEID returned by "IJetDatabase.CreateTable"
         /// will have exlusive access or the table can be opened for
         /// exclusive access by passing <see cref="OpenTableGrbit.DenyRead"/>
-        /// to <see cref="Api.JetOpenTable"/>.
+        /// to <see cref="IJetDatabase.OpenTable"/>.
         /// </remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to create the index on.</param>
@@ -136,7 +136,7 @@ namespace EsentLib.Platform.Windows8
         /// <param name="temporarytable">
         /// Description of the temporary table to create on input. After a
         /// successful call, the structure contains the handle to the temporary
-        /// table and column identifications. Use <see cref="Api.JetCloseTable"/>
+        /// table and column identifications. Use <see cref="IJetTable.Close"/>
         /// to free the temporary table when finished.
         /// </param>
         public static void JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)

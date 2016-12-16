@@ -1147,87 +1147,7 @@ namespace EsentLib.Implementation
 
         #endregion
 
-        #region Sessions
-
-        /// <summary>
-        /// Associates a session with the current thread using the given context
-        /// handle. This association overrides the default engine requirement
-        /// that a transaction for a given session must occur entirely on the
-        /// same thread.
-        /// </summary>
-        /// <param name="sesid">The session to set the context on.</param>
-        /// <param name="context">The context to set.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetSetSessionContext(JET_SESID sesid, IntPtr context)
-        {
-            Tracing.TraceFunctionCall("JetSetSessionContext");
-            return Tracing.TraceResult(NativeMethods.JetSetSessionContext(sesid.Value, context));
-        }
-
-        /// <summary>
-        /// Disassociates a session from the current thread. This should be
-        /// used in conjunction with JetSetSessionContext.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetResetSessionContext(JET_SESID sesid)
-        {
-            Tracing.TraceFunctionCall("JetResetSessionContext");
-            return Tracing.TraceResult(NativeMethods.JetResetSessionContext(sesid.Value));
-        }
-
-        /// <summary>
-        /// Initialize a new ESE session in the same instance as the given sesid.
-        /// </summary>
-        /// <param name="sesid">The session to duplicate.</param>
-        /// <param name="newSesid">Returns the new session.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetDupSession(JET_SESID sesid, out JET_SESID newSesid)
-        {
-            Tracing.TraceFunctionCall("JetDupSession");
-            newSesid = JET_SESID.Nil;
-            return Tracing.TraceResult(NativeMethods.JetDupSession(sesid.Value, out newSesid.Value));
-        }
-
-        #endregion
-
         #region Tables
-
-        /// <summary>
-        /// Opens a cursor on a previously created table.
-        /// </summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="dbid">The database to open the table in.</param>
-        /// <param name="tablename">The name of the table to open.</param>
-        /// <param name="parameters">The parameter is not used.</param>
-        /// <param name="parametersLength">The parameter is not used.</param>
-        /// <param name="grbit">Table open options.</param>
-        /// <param name="tableid">Returns the opened table.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetOpenTable(JET_SESID sesid, JET_DBID dbid, string tablename,
-            byte[] parameters, int parametersLength, OpenTableGrbit grbit,
-            out JET_TABLEID tableid)
-        {
-            Tracing.TraceFunctionCall("JetOpenTable");
-            tableid = JET_TABLEID.Nil;
-            Helpers.CheckNotNull(tablename, "tablename");
-            Helpers.CheckDataSize(parameters, parametersLength, "parametersLength");
-            return Tracing.TraceResult(NativeMethods.JetOpenTable(sesid.Value, dbid.Value,
-                tablename, parameters, checked((uint)parametersLength), (uint)grbit,
-                out tableid.Value));
-        }
-
-        /// <summary>
-        /// Close an open table.
-        /// </summary>
-        /// <param name="sesid">The session which opened the table.</param>
-        /// <param name="tableid">The table to close.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetCloseTable(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            Tracing.TraceFunctionCall("JetCloseTable");
-            return Tracing.TraceResult(NativeMethods.JetCloseTable(sesid.Value, tableid.Value));
-        }
 
         /// <summary>
         /// Duplicates an open cursor and returns a handle to the duplicated cursor.
@@ -1249,23 +1169,6 @@ namespace EsentLib.Implementation
             Tracing.TraceFunctionCall("JetDupCursor");
             newTableid = JET_TABLEID.Nil;
             return Tracing.TraceResult(NativeMethods.JetDupCursor(sesid.Value, tableid.Value, out newTableid.Value, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Walks each index of a table to exactly compute the number of entries
-        /// in an index, and the number of distinct keys in an index. This
-        /// information, together with the number of database pages allocated
-        /// for an index and the current time of the computation is stored in
-        /// index metadata in the database. This data can be subsequently retrieved
-        /// with information operations.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table that the statistics will be computed on.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetComputeStats(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            Tracing.TraceFunctionCall("JetComputeStats");
-            return Tracing.TraceResult(NativeMethods.JetComputeStats(sesid.Value, tableid.Value));
         }
 
         /// <summary>
@@ -1375,27 +1278,6 @@ namespace EsentLib.Implementation
         #region DDL
 
         /// <summary>
-        /// Create an empty table. The newly created table is opened exclusively.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to create the table in.</param>
-        /// <param name="table">The name of the table to create.</param>
-        /// <param name="pages">Initial number of pages in the table.</param>
-        /// <param name="density">
-        /// The default density of the table. This is used when doing sequential inserts.
-        /// </param>
-        /// <param name="tableid">Returns the tableid of the new table.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetCreateTable(JET_SESID sesid, JET_DBID dbid, string table, int pages, int density, out JET_TABLEID tableid)
-        {
-            Tracing.TraceFunctionCall("JetCreateTable");
-            tableid = JET_TABLEID.Nil;
-            Helpers.CheckNotNull(table, "table");
-
-            return Tracing.TraceResult(NativeMethods.JetCreateTable(sesid.Value, dbid.Value, table, pages, density, out tableid.Value));
-        }
-
-        /// <summary>
         /// Deletes a table from a database.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
@@ -1408,66 +1290,6 @@ namespace EsentLib.Implementation
             Helpers.CheckNotNull(table, "table");
 
             return Tracing.TraceResult(NativeMethods.JetDeleteTable(sesid.Value, dbid.Value, table));
-        }
-
-        /// <summary>
-        /// Add a new column to an existing table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to add the column to.</param>
-        /// <param name="column">The name of the column.</param>
-        /// <param name="columndef">The definition of the column.</param>
-        /// <param name="defaultValue">The default value of the column.</param>
-        /// <param name="defaultValueSize">The size of the default value.</param>
-        /// <param name="columnid">Returns the columnid of the new column.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetAddColumn(JET_SESID sesid, JET_TABLEID tableid, string column,
-            JET_COLUMNDEF columndef, byte[] defaultValue, int defaultValueSize,
-            out JET_COLUMNID columnid)
-        {
-            Tracing.TraceFunctionCall("JetAddColumn");
-            columnid = JET_COLUMNID.Nil;
-            Helpers.CheckNotNull(column, "column");
-            Helpers.CheckNotNull(columndef, "columndef");
-            Helpers.CheckDataSize(defaultValue, defaultValueSize, "defaultValueSize");
-
-            NATIVE_COLUMNDEF nativeColumndef = columndef.GetNativeColumndef();
-            int err = Tracing.TraceResult(NativeMethods.JetAddColumn(sesid.Value, tableid.Value, column,
-                ref nativeColumndef, defaultValue, checked((uint)defaultValueSize),
-                out columnid.Value));
-            // esent doesn't actually set the columnid member of the passed in JET_COLUMNDEF, but we will do that here for
-            // completeness.
-            columndef.columnid = new JET_COLUMNID { Value = columnid.Value };
-            return err;
-        }
-
-        /// <summary>
-        /// Deletes a column from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the column from.</param>
-        /// <param name="column">The name of the column to be deleted.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetDeleteColumn(JET_SESID sesid, JET_TABLEID tableid, string column)
-        {
-            Tracing.TraceFunctionCall("JetDeleteColumn");
-            Helpers.CheckNotNull(column, "column");
-            return Tracing.TraceResult(NativeMethods.JetDeleteColumn(sesid.Value, tableid.Value, column));
-        }
-
-        /// <summary>
-        /// Deletes a column from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the column from.</param>
-        /// <param name="column">The name of the column to be deleted.</param>
-        /// <param name="grbit">Column deletion options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetDeleteColumn2(JET_SESID sesid, JET_TABLEID tableid, string column, DeleteColumnGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetDeleteColumn2");
-            Helpers.CheckNotNull(column, "column");
-            return Tracing.TraceResult(NativeMethods.JetDeleteColumn2(sesid.Value, tableid.Value, column, (uint)grbit));
         }
 
         /// <summary>
@@ -1556,53 +1378,25 @@ namespace EsentLib.Implementation
             return CreateIndexes(sesid, tableid, indexcreates, numIndexCreates);
         }
 
-        /// <summary>
-        /// Deletes an index from a database table.
-        /// </summary>
+        /// <summary>Creates a temporary table with a single index. A temporary table stores and
+        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        /// However, temporary tables are much faster than ordinary tables due to their volatile
+        /// nature. They can also be used to very quickly sort and perform duplicate removal on
+        /// record sets when accessed in a purely sequential manner.</summary>
         /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the index from.</param>
-        /// <param name="index">The name of the index to be deleted.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetDeleteIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
-        {
-            Tracing.TraceFunctionCall("JetDeleteIndex");
-            Helpers.CheckNotNull(index, "index");
-
-            return Tracing.TraceResult(NativeMethods.JetDeleteIndex(sesid.Value, tableid.Value, index));
-        }
-
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">
-        /// Column definitions for the columns created in the temporary table.
-        /// </param>
+        /// <param name="columns">Column definitions for the columns created in the temporary
+        /// table.</param>
         /// <param name="numColumns">Number of column definitions.</param>
         /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">
-        /// Returns the tableid of the temporary table. Closing this tableid
-        /// frees the resources associated with the temporary table.
-        /// </param>
-        /// <param name="columnids">
-        /// The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this
-        /// array will exactly correspond to the input array of column definitions.
-        /// As a result, the size of this buffer must correspond to the size of the input array.
-        /// </param>
+        /// <param name="tableid">Returns the tableid of the temporary table. Closing this tableid
+        /// frees the resources associated with the temporary table.</param>
+        /// <param name="columnids">The output buffer that receives the array of column IDs
+        /// generated during the creation of the temporary table. The column IDs in this array
+        /// will exactly correspond to the input array of column definitions. As a result, the
+        /// size of this buffer must correspond to the size of the input array.</param>
         /// <returns>An error code.</returns>
-        public int JetOpenTempTable(
-            JET_SESID sesid,
-            JET_COLUMNDEF[] columns,
-            int numColumns,
-            TempTableGrbit grbit,
-            out JET_TABLEID tableid,
-            JET_COLUMNID[] columnids)
+        public int JetOpenTempTable(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
+            TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
         {
             Tracing.TraceFunctionCall("JetOpenTempTable");
             Helpers.CheckNotNull(columns, "columnns");

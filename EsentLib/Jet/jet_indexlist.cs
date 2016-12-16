@@ -51,19 +51,19 @@ namespace EsentLib.Jet
 
         /// <summary>
         /// Id of the column containing the number of unique keys in the index.
-        /// This is updated by "Api.JetComputeStats".
+        /// This is updated by "IJetTable.ComputeStatistics".
         /// </summary>
         public uint columnidcKey;
 
         /// <summary>
         /// Id of the column containing the number of entries in the index.
-        /// This is updated by "Api.JetComputeStats".
+        /// This is updated by "IJetTable.ComputeStatistics".
         /// </summary>
         public uint columnidcEntry;
 
         /// <summary>
         /// Id of the column containing the number of pages in the index.
-        /// This is updated by "Api.JetComputeStats".
+        /// This is updated by "IJetTable.ComputeStatistics".
         /// </summary>
         public uint columnidcPage;
 
@@ -164,7 +164,7 @@ namespace EsentLib.Jet
         /// <summary>
         /// Gets the columnid of the column in the temporary table which
         /// stores the number of unique keys in the index.
-        /// This value is not current and is only is updated by "Api.JetComputeStats".
+        /// This value is not current and is only is updated by "IJetTable.ComputeStatistics".
         /// The column is of type <see cref="JET_coltyp.Long"/>.
         /// </summary>
         public JET_COLUMNID columnidcKey { get; internal set; }
@@ -172,7 +172,7 @@ namespace EsentLib.Jet
         /// <summary>
         /// Gets the columnid of the column in the temporary table which
         /// stores the number of entries in the index.
-        /// This value is not current and is only is updated by "Api.JetComputeStats".
+        /// This value is not current and is only is updated by "IJetTable.ComputeStatistics".
         /// The column is of type <see cref="JET_coltyp.Long"/>.
         /// </summary>
         public JET_COLUMNID columnidcEntry { get; internal set; }
@@ -180,7 +180,7 @@ namespace EsentLib.Jet
         /// <summary>
         /// Gets the columnid of the column in the temporary table which
         /// stores the number of pages in the index.
-        /// This value is not current and is only is updated by "Api.JetComputeStats".
+        /// This value is not current and is only is updated by "IJetTable.ComputeStatistics".
         /// The column is of type <see cref="JET_coltyp.Long"/>.
         /// </summary>
         public JET_COLUMNID columnidcPage { get; internal set; }

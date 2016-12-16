@@ -32,267 +32,9 @@ namespace EsentLib
         /// <summary>Gets or sets the IJetApi this is called for all functions.</summary>
         internal static IJetInstance Impl { get; set; }
 
-        #region Sessions
-
-        /// <summary>Associates a session with the current thread using the given context
-        /// handle. This association overrides the default engine requirement that a
-        /// transaction for a given session must occur entirely on the same thread.
-        /// Use <see cref="JetResetSessionContext"/> to remove the association.</summary>
-        /// <param name="sesid">The session to set the context on.</param>
-        /// <param name="context">The context to set.</param>
-        public static void JetSetSessionContext(JET_SESID sesid, IntPtr context)
-        {
-            EsentExceptionHelper.Check(Impl.JetSetSessionContext(sesid, context));
-        }
-
-        /// <summary>Disassociates a session from the current thread. This should be
-        /// used in conjunction with <see cref="JetSetSessionContext"/>.</summary>
-        /// <param name="sesid">The session to use.</param>
-        public static void JetResetSessionContext(JET_SESID sesid)
-        {
-            EsentExceptionHelper.Check(Impl.JetResetSessionContext(sesid));
-        }
-
-        /// <summary>Initialize a new ESE session in the same instance as the given sesid.
-        /// </summary>
-        /// <param name="sesid">The session to duplicate.</param>
-        /// <param name="newSesid">Returns the new session.</param>
-        public static void JetDupSession(JET_SESID sesid, out JET_SESID newSesid)
-        {
-            EsentExceptionHelper.Check(Impl.JetDupSession(sesid, out newSesid));
-        }
-
-        #endregion
-
-        #region Tables
-
-        /// <summary>Opens a cursor on a previously created table.</summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="dbid">The database to open the table in.</param>
-        /// <param name="tablename">The name of the table to open.</param>
-        /// <param name="parameters">The parameter is not used.</param>
-        /// <param name="parametersSize">The parameter is not used.</param>
-        /// <param name="grbit">Table open options.</param>
-        /// <param name="tableid">Returns the opened table.</param>
-        /// <returns>An ESENT warning.</returns>
-        public static JET_wrn JetOpenTable(JET_SESID sesid, JET_DBID dbid, string tablename, byte[] parameters, int parametersSize, OpenTableGrbit grbit, out JET_TABLEID tableid)
-        {
-            return EsentExceptionHelper.Check(Impl.JetOpenTable(sesid, dbid, tablename, parameters, parametersSize, grbit, out tableid));
-        }
-
-        /// <summary>Close an open table.</summary>
-        /// <param name="sesid">The session which opened the table.</param>
-        /// <param name="tableid">The table to close.</param>
-        public static void JetCloseTable(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            EsentExceptionHelper.Check(Impl.JetCloseTable(sesid, tableid));
-        }
-
-        /// <summary>
-        /// Duplicates an open cursor and returns a handle to the duplicated cursor.
-        /// If the cursor that was duplicated was a read-only cursor then the
-        /// duplicated cursor is also a read-only cursor.
-        /// Any state related to constructing a search key or updating a record is
-        /// not copied into the duplicated cursor. In addition, the location of the
-        /// original cursor is not duplicated into the duplicated cursor. The
-        /// duplicated cursor is always opened on the clustered index and its
-        /// location is always on the first row of the table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to duplicate.</param>
-        /// <param name="newTableid">The duplicated cursor.</param>
-        /// <param name="grbit">Reserved for future use.</param>
-        public static void JetDupCursor(JET_SESID sesid, JET_TABLEID tableid, out JET_TABLEID newTableid, DupCursorGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetDupCursor(sesid, tableid, out newTableid, grbit));
-        }
-
-        /// <summary>
-        /// Walks each index of a table to exactly compute the number of entries
-        /// in an index, and the number of distinct keys in an index. This
-        /// information, together with the number of database pages allocated
-        /// for an index and the current time of the computation is stored in
-        /// index metadata in the database. This data can be subsequently retrieved
-        /// with information operations.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table that the statistics will be computed on.</param>
-        public static void JetComputeStats(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            EsentExceptionHelper.Check(Impl.JetComputeStats(sesid, tableid));
-        }
-
-        /// <summary>
-        /// Enables the application to associate a context handle known as
-        /// Local Storage with a cursor or the table associated with that
-        /// cursor. This context handle can be used by the application to
-        /// store auxiliary data that is associated with a cursor or table.
-        /// The application is later notified using a runtime callback when
-        /// the context handle must be released. This makes it possible to
-        /// associate dynamically allocated state with a cursor or table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to use.</param>
-        /// <param name="ls">The context handle to be associated with the session or cursor.</param>
-        /// <param name="grbit">Set options.</param>
-        public static void JetSetLS(JET_SESID sesid, JET_TABLEID tableid, JET_LS ls, LsGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetSetLS(sesid, tableid, ls, grbit));
-        }
-
-        /// <summary>
-        /// Enables the application to retrieve the context handle known
-        /// as Local Storage that is associated with a cursor or the table
-        /// associated with that cursor. This context handle must have been
-        /// previously set using <see cref="JetSetLS"/>. JetGetLS can also
-        /// be used to simultaneously fetch the current context handle for
-        /// a cursor or table and reset that context handle.  
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to use.</param>
-        /// <param name="ls">Returns the retrieved context handle.</param>
-        /// <param name="grbit">Retrieve options.</param>
-        public static void JetGetLS(JET_SESID sesid, JET_TABLEID tableid, out JET_LS ls, LsGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetLS(sesid, tableid, out ls, grbit));
-        }
-
-        /// <summary>
-        /// Determine whether an update of the current record of a cursor
-        /// will result in a write conflict, based on the current update
-        /// status of the record. It is possible that a write conflict will
-        /// ultimately be returned even if JetGetCursorInfo returns successfully.
-        /// because another session may update the record before the current
-        /// session is able to update the same record.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to check.</param>
-        public static void JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetCursorInfo(sesid, tableid));
-        }
-
-        #endregion
-
-        #region Transactions
-
-        ///// <summary>
-        ///// Causes a session to enter a transaction or create a new save point in an existing
-        ///// transaction.
-        ///// </summary>
-        ///// <param name="sesid">The session to begin the transaction for.</param>
-        //public static void JetBeginTransaction(JET_SESID sesid)
-        //{
-        //    EsentExceptionHelper.Check(Impl.JetBeginTransaction(sesid));
-        //}
-
-        ///// <summary>Causes a session to enter a transaction or create a new save point in an
-        ///// existing transaction.</summary>
-        ///// <param name="sesid">The session to begin the transaction for.</param>
-        ///// <param name="grbit">Transaction options.</param>
-        //public static void JetBeginTransaction2(JET_SESID sesid, BeginTransactionGrbit grbit)
-        //{
-        //    EsentExceptionHelper.Check(Impl.JetBeginTransaction2(sesid, grbit));
-        //}
-
-        ///// <summary>
-        ///// Commits the changes made to the state of the database during the current save point
-        ///// and migrates them to the previous save point. If the outermost save point is committed
-        ///// then the changes made during that save point will be committed to the state of the
-        ///// database and the session will exit the transaction.
-        ///// </summary>
-        ///// <param name="sesid">The session to commit the transaction for.</param>
-        ///// <param name="grbit">Commit options.</param>
-        //public static void JetCommitTransaction(JET_SESID sesid, CommitTransactionGrbit grbit)
-        //{
-        //    EsentExceptionHelper.Check(Impl.JetCommitTransaction(sesid, grbit));
-        //}
-
-        ///// <summary>
-        ///// Undoes the changes made to the state of the database
-        ///// and returns to the last save point. JetRollback will also close any cursors
-        ///// opened during the save point. If the outermost save point is undone, the
-        ///// session will exit the transaction.
-        ///// </summary>
-        ///// <param name="sesid">The session to rollback the transaction for.</param>
-        ///// <param name="grbit">Rollback options.</param>
-        //public static void JetRollback(JET_SESID sesid, RollbackTransactionGrbit grbit)
-        //{
-        //    EsentExceptionHelper.Check(Impl.JetRollback(sesid, grbit));
-        //}
-
-        #endregion
-
         #region DDL
 
-        /// <summary>
-        /// Create an empty table. The newly created table is opened exclusively.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to create the table in.</param>
-        /// <param name="table">The name of the table to create.</param>
-        /// <param name="pages">Initial number of pages in the table.</param>
-        /// <param name="density">
-        /// The default density of the table. This is used when doing sequential inserts.
-        /// </param>
-        /// <param name="tableid">Returns the tableid of the new table.</param>
-        public static void JetCreateTable(JET_SESID sesid, JET_DBID dbid, string table, int pages, int density, out JET_TABLEID tableid)
-        {
-            EsentExceptionHelper.Check(Impl.JetCreateTable(sesid, dbid, table, pages, density, out tableid));
-        }
-
-        /// <summary>
-        /// Add a new column to an existing table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to add the column to.</param>
-        /// <param name="column">The name of the column.</param>
-        /// <param name="columndef">The definition of the column.</param>
-        /// <param name="defaultValue">The default value of the column.</param>
-        /// <param name="defaultValueSize">The size of the default value.</param>
-        /// <param name="columnid">Returns the columnid of the new column.</param>
-        public static void JetAddColumn(JET_SESID sesid, JET_TABLEID tableid, string column, JET_COLUMNDEF columndef, byte[] defaultValue, int defaultValueSize, out JET_COLUMNID columnid)
-        {
-            EsentExceptionHelper.Check(Impl.JetAddColumn(sesid, tableid, column, columndef, defaultValue, defaultValueSize, out columnid));
-        }
-
-        /// <summary>
-        /// Deletes a column from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the column from.</param>
-        /// <param name="column">The name of the column to be deleted.</param>
-        public static void JetDeleteColumn(JET_SESID sesid, JET_TABLEID tableid, string column)
-        {
-            EsentExceptionHelper.Check(Impl.JetDeleteColumn(sesid, tableid, column));
-        }
-
-        /// <summary>
-        /// Deletes a column from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the column from.</param>
-        /// <param name="column">The name of the column to be deleted.</param>
-        /// <param name="grbit">Column deletion options.</param>
-        public static void JetDeleteColumn2(JET_SESID sesid, JET_TABLEID tableid, string column, DeleteColumnGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetDeleteColumn2(sesid, tableid, column, grbit));
-        }
-
-        /// <summary>
-        /// Deletes an index from a database table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">A cursor on the table to delete the index from.</param>
-        /// <param name="index">The name of the index to be deleted.</param>
-        public static void JetDeleteIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
-        {
-            EsentExceptionHelper.Check(Impl.JetDeleteIndex(sesid, tableid, index));
-        }
-
-        /// <summary>
-        /// Deletes a table from a database.
-        /// </summary>
+        /// <summary>Deletes a table from a database.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to delete the table from.</param>
         /// <param name="table">The name of the table to delete.</param>
@@ -339,11 +81,10 @@ namespace EsentLib
         /// When creating multiple indexes (i.e. with numIndexCreates
         /// greater than 1) this method MUST be called
         /// outside of any transactions and with exclusive access to the
-        /// table. The JET_TABLEID returned by "JetCreateTable"
+        /// table. The JET_TABLEID returned by "IJetDatabase.CreateTable"
         /// will have exlusive access or the table can be opened for
         /// exclusive access by passing <see cref="OpenTableGrbit.DenyRead"/>
-        /// to <see cref="JetOpenTable"/>.
-        /// <para>
+        /// to <see cref="IJetDatabase.OpenTable"/>.<para>
         /// <see cref="Api.JetCreateIndex2"/> and <see cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
         /// are very similar, and appear to take the same arguments. The difference is in the
         /// implementation. JetCreateIndex2 uses LCIDs for Unicode indices (e.g. 1033), while
@@ -385,7 +126,7 @@ namespace EsentLib
         /// <param name="grbit">Table creation options.</param>
         /// <param name="tableid">
         /// Returns the tableid of the temporary table. Closing this tableid
-        /// with <see cref="JetCloseTable"/> frees the resources associated
+        /// with <see cref="IJetTable.Close"/> frees the resources associated
         /// with the temporary table.
         /// </param>
         /// <param name="columnids">
@@ -431,7 +172,7 @@ namespace EsentLib
         /// <param name="grbit">Table creation options.</param>
         /// <param name="tableid">
         /// Returns the tableid of the temporary table. Closing this tableid
-        /// with <see cref="JetCloseTable"/> frees the resources associated
+        /// with <see cref="IJetTable.Close"/> frees the resources associated
         /// with the temporary table.
         /// </param>
         /// <param name="columnids">
@@ -477,7 +218,7 @@ namespace EsentLib
         /// <param name="grbit">Table creation options.</param>
         /// <param name="tableid">
         /// Returns the tableid of the temporary table. Closing this tableid
-        /// with <see cref="JetCloseTable"/> frees the resources associated
+        /// with <see cref="IJetTable.Close"/> frees the resources associated
         /// with the temporary table.
         /// </param>
         /// <param name="columnids">
@@ -1083,12 +824,12 @@ namespace EsentLib
                     sesid, tableid, secondaryKey, secondaryKeySize, primaryKey, primaryKeySize, grbit));
         }
 
+        // <seealso cref="TryMoveFirst"/>, <seealso cref="TryMoveLast"/>,
+        // <seealso cref="TryMoveNext"/>, <seealso cref="TryMovePrevious"/>.
         /// <summary>
         /// Navigate through an index. The cursor can be positioned at the start or
         /// end of the index and moved backwards and forwards by a specified number
         /// of index entries. Also see
-        /// <seealso cref="TryMoveFirst"/>, <seealso cref="TryMoveLast"/>,
-        /// <seealso cref="TryMoveNext"/>, <seealso cref="TryMovePrevious"/>.
         /// </summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>
@@ -1099,12 +840,12 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, numRows, grbit));
         }
 
+        // <seealso cref="TryMoveFirst"/>, <seealso cref="TryMoveLast"/>,
+        // <seealso cref="TryMoveNext"/>, <seealso cref="TryMovePrevious"/>.
         /// <summary>
         /// Navigate through an index. The cursor can be positioned at the start or
         /// end of the index and moved backwards and forwards by a specified number
         /// of index entries. Also see
-        /// <seealso cref="TryMoveFirst"/>, <seealso cref="TryMoveLast"/>,
-        /// <seealso cref="TryMoveNext"/>, <seealso cref="TryMovePrevious"/>.
         /// </summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>
@@ -1145,12 +886,12 @@ namespace EsentLib
             }
         }
 
+        // Also see <seealso cref="TrySeek"/>.
         /// <summary>
         /// Efficiently positions a cursor to an index entry that matches the search
         /// criteria specified by the search key in that cursor and the specified
         /// inequality. A search key must have been previously constructed using 
         /// <see cref="JetMakeKey(JET_SESID,JET_TABLEID,byte[],int,MakeKeyGrbit)"/>.
-        /// Also see <seealso cref="TrySeek"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to position.</param>
@@ -1161,6 +902,7 @@ namespace EsentLib
             return EsentExceptionHelper.Check(Impl.JetSeek(sesid, tableid, grbit));
         }
 
+        // Also see <seealso cref="TrySetIndexRange"/>.
         /// <summary>
         /// Temporarily limits the set of index entries that the cursor can walk using
         /// <see cref="JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/> to those starting
@@ -1168,7 +910,6 @@ namespace EsentLib
         /// search criteria specified by the search key in that cursor and the specified
         /// bound criteria. A search key must have been previously constructed using
         /// <see cref="JetMakeKey(JET_SESID,JET_TABLEID,byte[],int,MakeKeyGrbit)"/>.
-        /// Also see <seealso cref="TrySetIndexRange"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to set the index range on.</param>
@@ -1178,11 +919,11 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetSetIndexRange(sesid, tableid, grbit));
         }
 
+        // <seealso cref="IntersectIndexes"/>.
         /// <summary>
         /// Computes the intersection between multiple sets of index entries from different secondary
         /// indices over the same table. This operation is useful for finding the set of records in a
         /// table that match two or more criteria that can be expressed using index ranges. Also see
-        /// <seealso cref="IntersectIndexes"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="ranges">
@@ -2026,5 +1767,74 @@ namespace EsentLib
         //    return unchecked((JET_wrn)err);
         //}
         #endregion Error Handling
+
+        /// <summary>
+        /// Enables the application to associate a context handle known as
+        /// Local Storage with a cursor or the table associated with that
+        /// cursor. This context handle can be used by the application to
+        /// store auxiliary data that is associated with a cursor or table.
+        /// The application is later notified using a runtime callback when
+        /// the context handle must be released. This makes it possible to
+        /// associate dynamically allocated state with a cursor or table.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The cursor to use.</param>
+        /// <param name="ls">The context handle to be associated with the session or cursor.</param>
+        /// <param name="grbit">Set options.</param>
+        public static void JetSetLS(JET_SESID sesid, JET_TABLEID tableid, JET_LS ls, LsGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Impl.JetSetLS(sesid, tableid, ls, grbit));
+        }
+
+        /// <summary>
+        /// Enables the application to retrieve the context handle known
+        /// as Local Storage that is associated with a cursor or the table
+        /// associated with that cursor. This context handle must have been
+        /// previously set using <see cref="JetSetLS"/>. JetGetLS can also
+        /// be used to simultaneously fetch the current context handle for
+        /// a cursor or table and reset that context handle.  
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The cursor to use.</param>
+        /// <param name="ls">Returns the retrieved context handle.</param>
+        /// <param name="grbit">Retrieve options.</param>
+        public static void JetGetLS(JET_SESID sesid, JET_TABLEID tableid, out JET_LS ls, LsGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Impl.JetGetLS(sesid, tableid, out ls, grbit));
+        }
+
+        /// <summary>
+        /// Determine whether an update of the current record of a cursor
+        /// will result in a write conflict, based on the current update
+        /// status of the record. It is possible that a write conflict will
+        /// ultimately be returned even if JetGetCursorInfo returns successfully.
+        /// because another session may update the record before the current
+        /// session is able to update the same record.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The cursor to check.</param>
+        public static void JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid)
+        {
+            EsentExceptionHelper.Check(Impl.JetGetCursorInfo(sesid, tableid));
+        }
+
+        /// <summary>
+        /// Duplicates an open cursor and returns a handle to the duplicated cursor.
+        /// If the cursor that was duplicated was a read-only cursor then the
+        /// duplicated cursor is also a read-only cursor.
+        /// Any state related to constructing a search key or updating a record is
+        /// not copied into the duplicated cursor. In addition, the location of the
+        /// original cursor is not duplicated into the duplicated cursor. The
+        /// duplicated cursor is always opened on the clustered index and its
+        /// location is always on the first row of the table.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The cursor to duplicate.</param>
+        /// <param name="newTableid">The duplicated cursor.</param>
+        /// <param name="grbit">Reserved for future use.</param>
+        public static void JetDupCursor(JET_SESID sesid, JET_TABLEID tableid, out JET_TABLEID newTableid, DupCursorGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Impl.JetDupCursor(sesid, tableid, out newTableid, grbit));
+        }
     }
 }

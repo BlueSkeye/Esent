@@ -70,7 +70,7 @@ namespace EsentLib.Platform.Vista
         /// <param name="temporarytable">
         /// Description of the temporary table to create on input. After a
         /// successful call, the structure contains the handle to the temporary
-        /// table and column identifications. Use <see cref="Api.JetCloseTable"/>
+        /// table and column identifications. Use <see cref="IJetTable.Close"/>
         /// to free the temporary table when finished.
         /// </param>
         public static void JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)

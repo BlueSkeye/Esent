@@ -366,132 +366,86 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>
-    /// Options for JetOpenTable.
-    /// </summary>
+    /// <summary>Options for IJetDatabase.OpenTable.</summary>
     [Flags]
     public enum OpenTableGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// This table cannot be opened for write access by another session.
-        /// </summary>
+        /// <summary>This table cannot be opened for write access by another
+        /// session.</summary>
         DenyWrite = 0x1,
 
-        /// <summary>
-        /// This table cannot be opened for read access by another session.
-        /// </summary>
+        /// <summary>This table cannot be opened for read access by another
+        /// session.</summary>
         DenyRead = 0x2,
 
-        /// <summary>
-        /// Request read-only access to the table.
-        /// </summary>
+        /// <summary>Request read-only access to the table.</summary>
         ReadOnly = 0x4,
 
-        /// <summary>
-        /// Request write access to the table.
-        /// </summary>
+        /// <summary>Request write access to the table.</summary>
         Updatable = 0x8,
 
-        /// <summary>
-        /// Allow DDL modifications to a table flagged as FixedDDL. This option
-        /// must be used with DenyRead.
-        /// </summary>
+        /// <summary>Allow DDL modifications to a table flagged as
+        /// FixedDDL. This option must be used with DenyRead.</summary>
         PermitDDL = 0x10,
 
-        /// <summary>
-        /// Do not cache pages for this table.
-        /// </summary>
+        /// <summary>Do not cache pages for this table.</summary>
         NoCache = 0x20,
 
-        /// <summary>
-        /// Provides a hint that the table is probably not in the buffer cache, and
-        /// that pre-reading may be beneficial to performance.
-        /// </summary>
+        /// <summary>Provides a hint that the table is probably not in
+        /// the buffer cache, and that pre-reading may be beneficial to
+        /// performance.</summary>
         Preread = 0x40,
 
-        /// <summary>
-        /// Assume a sequential access pattern and prefetch database pages.
-        /// </summary>
+        /// <summary>Assume a sequential access pattern and prefetch
+        /// database pages.</summary>
         Sequential = 0x8000,
 
-        /// <summary>
-        /// Table belongs to stats class 1.
-        /// </summary>
+        /// <summary>Table belongs to stats class 1.</summary>
         TableClass1 = 0x00010000,
 
-        /// <summary>
-        /// Table belongs to stats class 2.
-        /// </summary>
+        /// <summary>Table belongs to stats class 2.</summary>
         TableClass2 = 0x00020000,
 
-        /// <summary>
-        /// Table belongs to stats class 3.
-        /// </summary>
+        /// <summary>Table belongs to stats class 3.</summary>
         TableClass3 = 0x00030000,
 
-        /// <summary>
-        /// Table belongs to stats class 4.
-        /// </summary>
+        /// <summary>Table belongs to stats class 4.</summary>
         TableClass4 = 0x00040000,
 
-        /// <summary>
-        /// Table belongs to stats class 5.
-        /// </summary>
+        /// <summary>Table belongs to stats class 5.</summary>
         TableClass5 = 0x00050000,
 
-        /// <summary>
-        /// Table belongs to stats class 6.
-        /// </summary>
+        /// <summary>Table belongs to stats class 6.</summary>
         TableClass6 = 0x00060000,
 
-        /// <summary>
-        /// Table belongs to stats class 7.
-        /// </summary>
+        /// <summary>Table belongs to stats class 7.</summary>
         TableClass7 = 0x00070000,
 
-        /// <summary>
-        /// Table belongs to stats class 8.
-        /// </summary>
+        /// <summary>Table belongs to stats class 8.</summary>
         TableClass8 = 0x00080000,
 
-        /// <summary>
-        /// Table belongs to stats class 9.
-        /// </summary>
+        /// <summary>Table belongs to stats class 9.</summary>
         TableClass9 = 0x00090000,
 
-        /// <summary>
-        /// Table belongs to stats class 10.
-        /// </summary>
+        /// <summary>Table belongs to stats class 10.</summary>
         TableClass10 = 0x000A0000,
 
-        /// <summary>
-        /// Table belongs to stats class 11.
-        /// </summary>
+        /// <summary>Table belongs to stats class 11.</summary>
         TableClass11 = 0x000B0000,
 
-        /// <summary>
-        /// Table belongs to stats class 12.
-        /// </summary>
+        /// <summary>Table belongs to stats class 12.</summary>
         TableClass12 = 0x000C0000,
 
-        /// <summary>
-        /// Table belongs to stats class 13.
-        /// </summary>
+        /// <summary>Table belongs to stats class 13.</summary>
         TableClass13 = 0x000D0000,
 
-        /// <summary>
-        /// Table belongs to stats class 14.
-        /// </summary>
+        /// <summary>Table belongs to stats class 14.</summary>
         TableClass14 = 0x000E0000,
 
-        /// <summary>
-        /// Table belongs to stats class 15.
-        /// </summary>
+        /// <summary>Table belongs to stats class 15.</summary>
         TableClass15 = 0x000F0000,
     }
 
@@ -1218,7 +1172,7 @@ namespace EsentLib
         /// <summary>
         /// The column will be created in an without version information. This means that other
         /// transactions that attempt to add a column with the same name will fail. This bit
-        /// is only useful with JetAddColumn. It cannot be used within a transaction.
+        /// is only useful with IJetTable.AddColumn. It cannot be used within a transaction.
         /// </summary>
         ColumnUnversioned = 0x1000,
 
@@ -1514,21 +1468,15 @@ namespace EsentLib
         ForwardOnly = 0x40,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetDeleteColumn2"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetTable.DeleteColumn"/>.</summary>
     [Flags]
     public enum DeleteColumnGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// The API should only attempt to delete columns in the derived table.
-        /// If a column of that name exists in the base table it will be ignored.
-        /// </summary>
+        /// <summary>The API should only attempt to delete columns in the derived table. If a column
+        /// of that name exists in the base table it will be ignored.</summary>
         IgnoreTemplateColumns = 0x1,
     }
 

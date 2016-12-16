@@ -136,9 +136,8 @@ namespace EsentLib
             get { return this.grbit; }
         }
 
-        /// <summary>
-        /// Gets the number of unique keys in the index.
-        /// This value is not current and is only is updated by Api.JetComputeStats.
+        /// <summary>Gets the number of unique keys in the index. This value is
+        /// not current and is only is updated by IJetTable.ComputeStatistics.
         /// </summary>
         public int Keys
         {
@@ -148,7 +147,7 @@ namespace EsentLib
 
         /// <summary>
         /// Gets the number of entries in the index.
-        /// This value is not current and is only is updated by Api.JetComputeStats.
+        /// This value is not current and is only is updated by IJetTable.ComputeStatistics.
         /// </summary>
         public int Entries
         {
@@ -158,7 +157,7 @@ namespace EsentLib
 
         /// <summary>
         /// Gets the number of pages in the index.
-        /// This value is not current and is only is updated by Api.JetComputeStats.
+        /// This value is not current and is only is updated by IJetTable.ComputeStatistics.
         /// </summary>
         public int Pages
         {

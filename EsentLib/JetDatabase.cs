@@ -62,6 +62,24 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
+        /// <summary>Create an empty table. The newly created table is opened exclusively.</summary>
+        /// <param name="table">The name of the table to create.</param>
+        /// <param name="pages">Initial number of pages in the table.</param>
+        /// <param name="density">
+        /// The default density of the table. This is used when doing sequential inserts.
+        /// </param>
+        public IJetTable CreateTable(string table, int pages, int density)
+        {
+            Tracing.TraceFunctionCall("CreateTable");
+            Helpers.CheckNotNull(table, "table");
+            JET_TABLEID tableid = JET_TABLEID.Nil;
+            int returnCode = NativeMethods.JetCreateTable(_owner.Id, _dbid.Value, table,
+                pages, density, out tableid.Value);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return new JetTable(_owner, this, tableid);
+        }
+
         /// <summary>Releases a database file that was previously attached to a database
         /// session.</summary>
         /// <param name="grbit">Detach options.</param>
@@ -204,6 +222,25 @@ namespace EsentLib.Implementation
             Tracing.TraceResult(returnCode);
             actualPages = checked((int)actualPagesNative);
             EsentExceptionHelper.Check(returnCode);
+        }
+
+        /// <summary>Opens a cursor on a previously created table.</summary>
+        /// <param name="tablename">The name of the table to open.</param>
+        /// <param name="parameters">The parameter is not used.</param>
+        /// <param name="grbit">Table open options.</param>
+        /// <returns>An ESENT warning.</returns>
+        public IJetTable OpenTable(string tablename, byte[] parameters,
+            OpenTableGrbit grbit)
+        {
+            Tracing.TraceFunctionCall("OpenTable");
+            JET_TABLEID tableid = JET_TABLEID.Nil;
+            Helpers.CheckNotNull(tablename, "tablename");
+            int returnCode = NativeMethods.JetOpenTable(_owner.Id, this._dbid.Value,
+                tablename, parameters, checked((uint)parameters.Length),
+                (uint)grbit, out tableid.Value);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return new JetTable(_owner, this, tableid);
         }
 
         /// <summary>Extends the size of a database that is currently open.</summary>

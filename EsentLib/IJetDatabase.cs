@@ -28,6 +28,14 @@ namespace EsentLib
         /// <param name="grbit">Compact options.</param>
         void CompactDatabase(string destinationDatabase, JET_PFNSTATUS statusCallback, CompactGrbit grbit);
 
+        /// <summary>Create an empty table. The newly created table is opened exclusively.</summary>
+        /// <param name="table">The name of the table to create.</param>
+        /// <param name="pages">Initial number of pages in the table.</param>
+        /// <param name="density">
+        /// The default density of the table. This is used when doing sequential inserts.
+        /// </param>
+        IJetTable CreateTable(string table, int pages, int density);
+
         /// <summary>Retrieves certain information about the given database.</summary>
         /// <param name="infoLevel">The specific data to retrieve.</param>
         /// <returns>An error if the call fails.</returns>
@@ -62,6 +70,13 @@ namespace EsentLib
         /// <param name="desiredPages">The desired size of the database, in pages.</param>
         /// <param name="actualPages">The size of the database, in pages, after the call.</param>
         void Grow(int desiredPages, out int actualPages);
+
+        /// <summary>Opens a cursor on a previously created table.</summary>
+        /// <param name="tablename">The name of the table to open.</param>
+        /// <param name="parameters">The parameter is not used.</param>
+        /// <param name="grbit">Table open options.</param>
+        /// <returns>An ESENT warning.</returns>
+        IJetTable OpenTable(string tablename, byte[] parameters, OpenTableGrbit grbit);
 
         /// <summary>Extends the size of a database that is currently open.</summary>
         /// <param name="desiredPages">The desired size of the database, in pages.</param>

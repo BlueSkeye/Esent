@@ -50,37 +50,37 @@ namespace EsentLib
         //    return Api.JetOpenDatabase(sesid, database, null, out dbid, grbit);
         //}
 
-        /// <summary>Opens a cursor on a previously created table.</summary>
-        /// <param name="sesid">The database session to use.</param>
-        /// <param name="dbid">The database to open the table in.</param>
-        /// <param name="tablename">The name of the table to open.</param>
-        /// <param name="grbit">Table open options.</param>
-        /// <param name="tableid">Returns the opened table.</param>
-        /// <returns>An ESENT warning.</returns>
-        public static JET_wrn OpenTable(JET_SESID sesid, JET_DBID dbid, string tablename,
-            OpenTableGrbit grbit, out JET_TABLEID tableid)
-        {
-            return Api.JetOpenTable(sesid, dbid, tablename, null, 0, grbit, out tableid);
-        }
+        ///// <summary>Opens a cursor on a previously created table.</summary>
+        ///// <param name="sesid">The database session to use.</param>
+        ///// <param name="dbid">The database to open the table in.</param>
+        ///// <param name="tablename">The name of the table to open.</param>
+        ///// <param name="grbit">Table open options.</param>
+        ///// <param name="tableid">Returns the opened table.</param>
+        ///// <returns>An ESENT warning.</returns>
+        //public static JET_wrn OpenTable(JET_SESID sesid, JET_DBID dbid, string tablename,
+        //    OpenTableGrbit grbit, out JET_TABLEID tableid)
+        //{
+        //    return Api.JetOpenTable(sesid, dbid, tablename, null, 0, grbit, out tableid);
+        //}
 
         #endregion
 
-        /// <summary>Try to open a table.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to look for the table in.</param>
-        /// <param name="tablename">The name of the table.</param>
-        /// <param name="grbit">Table open options.</param>
-        /// <param name="tableid">Returns the opened tableid.</param>
-        /// <returns>True if the table was opened, false if the table doesn't exist.</returns>
-        public static bool TryOpenTable(JET_SESID sesid, JET_DBID dbid, string tablename,
-            OpenTableGrbit grbit, out JET_TABLEID tableid)
-        {
-            var err = (JET_err)Impl.JetOpenTable(sesid, dbid, tablename, null, 0, grbit, out tableid);
-            if (JET_err.ObjectNotFound == err) { return false; }
-            EsentExceptionHelper.Check((int)err);
-            Debug.Assert(err >= JET_err.Success, "Exception should have been thrown in case of error");
-            return true;
-        }
+        ///// <summary>Try to open a table.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database to look for the table in.</param>
+        ///// <param name="tablename">The name of the table.</param>
+        ///// <param name="grbit">Table open options.</param>
+        ///// <param name="tableid">Returns the opened tableid.</param>
+        ///// <returns>True if the table was opened, false if the table doesn't exist.</returns>
+        //public static bool TryOpenTable(JET_SESID sesid, JET_DBID dbid, string tablename,
+        //    OpenTableGrbit grbit, out JET_TABLEID tableid)
+        //{
+        //    var err = (JET_err)Impl.JetOpenTable(sesid, dbid, tablename, null, 0, grbit, out tableid);
+        //    if (JET_err.ObjectNotFound == err) { return false; }
+        //    EsentExceptionHelper.Check((int)err);
+        //    Debug.Assert(err >= JET_err.Success, "Exception should have been thrown in case of error");
+        //    return true;
+        //}
 
         /// <summary>Creates a dictionary which maps column names to their column IDs.</summary>
         /// <param name="sesid">The sesid to use.</param>
@@ -118,8 +118,9 @@ namespace EsentLib
                 return dict;
             }
             finally {
-                // Close the temporary table used to return the results
-                JetCloseTable(sesid, columnlist.tableid);
+                throw new NotImplementedException();
+                //// Close the temporary table used to return the results
+                //JetCloseTable(sesid, columnlist.tableid);
             }
         }
 
@@ -135,58 +136,58 @@ namespace EsentLib
             return columndef.columnid;
         }
 
-        /// <summary>Iterates over all the columns in the table, returning information
-        /// about each one.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve column information for.</param>
-        /// <returns>An iterator over ColumnInfo for each column in the table.</returns>
-        public static IEnumerable<ColumnInfo> GetTableColumns(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            return new GenericEnumerable<ColumnInfo>(() => new TableidColumnInfoEnumerator(sesid, tableid));
-        }
+        ///// <summary>Iterates over all the columns in the table, returning information
+        ///// about each one.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to retrieve column information for.</param>
+        ///// <returns>An iterator over ColumnInfo for each column in the table.</returns>
+        //public static IEnumerable<ColumnInfo> GetTableColumns(JET_SESID sesid, JET_TABLEID tableid)
+        //{
+        //    return new GenericEnumerable<ColumnInfo>(() => new TableidColumnInfoEnumerator(sesid, tableid));
+        //}
 
-        /// <summary>Iterates over all the columns in the table, returning information
-        /// about each one.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database containing the table.</param>
-        /// <param name="tablename">The name of the table.</param>
-        /// <returns>An iterator over ColumnInfo for each column in the table.</returns>
-        public static IEnumerable<ColumnInfo> GetTableColumns(JET_SESID sesid, JET_DBID dbid, string tablename)
-        {
-            if (null == tablename) { throw new ArgumentNullException("tablename"); }
-            return new GenericEnumerable<ColumnInfo>(() => new TableColumnInfoEnumerator(sesid, dbid, tablename));
-        }
+        ///// <summary>Iterates over all the columns in the table, returning information
+        ///// about each one.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database containing the table.</param>
+        ///// <param name="tablename">The name of the table.</param>
+        ///// <returns>An iterator over ColumnInfo for each column in the table.</returns>
+        //public static IEnumerable<ColumnInfo> GetTableColumns(JET_SESID sesid, JET_DBID dbid, string tablename)
+        //{
+        //    if (null == tablename) { throw new ArgumentNullException("tablename"); }
+        //    return new GenericEnumerable<ColumnInfo>(() => new TableColumnInfoEnumerator(sesid, dbid, tablename));
+        //}
 
-        /// <summary>Iterates over all the indexes in the table, returning information
-        /// about each one.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information for.</param>
-        /// <returns>An iterator over an IndexInfo for each index in the table.</returns>
-        public static IEnumerable<IndexInfo> GetTableIndexes(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            return new GenericEnumerable<IndexInfo>(() => new TableidIndexInfoEnumerator(sesid, tableid));
-        }
+        ///// <summary>Iterates over all the indexes in the table, returning information
+        ///// about each one.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to retrieve index information for.</param>
+        ///// <returns>An iterator over an IndexInfo for each index in the table.</returns>
+        //public static IEnumerable<IndexInfo> GetTableIndexes(JET_SESID sesid, JET_TABLEID tableid)
+        //{
+        //    return new GenericEnumerable<IndexInfo>(() => new TableidIndexInfoEnumerator(sesid, tableid));
+        //}
 
-        /// <summary>Iterates over all the indexs in the table, returning information
-        /// about each one.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database containing the table.</param>
-        /// <param name="tablename">The name of the table.</param>
-        /// <returns>An iterator over an IndexInfo for each index in the table.</returns>
-        public static IEnumerable<IndexInfo> GetTableIndexes(JET_SESID sesid, JET_DBID dbid, string tablename)
-        {
-            if (null == tablename) { throw new ArgumentNullException("tablename"); }
-            return new GenericEnumerable<IndexInfo>(() => new TableIndexInfoEnumerator(sesid, dbid, tablename));
-        }
+        ///// <summary>Iterates over all the indexs in the table, returning information
+        ///// about each one.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database containing the table.</param>
+        ///// <param name="tablename">The name of the table.</param>
+        ///// <returns>An iterator over an IndexInfo for each index in the table.</returns>
+        //public static IEnumerable<IndexInfo> GetTableIndexes(JET_SESID sesid, JET_DBID dbid, string tablename)
+        //{
+        //    if (null == tablename) { throw new ArgumentNullException("tablename"); }
+        //    return new GenericEnumerable<IndexInfo>(() => new TableIndexInfoEnumerator(sesid, dbid, tablename));
+        //}
 
-        /// <summary>Returns the names of the tables in the database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database containing the table.</param>
-        /// <returns>An iterator over the names of the tables in the database.</returns>
-        public static IEnumerable<string> GetTableNames(JET_SESID sesid, JET_DBID dbid)
-        {
-            return new GenericEnumerable<string>(() => new TableNameEnumerator(sesid, dbid));
-        }
+        ///// <summary>Returns the names of the tables in the database.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database containing the table.</param>
+        ///// <returns>An iterator over the names of the tables in the database.</returns>
+        //public static IEnumerable<string> GetTableNames(JET_SESID sesid, JET_DBID dbid)
+        //{
+        //    return new GenericEnumerable<string>(() => new TableNameEnumerator(sesid, dbid));
+        //}
 
         /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>

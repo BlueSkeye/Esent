@@ -49,7 +49,7 @@ namespace EsentLib
                     // We should not get to this point. The problem is that if
                     // we use finalizers to free esent resources they may end
                     // up being freed in the wrong order (e.g. JetEndSession is
-                    // called before JetCloseTable). Freeing esent resources
+                    // called before IJetTable.Close). Freeing esent resources
                     // in the wrong order will generate EsentExceptions.
                     Trace.TraceWarning("Non-finalized ESENT resource {0}", this);
                 }                

@@ -297,7 +297,7 @@ namespace EsentLib.Jet
         /// Post-Windows 8:
         /// JET_paramEnableIndexChecking accepts JET_INDEXCHECKING (which is an enum). The values of '0' and '1' have the same meaning as before,
         /// but '2' is JET_IndexCheckingDeferToOpenTable, which means that the NLS up-to-date-ness is NOT checked when the database is attached.
-        /// It is deferred to JetOpenTable(), which may now fail with JET_errPrimaryIndexCorrupted or JET_errSecondaryIndexCorrupted (which
+        /// It is deferred to IJetDatabase.OpenTable(), which may now fail with JET_errPrimaryIndexCorrupted or JET_errSecondaryIndexCorrupted (which
         /// are NOT actual corruptions, but instead reflect an NLS sort change).
         /// </para>
         /// <para>

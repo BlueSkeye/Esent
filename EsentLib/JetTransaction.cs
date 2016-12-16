@@ -15,7 +15,7 @@ using EsentLib.Platform.Windows10;
 namespace EsentLib.Implementation
 {
     /// <summary>A class that encapsulates a transaction on a JET_SESID.</summary>
-    public class JetTransaction : EsentResource
+    public class JetTransaction : EsentResource, IJetTransaction
     {
         /// <summary>Initializes a new instance of the Transaction class. This automatically
         /// begins a transaction. The transaction will be rolled back if not explicitly committed.</summary>
@@ -136,7 +136,6 @@ namespace EsentLib.Implementation
             Debug.Assert(!this.IsInTransaction, "Rollback finished, but object is still in a transaction");
             return;
         }
-
 
         /// <summary>Called when the transaction is being disposed while active. This should
         /// rollback the transaction.</summary>

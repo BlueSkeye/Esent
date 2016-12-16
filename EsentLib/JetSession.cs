@@ -79,7 +79,7 @@ namespace EsentLib.Implementation
         /// <summary>Causes a session to enter a transaction or create a new save point in an
         /// existing transaction.</summary>
         /// <returns></returns>
-        public JetTransaction BeginTransaction(BeginTransactionGrbit grbit = BeginTransactionGrbit.None)
+        public IJetTransaction BeginTransaction(BeginTransactionGrbit grbit = BeginTransactionGrbit.None)
         {
             return new JetTransaction(this, grbit);
         }
@@ -132,6 +132,19 @@ namespace EsentLib.Implementation
         protected virtual void Dispose(bool disposing)
         {
             this.Close(EndSessionGrbit.None, disposing);
+        }
+
+        /// <summary>Initialize a new ESE session in the same instance as the given sesid.
+        /// </summary>
+        [CLSCompliant(false)]
+        public IJetSession Duplicate()
+        {
+            Tracing.TraceFunctionCall("Duplicate");
+            JET_SESID newSesid = JET_SESID.Nil;
+            int returnCode = NativeMethods.JetDupSession(Id, out newSesid.Value);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return new JetSession(this._owner, newSesid);
         }
 
         /// <summary>Gets a parameter on the provided session state, used for the lifetime of
@@ -219,8 +232,31 @@ namespace EsentLib.Implementation
             return new JetDatabase(this, dbid, database);
         }
 
+        /// <summary>Disassociates a session from the current thread. This should be
+        /// used in conjunction with <see cref="IJetSession.SetContext"/>.</summary>
+        public void ResetContext()
+        {
+            Tracing.TraceFunctionCall("ResetContext");
+            int returnCode = NativeMethods.JetResetSessionContext(Id);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+        }
+
+        /// <summary>Associates a session with the current thread using the given context
+        /// handle. This association overrides the default engine requirement that a
+        /// transaction for a given session must occur entirely on the same thread.
+        /// Use <see cref="ResetContext"/> to remove the association.</summary>
+        /// <param name="context">The context to set.</param>
+        public void SetContext(IntPtr context)
+        {
+            Tracing.TraceFunctionCall("SetContext");
+            int returnCode = NativeMethods.JetSetSessionContext(Id, context);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+        }
+
         /// <summary>Sets a parameter on the provided session state, used for the lifetime of this session or until reset.</summary>
-       /// <param name="sesparamid">The ID of the session parameter to set.</param>
+        /// <param name="sesparamid">The ID of the session parameter to set.</param>
         /// <param name="valueToSet">A 32-bit integer to set.</param>
         /// <returns>An error if the call fails.</returns>
         private int SetParameter(JET_sesparam sesparamid, int valueToSet)
