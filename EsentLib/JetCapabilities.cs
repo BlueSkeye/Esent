@@ -7,7 +7,7 @@
 namespace EsentLib.Implementation
 {
     /// <summary>Describes the functionality exposed by an object which implements IJetApi.</summary>
-    public sealed class JetCapabilities
+    public sealed class JetCapabilities : IJetCapabilities
     {
         /// <summary>Gets or sets a value indicating whether Windows Server 2003 features
         /// (in the Interop.Server2003 namespace) are supported.</summary>

@@ -68,6 +68,7 @@ namespace EsentLib.Implementation
         /// <param name="density">
         /// The default density of the table. This is used when doing sequential inserts.
         /// </param>
+        [CLSCompliant(false)]
         public IJetTable CreateTable(string table, int pages, int density)
         {
             Tracing.TraceFunctionCall("CreateTable");
@@ -77,7 +78,19 @@ namespace EsentLib.Implementation
                 pages, density, out tableid.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetTable(_owner, this, tableid);
+            return new JetTable(this, tableid);
+        }
+
+        /// <summary>Deletes a table from a database.</summary>
+        /// <param name="table">The name of the table to delete.</param>
+        public void DeleteTable(string table)
+        {
+            Tracing.TraceFunctionCall("DeleteTable");
+            Helpers.CheckNotNull(table, "table");
+
+            int returnCode = NativeMethods.JetDeleteTable(_owner.Id, _dbid.Value, table);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
         }
 
         /// <summary>Releases a database file that was previously attached to a database
@@ -229,6 +242,7 @@ namespace EsentLib.Implementation
         /// <param name="parameters">The parameter is not used.</param>
         /// <param name="grbit">Table open options.</param>
         /// <returns>An ESENT warning.</returns>
+        [CLSCompliant(false)]
         public IJetTable OpenTable(string tablename, byte[] parameters,
             OpenTableGrbit grbit)
         {
@@ -240,7 +254,7 @@ namespace EsentLib.Implementation
                 (uint)grbit, out tableid.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetTable(_owner, this, tableid);
+            return new JetTable(this, tableid);
         }
 
         /// <summary>Extends the size of a database that is currently open.</summary>

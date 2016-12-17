@@ -353,9 +353,7 @@ namespace EsentLib
                 engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxVerPages, new IntPtr(4), null);
                 engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxSessions, new IntPtr(1), null);
                 engine.Initialize();
-                using (JetSession session = engine.BeginSession(string.Empty, string.Empty)) {
-                    return session.GetVersion();
-                }
+                return engine.GetVersion();
             }
         }
 

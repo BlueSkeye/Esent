@@ -128,7 +128,7 @@ namespace EsentLib
         /// <param name="displayName"></param>
         /// <param name="grbit"></param>
         /// <returns></returns>
-        EsentLib.Implementation.IJetInstance GetInstance(string name, string displayName = null,
+        EsentLib.IJetInstance GetInstance(string name, string displayName = null,
             CreateInstanceGrbit grbit = CreateInstanceGrbit.None);
 
         /// <summary>Retrieves information about the instances that are running.</summary>

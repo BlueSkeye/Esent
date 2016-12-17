@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
 
+using EsentLib;
 using EsentLib.Jet;
 using EsentLib.Jet.Types;
 using EsentLib.Jet.Vista;
@@ -138,7 +139,12 @@ namespace EsentLib.Implementation
 
         /// <summary>Gets a description of the capabilities of the current version
         /// of ESENT.</summary>
-        public JetCapabilities Capabilities
+        public IJetCapabilities Capabilities
+        {
+            get { return _Capabilities; }
+        }
+
+        internal JetCapabilities _Capabilities
         {
             get { return _capabilities ?? JetEnvironment.Current.DefaultCapabilities; }
         }
@@ -627,14 +633,16 @@ namespace EsentLib.Implementation
         /// <param name="password">The parameter is not used.</param>
         /// <returns>A new session.</returns>
         /* <seealso cref="Api.BeginSession"/> */
-        public JetSession BeginSession(string username, string password)
+        public IJetSession BeginSession(string username, string password)
         {
             Tracing.TraceFunctionCall("BeginSession");
             JET_SESID sessionId = JET_SESID.Nil;
             int returnCode = NativeMethods.JetBeginSession(_instance.Value, out sessionId.Value, username, password);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetSession(this, sessionId);
+            JetSession result = new JetSession(this, sessionId);
+            _activeSessions.Add(result, result);
+            return result;
         }
 
         /// <summary>Terminate an instance that was created with
@@ -839,6 +847,35 @@ namespace EsentLib.Implementation
             }
         }
 
+        internal static JetSession GetSession(IJetSession candidate)
+        {
+            JetSession result;
+            if (_activeSessions.TryGetValue(candidate, out result)) { return result; }
+            throw new ApplicationException();
+        }
+
+        /// <summary>Retrieves the version of the database engine.</summary>
+        public uint GetVersion()
+        {
+            Tracing.TraceFunctionCall("GetVersion");
+            uint result = OverridenVersion;
+            if (0 != result) {
+                // We have an explicitly set version
+                Tracing.TraceVerboseLine(string.Format(CultureInfo.InvariantCulture,
+                    "GetVersion overridden with 0x{0:X}", result));
+                return result;
+            }
+            if (0 == _version) {
+                // Get the version from Esent
+                using (IJetSession session = this.BeginSession(string.Empty, string.Empty)) {
+                    int returnCode = NativeMethods.JetGetVersion(Id, out _version);
+                    Tracing.TraceResult(returnCode);
+                    EsentExceptionHelper.Check(returnCode);
+                }
+            }
+            return _version;
+        }
+
         /// <summary>Initialize the ESENT database engine.</summary>
         /// <param name="grbit">Initialization options.</param>
         /// <param name="recoveryOptions">Additional recovery parameters for remapping
@@ -896,6 +933,13 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
+        internal static void NotifySessionClosed(JetSession session)
+        {
+            if (!_activeSessions.Remove((IJetSession)session)) {
+                throw new ApplicationException();
+            }
+        }
+        
         /// <summary>Opens an attached database, database patch file, or transaction log file
         /// of an active instance for the purpose of performing a streaming fuzzy backup. The
         /// data from these files can subsequently be read through the returned handle using
@@ -1277,106 +1321,45 @@ namespace EsentLib.Implementation
 
         #region DDL
 
-        /// <summary>
-        /// Deletes a table from a database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to delete the table from.</param>
-        /// <param name="table">The name of the table to delete.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetDeleteTable(JET_SESID sesid, JET_DBID dbid, string table)
-        {
-            Tracing.TraceFunctionCall("JetDeleteTable");
-            Helpers.CheckNotNull(table, "table");
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates indexes over data in an ESE database.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to create the index on.</param>
+        ///// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
+        ///// <param name="numIndexCreates">Number of index description objects.</param>
+        ///// <returns>An error code.</returns>
+        //public int JetCreateIndex2(
+        //    JET_SESID sesid,
+        //    JET_TABLEID tableid,
+        //    JET_INDEXCREATE[] indexcreates,
+        //    int numIndexCreates)
+        //{
+        //    Tracing.TraceFunctionCall("JetCreateIndex2");
+        //    Helpers.CheckNotNull(indexcreates, "indexcreates");
+        //    Helpers.CheckNotNegative(numIndexCreates, "numIndexCreates");
+        //    if (numIndexCreates > indexcreates.Length)
+        //    {
+        //        throw new ArgumentOutOfRangeException(
+        //            "numIndexCreates", numIndexCreates, "numIndexCreates is larger than the number of indexes passed in");
+        //    }
 
-            return Tracing.TraceResult(NativeMethods.JetDeleteTable(sesid.Value, dbid.Value, table));
-        }
+        //    // NOTE: Don't call CreateIndexes3() on Win8. Unlike other APIs, CreateIndexes3() is
+        //    // not a superset. It requires locale names, and if the user called JetCreateIndex2(),
+        //    // the input will likely have LCIDs.
+        //    if (_capabilities.SupportsWindows7Features)
+        //    {
+        //        return CreateIndexes2(sesid, tableid, indexcreates, numIndexCreates);
+        //    }
 
-        /// <summary>
-        /// Creates an index over data in an ESE database. An index can be used to locate
-        /// specific data quickly.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexName">
-        /// Pointer to a null-terminated string that specifies the name of the index to create.
-        /// </param>
-        /// <param name="grbit">Index creation options.</param>
-        /// <param name="keyDescription">
-        /// Pointer to a double null-terminated string of null-delimited tokens.
-        /// </param>
-        /// <param name="keyDescriptionLength">
-        /// The length, in characters, of szKey including the two terminating nulls.
-        /// </param>
-        /// <param name="density">Initial B+ tree density.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetCreateIndex(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexName,
-            CreateIndexGrbit grbit,
-            string keyDescription,
-            int keyDescriptionLength,
-            int density)
-        {
-            Tracing.TraceFunctionCall("JetCreateIndex");
-            Helpers.CheckNotNull(indexName, "indexName");
-            Helpers.CheckNotNegative(keyDescriptionLength, "keyDescriptionLength");
-            Helpers.CheckNotNegative(density, "density");
-            if (keyDescriptionLength > checked(keyDescription.Length + 1))
-            {
-                throw new ArgumentOutOfRangeException(
-                    "keyDescriptionLength", keyDescriptionLength, "cannot be greater than keyDescription.Length");
-            }
+        //    if (_capabilities.SupportsVistaFeatures)
+        //    {
+        //        return CreateIndexes1(sesid, tableid, indexcreates, numIndexCreates);
+        //    }
 
-            return Tracing.TraceResult(NativeMethods.JetCreateIndex(
-                sesid.Value,
-                tableid.Value,
-                indexName,
-                (uint)grbit,
-                keyDescription,
-                checked((uint)keyDescriptionLength),
-                checked((uint)density)));
-        }
-
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <returns>An error code.</returns>
-        public int JetCreateIndex2(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_INDEXCREATE[] indexcreates,
-            int numIndexCreates)
-        {
-            Tracing.TraceFunctionCall("JetCreateIndex2");
-            Helpers.CheckNotNull(indexcreates, "indexcreates");
-            Helpers.CheckNotNegative(numIndexCreates, "numIndexCreates");
-            if (numIndexCreates > indexcreates.Length)
-            {
-                throw new ArgumentOutOfRangeException(
-                    "numIndexCreates", numIndexCreates, "numIndexCreates is larger than the number of indexes passed in");
-            }
-
-            // NOTE: Don't call CreateIndexes3() on Win8. Unlike other APIs, CreateIndexes3() is
-            // not a superset. It requires locale names, and if the user called JetCreateIndex2(),
-            // the input will likely have LCIDs.
-            if (_capabilities.SupportsWindows7Features)
-            {
-                return CreateIndexes2(sesid, tableid, indexcreates, numIndexCreates);
-            }
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                return CreateIndexes1(sesid, tableid, indexcreates, numIndexCreates);
-            }
-
-            return CreateIndexes(sesid, tableid, indexcreates, numIndexCreates);
-        }
+        //    return CreateIndexes(sesid, tableid, indexcreates, numIndexCreates);
+        //}
 
         /// <summary>Creates a temporary table with a single index. A temporary table stores and
         /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
@@ -1595,28 +1578,29 @@ namespace EsentLib.Implementation
             }
         }
 
-        /// <summary>
-        /// Creates a table, adds columns, and indices on that table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to which to add the new table.</param>
-        /// <param name="tablecreate">Object describing the table to create.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetCreateTableColumnIndex3(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_TABLECREATE tablecreate)
-        {
-            Tracing.TraceFunctionCall("JetCreateTableColumnIndex3");
-            Helpers.CheckNotNull(tablecreate, "tablecreate");
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates a table, adds columns, and indices on that table.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database to which to add the new table.</param>
+        ///// <param name="tablecreate">Object describing the table to create.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //public int JetCreateTableColumnIndex3(
+        //    JET_SESID sesid,
+        //    JET_DBID dbid,
+        //    JET_TABLECREATE tablecreate)
+        //{
+        //    Tracing.TraceFunctionCall("JetCreateTableColumnIndex3");
+        //    Helpers.CheckNotNull(tablecreate, "tablecreate");
 
-            if (_capabilities.SupportsWindows7Features)
-            {
-                return CreateTableColumnIndex3(sesid, dbid, tablecreate);
-            }
+        //    if (_capabilities.SupportsWindows7Features)
+        //    {
+        //        return CreateTableColumnIndex3(sesid, dbid, tablecreate);
+        //    }
 
-            return this.CreateTableColumnIndex2(sesid, dbid, tablecreate);
-        }
+        //    return this.CreateTableColumnIndex2(sesid, dbid, tablecreate);
+        //}
 
         #region JetGetTableColumnInfo overloads
 
@@ -3892,7 +3876,7 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetUpdate2");
             Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
-            this.Capabilities.CheckSupportsServer2003Features("JetUpdate2");
+            this._Capabilities.CheckSupportsServer2003Features("JetUpdate2");
             uint bytesActual;
             int err = Tracing.TraceResult(NativeMethods.JetUpdate2(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual, (uint)grbit));
             actualBookmarkSize = GetActualSize(bytesActual);
@@ -4425,40 +4409,6 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>
-        /// Make native conditionalcolumn structures from the managed ones.
-        /// </summary>
-        /// <param name="conditionalColumns">The conditional columns to convert.</param>
-        /// <param name="useUnicodeData">Wehether to convert the strings with UTF-16.</param>
-        /// <param name="handles">The handle collection used to pin the data.</param>
-        /// <returns>Pinned native versions of the conditional columns.</returns>
-        private static IntPtr GetNativeConditionalColumns(
-            IList<JET_CONDITIONALCOLUMN> conditionalColumns,
-            bool useUnicodeData,
-            ref GCHandleCollection handles)
-        {
-            if (null == conditionalColumns)
-            {
-                return IntPtr.Zero;
-            }
-
-            var nativeConditionalcolumns = new NATIVE_CONDITIONALCOLUMN[conditionalColumns.Count];
-            for (int i = 0; i < conditionalColumns.Count; ++i)
-            {
-                nativeConditionalcolumns[i] = conditionalColumns[i].GetNativeConditionalColumn();
-                if (useUnicodeData)
-                {
-                    nativeConditionalcolumns[i].szColumnName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(conditionalColumns[i].szColumnName));
-                }
-                else
-                {
-                    nativeConditionalcolumns[i].szColumnName = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(conditionalColumns[i].szColumnName));
-                }
-            }
-
-            return handles.Add(nativeConditionalcolumns);
-        }
-
-        /// <summary>
         /// Make native columncreate structures from the managed ones.
         /// </summary>
         /// <param name="managedColumnCreates">Column create structures to convert.</param>
@@ -4505,124 +4455,127 @@ namespace EsentLib.Implementation
             return nativeBuffer;
         }
 
-        /// <summary>
-        /// Make native indexcreate structures from the managed ones.
-        /// Only supports Ascii data, since it could be used on XP.
-        /// </summary>
-        /// <param name="managedIndexCreates">Index create structures to convert.</param>
-        /// <param name="handles">The handle collection used to pin the data.</param>
-        /// <returns>Pinned native versions of the index creates.</returns>
-        private static unsafe JET_INDEXCREATE.NATIVE_INDEXCREATE[] GetNativeIndexCreates(
-            IList<JET_INDEXCREATE> managedIndexCreates,
-            ref GCHandleCollection handles)
-        {
-            JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndices = null;
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Make native indexcreate structures from the managed ones.
+        ///// Only supports Ascii data, since it could be used on XP.
+        ///// </summary>
+        ///// <param name="managedIndexCreates">Index create structures to convert.</param>
+        ///// <param name="handles">The handle collection used to pin the data.</param>
+        ///// <returns>Pinned native versions of the index creates.</returns>
+        //private static unsafe JET_INDEXCREATE.NATIVE_INDEXCREATE[] GetNativeIndexCreates(
+        //    IList<JET_INDEXCREATE> managedIndexCreates,
+        //    ref GCHandleCollection handles)
+        //{
+        //    JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndices = null;
 
-            if (managedIndexCreates != null && managedIndexCreates.Count > 0)
-            {
-                nativeIndices = new JET_INDEXCREATE.NATIVE_INDEXCREATE[managedIndexCreates.Count];
+        //    if (managedIndexCreates != null && managedIndexCreates.Count > 0)
+        //    {
+        //        nativeIndices = new JET_INDEXCREATE.NATIVE_INDEXCREATE[managedIndexCreates.Count];
 
-                for (int i = 0; i < managedIndexCreates.Count; ++i)
-                {
-                    nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate();
+        //        for (int i = 0; i < managedIndexCreates.Count; ++i)
+        //        {
+        //            nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate();
 
-                    if (null != managedIndexCreates[i].pidxUnicode) {
-                        NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
-                        nativeIndices[i].pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
-                        nativeIndices[i].grbit |= (uint)CreateIndexGrbit.IndexUnicode;
-                    }
-                    nativeIndices[i].szKey = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedIndexCreates[i].szKey));
-                    nativeIndices[i].szIndexName = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedIndexCreates[i].szIndexName));
-                    nativeIndices[i].rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, false, ref handles);
-                }
-            }
+        //            if (null != managedIndexCreates[i].pidxUnicode) {
+        //                NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
+        //                nativeIndices[i].pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
+        //                nativeIndices[i].grbit |= (uint)CreateIndexGrbit.IndexUnicode;
+        //            }
+        //            nativeIndices[i].szKey = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedIndexCreates[i].szKey));
+        //            nativeIndices[i].szIndexName = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedIndexCreates[i].szIndexName));
+        //            nativeIndices[i].rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, false, ref handles);
+        //        }
+        //    }
 
-            return nativeIndices;
-        }
+        //    return nativeIndices;
+        //}
 
-        /// <summary>
-        /// Make native indexcreate structures from the managed ones.
-        /// Only supports Unicode data, since it was introduced in Vista.
-        /// </summary>
-        /// <param name="managedIndexCreates">Index create structures to convert.</param>
-        /// <param name="handles">The handle collection used to pin the data.</param>
-        /// <returns>Pinned native versions of the index creates.</returns>
-        private static unsafe JET_INDEXCREATE.NATIVE_INDEXCREATE1[] GetNativeIndexCreate1s(
-            IList<JET_INDEXCREATE> managedIndexCreates,
-            ref GCHandleCollection handles)
-        {
-            JET_INDEXCREATE.NATIVE_INDEXCREATE1[] nativeIndices = null;
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Make native indexcreate structures from the managed ones.
+        ///// Only supports Unicode data, since it was introduced in Vista.
+        ///// </summary>
+        ///// <param name="managedIndexCreates">Index create structures to convert.</param>
+        ///// <param name="handles">The handle collection used to pin the data.</param>
+        ///// <returns>Pinned native versions of the index creates.</returns>
+        //private static unsafe JET_INDEXCREATE.NATIVE_INDEXCREATE1[] GetNativeIndexCreate1s(
+        //    IList<JET_INDEXCREATE> managedIndexCreates,
+        //    ref GCHandleCollection handles)
+        //{
+        //    JET_INDEXCREATE.NATIVE_INDEXCREATE1[] nativeIndices = null;
 
-            if (managedIndexCreates != null && managedIndexCreates.Count > 0)
-            {
-                nativeIndices = new JET_INDEXCREATE.NATIVE_INDEXCREATE1[managedIndexCreates.Count];
+        //    if (managedIndexCreates != null && managedIndexCreates.Count > 0)
+        //    {
+        //        nativeIndices = new JET_INDEXCREATE.NATIVE_INDEXCREATE1[managedIndexCreates.Count];
 
-                for (int i = 0; i < managedIndexCreates.Count; ++i)
-                {
-                    nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate1();
+        //        for (int i = 0; i < managedIndexCreates.Count; ++i)
+        //        {
+        //            nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate1();
 
-                    if (null != managedIndexCreates[i].pidxUnicode)
-                    {
-                        NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
-                        nativeIndices[i].indexcreate.pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
-                        nativeIndices[i].indexcreate.grbit |= (uint)CreateIndexGrbit.IndexUnicode;
-                    }
+        //            if (null != managedIndexCreates[i].pidxUnicode)
+        //            {
+        //                NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
+        //                nativeIndices[i].indexcreate.pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
+        //                nativeIndices[i].indexcreate.grbit |= (uint)CreateIndexGrbit.IndexUnicode;
+        //            }
 
-                    nativeIndices[i].indexcreate.szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
-                    nativeIndices[i].indexcreate.cbKey *= sizeof(char);
-                    nativeIndices[i].indexcreate.szIndexName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szIndexName));
-                    nativeIndices[i].indexcreate.rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, false, ref handles);
-                }
-            }
+        //            nativeIndices[i].indexcreate.szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
+        //            nativeIndices[i].indexcreate.cbKey *= sizeof(char);
+        //            nativeIndices[i].indexcreate.szIndexName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szIndexName));
+        //            nativeIndices[i].indexcreate.rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, false, ref handles);
+        //        }
+        //    }
 
-            return nativeIndices;
-        }
+        //    return nativeIndices;
+        //}
 
-        /// <summary>
-        /// Make native indexcreate structures from the managed ones.
-        /// Only supports Unicode data, since it was introduced in Win7.
-        /// </summary>
-        /// <param name="managedIndexCreates">Index create structures to convert.</param>
-        /// <param name="handles">The handle collection used to pin the data.</param>
-        /// <returns>Pinned native versions of the index creates.</returns>
-        private static unsafe JET_INDEXCREATE.NATIVE_INDEXCREATE2[] GetNativeIndexCreate2s(
-            IList<JET_INDEXCREATE> managedIndexCreates,
-            ref GCHandleCollection handles)
-        {
-            JET_INDEXCREATE.NATIVE_INDEXCREATE2[] nativeIndices = null;
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Make native indexcreate structures from the managed ones.
+        ///// Only supports Unicode data, since it was introduced in Win7.
+        ///// </summary>
+        ///// <param name="managedIndexCreates">Index create structures to convert.</param>
+        ///// <param name="handles">The handle collection used to pin the data.</param>
+        ///// <returns>Pinned native versions of the index creates.</returns>
+        //private static unsafe JET_INDEXCREATE.NATIVE_INDEXCREATE2[] GetNativeIndexCreate2s(
+        //    IList<JET_INDEXCREATE> managedIndexCreates,
+        //    ref GCHandleCollection handles)
+        //{
+        //    JET_INDEXCREATE.NATIVE_INDEXCREATE2[] nativeIndices = null;
 
-            if (managedIndexCreates != null && managedIndexCreates.Count > 0)
-            {
-                nativeIndices = new JET_INDEXCREATE.NATIVE_INDEXCREATE2[managedIndexCreates.Count];
+        //    if (managedIndexCreates != null && managedIndexCreates.Count > 0)
+        //    {
+        //        nativeIndices = new JET_INDEXCREATE.NATIVE_INDEXCREATE2[managedIndexCreates.Count];
 
-                for (int i = 0; i < managedIndexCreates.Count; ++i)
-                {
-                    nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate2();
+        //        for (int i = 0; i < managedIndexCreates.Count; ++i)
+        //        {
+        //            nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate2();
 
-                    if (null != managedIndexCreates[i].pidxUnicode)
-                    {
-                        NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
-                        nativeIndices[i].indexcreate1.indexcreate.pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
-                        nativeIndices[i].indexcreate1.indexcreate.grbit |= (uint)CreateIndexGrbit.IndexUnicode;
-                    }
+        //            if (null != managedIndexCreates[i].pidxUnicode)
+        //            {
+        //                NATIVE_UNICODEINDEX unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex();
+        //                nativeIndices[i].indexcreate1.indexcreate.pidxUnicode = (NATIVE_UNICODEINDEX*)handles.Add(unicode);
+        //                nativeIndices[i].indexcreate1.indexcreate.grbit |= (uint)CreateIndexGrbit.IndexUnicode;
+        //            }
 
-                    nativeIndices[i].indexcreate1.indexcreate.szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
-                    nativeIndices[i].indexcreate1.indexcreate.cbKey *= sizeof(char);
-                    nativeIndices[i].indexcreate1.indexcreate.szIndexName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szIndexName));
-                    nativeIndices[i].indexcreate1.indexcreate.rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, true, ref handles);
+        //            nativeIndices[i].indexcreate1.indexcreate.szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
+        //            nativeIndices[i].indexcreate1.indexcreate.cbKey *= sizeof(char);
+        //            nativeIndices[i].indexcreate1.indexcreate.szIndexName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szIndexName));
+        //            nativeIndices[i].indexcreate1.indexcreate.rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, true, ref handles);
 
-                    // Convert pSpaceHints.
-                    if (managedIndexCreates[i].pSpaceHints != null)
-                    {
-                        NATIVE_SPACEHINTS nativeSpaceHints = managedIndexCreates[i].pSpaceHints.GetNativeSpaceHints();
+        //            // Convert pSpaceHints.
+        //            if (managedIndexCreates[i].pSpaceHints != null)
+        //            {
+        //                NATIVE_SPACEHINTS nativeSpaceHints = managedIndexCreates[i].pSpaceHints.GetNativeSpaceHints();
 
-                        nativeIndices[i].pSpaceHints = handles.Add(nativeSpaceHints);
-                    }
-                }
-            }
+        //                nativeIndices[i].pSpaceHints = handles.Add(nativeSpaceHints);
+        //            }
+        //        }
+        //    }
 
-            return nativeIndices;
-        }
+        //    return nativeIndices;
+        //}
 
         /// <summary>
         /// Set managed columnids from unmanaged columnids. This also sets the columnids
@@ -4641,148 +4594,152 @@ namespace EsentLib.Implementation
             }
         }
 
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <returns>An error code.</returns>
-        private static int CreateIndexes(JET_SESID sesid, JET_TABLEID tableid, IList<JET_INDEXCREATE> indexcreates, int numIndexCreates)
-        {
-            // pin the memory
-            var handles = new GCHandleCollection();
-            try
-            {
-                JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndexcreates = GetNativeIndexCreates(indexcreates, ref handles);
-                return Tracing.TraceResult(NativeMethods.JetCreateIndex2(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
-            }
-            finally
-            {
-                handles.Dispose();
-            }
-        }
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates indexes over data in an ESE database.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to create the index on.</param>
+        ///// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
+        ///// <param name="numIndexCreates">Number of index description objects.</param>
+        ///// <returns>An error code.</returns>
+        //private static int CreateIndexes(JET_SESID sesid, JET_TABLEID tableid, IList<JET_INDEXCREATE> indexcreates, int numIndexCreates)
+        //{
+        //    // pin the memory
+        //    var handles = new GCHandleCollection();
+        //    try
+        //    {
+        //        JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndexcreates = GetNativeIndexCreates(indexcreates, ref handles);
+        //        return Tracing.TraceResult(NativeMethods.JetCreateIndex2(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
+        //    }
+        //    finally
+        //    {
+        //        handles.Dispose();
+        //    }
+        //}
 
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <returns>An error code.</returns>
-        private static int CreateIndexes1(JET_SESID sesid, JET_TABLEID tableid, IList<JET_INDEXCREATE> indexcreates, int numIndexCreates)
-        {
-            // pin the memory
-            var handles = new GCHandleCollection();
-            try
-            {
-                JET_INDEXCREATE.NATIVE_INDEXCREATE1[] nativeIndexcreates = GetNativeIndexCreate1s(indexcreates, ref handles);
-                return Tracing.TraceResult(NativeMethods.JetCreateIndex2W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
-            }
-            finally
-            {
-                handles.Dispose();
-            }
-        }
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates indexes over data in an ESE database.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to create the index on.</param>
+        ///// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
+        ///// <param name="numIndexCreates">Number of index description objects.</param>
+        ///// <returns>An error code.</returns>
+        //private static int CreateIndexes1(JET_SESID sesid, JET_TABLEID tableid, IList<JET_INDEXCREATE> indexcreates, int numIndexCreates)
+        //{
+        //    // pin the memory
+        //    var handles = new GCHandleCollection();
+        //    try
+        //    {
+        //        JET_INDEXCREATE.NATIVE_INDEXCREATE1[] nativeIndexcreates = GetNativeIndexCreate1s(indexcreates, ref handles);
+        //        return Tracing.TraceResult(NativeMethods.JetCreateIndex2W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
+        //    }
+        //    finally
+        //    {
+        //        handles.Dispose();
+        //    }
+        //}
 
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <returns>An error code.</returns>
-        private static int CreateIndexes2(JET_SESID sesid, JET_TABLEID tableid, IList<JET_INDEXCREATE> indexcreates, int numIndexCreates)
-        {
-            // pin the memory
-            var handles = new GCHandleCollection();
-            try
-            {
-                JET_INDEXCREATE.NATIVE_INDEXCREATE2[] nativeIndexcreates = GetNativeIndexCreate2s(indexcreates, ref handles);
-                return Tracing.TraceResult(NativeMethods.JetCreateIndex3W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
-            }
-            finally
-            {
-                handles.Dispose();
-            }
-        }
+        // NOT IMPLEMENTED : 
+        ///// <summary>
+        ///// Creates indexes over data in an ESE database.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to create the index on.</param>
+        ///// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
+        ///// <param name="numIndexCreates">Number of index description objects.</param>
+        ///// <returns>An error code.</returns>
+        //private static int CreateIndexes2(JET_SESID sesid, JET_TABLEID tableid, IList<JET_INDEXCREATE> indexcreates, int numIndexCreates)
+        //{
+        //    // pin the memory
+        //    var handles = new GCHandleCollection();
+        //    try
+        //    {
+        //        JET_INDEXCREATE.NATIVE_INDEXCREATE2[] nativeIndexcreates = GetNativeIndexCreate2s(indexcreates, ref handles);
+        //        return Tracing.TraceResult(NativeMethods.JetCreateIndex3W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
+        //    }
+        //    finally
+        //    {
+        //        handles.Dispose();
+        //    }
+        //}
 
-        /// <summary>
-        /// Creates a table, adds columns, and indices on that table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to which to add the new table.</param>
-        /// <param name="tablecreate">Object describing the table to create.</param>
-        /// <returns>An error if the call fails.</returns>
-        private static int CreateTableColumnIndex3(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_TABLECREATE tablecreate)
-        {
-            JET_TABLECREATE.NATIVE_TABLECREATE3 nativeTableCreate = tablecreate.GetNativeTableCreate3();
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates a table, adds columns, and indices on that table.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database to which to add the new table.</param>
+        ///// <param name="tablecreate">Object describing the table to create.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //private static int CreateTableColumnIndex3(
+        //    JET_SESID sesid,
+        //    JET_DBID dbid,
+        //    JET_TABLECREATE tablecreate)
+        //{
+        //    JET_TABLECREATE.NATIVE_TABLECREATE3 nativeTableCreate = tablecreate.GetNativeTableCreate3();
 
-            unsafe
-            {
-                var handles = new GCHandleCollection();
-                try
-                {
-                    // Convert/pin the column definitions.
-                    nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, true, ref handles);
+        //    unsafe
+        //    {
+        //        var handles = new GCHandleCollection();
+        //        try
+        //        {
+        //            // Convert/pin the column definitions.
+        //            nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, true, ref handles);
 
-                    // Convert/pin the index definitions.
-                    JET_INDEXCREATE.NATIVE_INDEXCREATE2[] nativeIndexCreates = GetNativeIndexCreate2s(tablecreate.rgindexcreate, ref handles);
-                    nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreates);
+        //            // Convert/pin the index definitions.
+        //            JET_INDEXCREATE.NATIVE_INDEXCREATE2[] nativeIndexCreates = GetNativeIndexCreate2s(tablecreate.rgindexcreate, ref handles);
+        //            nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreates);
 
-                    // Convert/pin the space hints.
-                    if (tablecreate.pSeqSpacehints != null)
-                    {
-                        NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pSeqSpacehints.GetNativeSpaceHints();
-                        nativeTableCreate.pSeqSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
-                    }
+        //            // Convert/pin the space hints.
+        //            if (tablecreate.pSeqSpacehints != null)
+        //            {
+        //                NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pSeqSpacehints.GetNativeSpaceHints();
+        //                nativeTableCreate.pSeqSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
+        //            }
 
-                    if (tablecreate.pLVSpacehints != null)
-                    {
-                        NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pLVSpacehints.GetNativeSpaceHints();
-                        nativeTableCreate.pLVSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
-                    }
+        //            if (tablecreate.pLVSpacehints != null)
+        //            {
+        //                NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pLVSpacehints.GetNativeSpaceHints();
+        //                nativeTableCreate.pLVSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
+        //            }
 
-                    int err = NativeMethods.JetCreateTableColumnIndex3W(sesid.Value, dbid.Value, ref nativeTableCreate);
+        //            int err = NativeMethods.JetCreateTableColumnIndex3W(sesid.Value, dbid.Value, ref nativeTableCreate);
 
-                    // Modified fields.
-                    tablecreate.tableid = new JET_TABLEID
-                    {
-                        Value = nativeTableCreate.tableid
-                    };
+        //            // Modified fields.
+        //            tablecreate.tableid = new JET_TABLEID
+        //            {
+        //                Value = nativeTableCreate.tableid
+        //            };
 
-                    tablecreate.cCreated = checked((int)nativeTableCreate.cCreated);
+        //            tablecreate.cCreated = checked((int)nativeTableCreate.cCreated);
 
-                    if (tablecreate.rgcolumncreate != null)
-                    {
-                        for (int i = 0; i < tablecreate.rgcolumncreate.Length; ++i)
-                        {
-                            tablecreate.rgcolumncreate[i].SetFromNativeColumnCreate(nativeTableCreate.rgcolumncreate[i]);
-                        }
-                    }
+        //            if (tablecreate.rgcolumncreate != null)
+        //            {
+        //                for (int i = 0; i < tablecreate.rgcolumncreate.Length; ++i)
+        //                {
+        //                    tablecreate.rgcolumncreate[i].SetFromNativeColumnCreate(nativeTableCreate.rgcolumncreate[i]);
+        //                }
+        //            }
 
-                    if (tablecreate.rgindexcreate != null)
-                    {
-                        for (int i = 0; i < tablecreate.rgindexcreate.Length; ++i)
-                        {
-                            tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreates[i]);
-                        }
-                    }
+        //            if (tablecreate.rgindexcreate != null)
+        //            {
+        //                for (int i = 0; i < tablecreate.rgindexcreate.Length; ++i)
+        //                {
+        //                    tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreates[i]);
+        //                }
+        //            }
 
-                    return Tracing.TraceResult(err);
-                }
-                finally
-                {
-                    handles.Dispose();
-                }
-            }
-        }
+        //            return Tracing.TraceResult(err);
+        //        }
+        //        finally
+        //        {
+        //            handles.Dispose();
+        //        }
+        //    }
+        //}
 
         #endregion
 
@@ -4795,89 +4752,87 @@ namespace EsentLib.Implementation
         // This overload takes an IntPtr rather than a JET_INDEXID. It's meant to only be called by
         // our JetSetCurrentIndex1-3, to 'up-cast' to JetSetCurrentIndex4().
 
-        /// <summary>
-        /// Creates a table, adds columns, and indices on that table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to which to add the new table.</param>
-        /// <param name="tablecreate">Object describing the table to create.</param>
-        /// <returns>An error if the call fails.</returns>
-        private int CreateTableColumnIndex2(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_TABLECREATE tablecreate)
-        {
-            JET_TABLECREATE.NATIVE_TABLECREATE2 nativeTableCreate = tablecreate.GetNativeTableCreate2();
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates a table, adds columns, and indices on that table.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database to which to add the new table.</param>
+        ///// <param name="tablecreate">Object describing the table to create.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //private int CreateTableColumnIndex2(JET_SESID sesid, JET_DBID dbid, JET_TABLECREATE tablecreate)
+        //{
+        //    JET_TABLECREATE.NATIVE_TABLECREATE2 nativeTableCreate = tablecreate.GetNativeTableCreate2();
 
-            unsafe
-            {
-                var handles = new GCHandleCollection();
-                try
-                {
-                    JET_INDEXCREATE.NATIVE_INDEXCREATE1[] nativeIndexCreate1s = null;
-                    JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndexCreates = null;
-                    int err;
+        //    unsafe
+        //    {
+        //        var handles = new GCHandleCollection();
+        //        try
+        //        {
+        //            JET_INDEXCREATE.NATIVE_INDEXCREATE1[] nativeIndexCreate1s = null;
+        //            JET_INDEXCREATE.NATIVE_INDEXCREATE[] nativeIndexCreates = null;
+        //            int err;
 
-                    if (_capabilities.SupportsVistaFeatures)
-                    {
-                        // Convert/pin the column definitions.
-                        nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, true, ref handles);
+        //            if (_capabilities.SupportsVistaFeatures)
+        //            {
+        //                // Convert/pin the column definitions.
+        //                nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, true, ref handles);
 
-                        // Convert/pin the index definitions.
-                        nativeIndexCreate1s = GetNativeIndexCreate1s(tablecreate.rgindexcreate, ref handles);
-                        nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreate1s);
-                        err = NativeMethods.JetCreateTableColumnIndex2W(sesid.Value, dbid.Value, ref nativeTableCreate);
-                    }
-                    else
-                    {
-                        // Convert/pin the column definitions.
-                        nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, false, ref handles);
+        //                // Convert/pin the index definitions.
+        //                nativeIndexCreate1s = GetNativeIndexCreate1s(tablecreate.rgindexcreate, ref handles);
+        //                nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreate1s);
+        //                err = NativeMethods.JetCreateTableColumnIndex2W(sesid.Value, dbid.Value, ref nativeTableCreate);
+        //            }
+        //            else
+        //            {
+        //                // Convert/pin the column definitions.
+        //                nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, false, ref handles);
 
-                        // Convert/pin the index definitions.
-                        nativeIndexCreates = GetNativeIndexCreates(tablecreate.rgindexcreate, ref handles);
-                        nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreates);
-                        err = NativeMethods.JetCreateTableColumnIndex2(sesid.Value, dbid.Value, ref nativeTableCreate);
-                    }
+        //                // Convert/pin the index definitions.
+        //                nativeIndexCreates = GetNativeIndexCreates(tablecreate.rgindexcreate, ref handles);
+        //                nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreates);
+        //                err = NativeMethods.JetCreateTableColumnIndex2(sesid.Value, dbid.Value, ref nativeTableCreate);
+        //            }
 
-                    // Modified fields.
-                    tablecreate.tableid = new JET_TABLEID
-                        {
-                            Value = nativeTableCreate.tableid
-                        };
+        //            // Modified fields.
+        //            tablecreate.tableid = new JET_TABLEID
+        //                {
+        //                    Value = nativeTableCreate.tableid
+        //                };
 
-                    tablecreate.cCreated = checked((int)nativeTableCreate.cCreated);
+        //            tablecreate.cCreated = checked((int)nativeTableCreate.cCreated);
 
-                    if (tablecreate.rgcolumncreate != null)
-                    {
-                        for (int i = 0; i < tablecreate.rgcolumncreate.Length; ++i)
-                        {
-                            tablecreate.rgcolumncreate[i].SetFromNativeColumnCreate(nativeTableCreate.rgcolumncreate[i]);
-                        }
-                    }
+        //            if (tablecreate.rgcolumncreate != null)
+        //            {
+        //                for (int i = 0; i < tablecreate.rgcolumncreate.Length; ++i)
+        //                {
+        //                    tablecreate.rgcolumncreate[i].SetFromNativeColumnCreate(nativeTableCreate.rgcolumncreate[i]);
+        //                }
+        //            }
 
-                    if (tablecreate.rgindexcreate != null)
-                    {
-                        for (int i = 0; i < tablecreate.rgindexcreate.Length; ++i)
-                        {
-                            if (null != nativeIndexCreate1s)
-                            {
-                                tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreate1s[i]);
-                            }
-                            else
-                            {
-                                tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreates[i]);
-                            }
-                        }
-                    }
+        //            if (tablecreate.rgindexcreate != null)
+        //            {
+        //                for (int i = 0; i < tablecreate.rgindexcreate.Length; ++i)
+        //                {
+        //                    if (null != nativeIndexCreate1s)
+        //                    {
+        //                        tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreate1s[i]);
+        //                    }
+        //                    else
+        //                    {
+        //                        tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreates[i]);
+        //                    }
+        //                }
+        //            }
 
-                    return Tracing.TraceResult(err);
-                }
-                finally
-                {
-                    handles.Dispose();
-                }
-            }
-        }
+        //            return Tracing.TraceResult(err);
+        //        }
+        //        finally
+        //        {
+        //            handles.Dispose();
+        //        }
+        //    }
+        //}
 
         #endregion
 
@@ -4977,7 +4932,7 @@ namespace EsentLib.Implementation
         public int JetGetErrorInfo(JET_err error, out JET_ERRINFOBASIC errinfo)
         {
             Tracing.TraceFunctionCall("JetGetErrorInfo");
-            this.Capabilities.CheckSupportsWindows8Features("JetGetErrorInfo");
+            this._Capabilities.CheckSupportsWindows8Features("JetGetErrorInfo");
 
             NATIVE_ERRINFOBASIC nativeErrinfobasic = new NATIVE_ERRINFOBASIC();
             errinfo = new JET_ERRINFOBASIC();
@@ -5001,7 +4956,7 @@ namespace EsentLib.Implementation
             out int actualPages, ResizeDatabaseGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetResizeDatabase");
-            this.Capabilities.CheckSupportsWindows8Features("JetResizeDatabase");
+            this._Capabilities.CheckSupportsWindows8Features("JetResizeDatabase");
             Helpers.CheckNotNegative(desiredPages, "desiredPages");
 
             uint actualPagesNative = 0;
@@ -5009,39 +4964,6 @@ namespace EsentLib.Implementation
                 checked((uint)desiredPages), out actualPagesNative, (uint)grbit));
             actualPages = checked((int)actualPagesNative);
             return err;
-        }
-
-        /// <summary>Creates indexes over data in an ESE database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <remarks>
-        /// <para>
-        /// <see cref="Api.JetCreateIndex2"/> and <see cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
-        /// are very similar, and appear to take the same arguments. The difference is in the
-        /// implementation. JetCreateIndex2 uses LCIDs for Unicode indices (e.g. 1033), while
-        /// JetCreateIndex4 uses Locale Names (e.g. "en-US" or "de-DE". LCIDs are older, and not as well
-        /// supported in newer version of windows.
-        /// </para>
-        /// </remarks>
-        /// <returns>An error code.</returns>
-        /// <seealso cref="Api.JetCreateIndex"/>
-        /// <seealso cref="Api.JetCreateIndex2"/>
-        public int JetCreateIndex4(JET_SESID sesid, JET_TABLEID tableid, JET_INDEXCREATE[] indexcreates,
-            int numIndexCreates)
-        {
-            Tracing.TraceFunctionCall("JetCreateIndex4");
-            this.Capabilities.CheckSupportsWindows8Features("JetCreateIndex4");
-            Helpers.CheckNotNull(indexcreates, "indexcreates");
-            Helpers.CheckNotNegative(numIndexCreates, "numIndexCreates");
-            if (numIndexCreates > indexcreates.Length)
-            {
-                throw new ArgumentOutOfRangeException(
-                    "numIndexCreates", numIndexCreates, "numIndexCreates is larger than the number of indexes passed in");
-            }
-
-            return CreateIndexes3(sesid, tableid, indexcreates, numIndexCreates);
         }
 
         /// <summary>Creates a temporary table with a single index. A temporary table stores and
@@ -5057,7 +4979,7 @@ namespace EsentLib.Implementation
         public int JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
             Tracing.TraceFunctionCall("JetOpenTemporaryTable2");
-            this.Capabilities.CheckSupportsWindows8Features("JetOpenTemporaryTable2");
+            this._Capabilities.CheckSupportsWindows8Features("JetOpenTemporaryTable2");
             Helpers.CheckNotNull(temporarytable, "temporarytable");
 
             NATIVE_OPENTEMPORARYTABLE2 nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable2();
@@ -5097,7 +5019,7 @@ namespace EsentLib.Implementation
         public int JetCreateTableColumnIndex4(JET_SESID sesid, JET_DBID dbid, JET_TABLECREATE tablecreate)
         {
             Tracing.TraceFunctionCall("JetCreateTableColumnIndex4");
-            this.Capabilities.CheckSupportsWindows8Features("JetCreateTableColumnIndex4");
+            this._Capabilities.CheckSupportsWindows8Features("JetCreateTableColumnIndex4");
             Helpers.CheckNotNull(tablecreate, "tablecreate");
             return CreateTableColumnIndex4(sesid, dbid, tablecreate);
         }
@@ -5117,7 +5039,7 @@ namespace EsentLib.Implementation
             int length, out int actualDataSize)
         {
             Tracing.TraceFunctionCall("JetGetSessionParameter");
-            this.Capabilities.CheckSupportsWindows8Features("JetGetSessionParameter");
+            this._Capabilities.CheckSupportsWindows8Features("JetGetSessionParameter");
             Helpers.CheckDataSize(data, length, "length");
             int err = NativeMethods.JetGetSessionParameter(sesid.Value, (uint)sesparamid,
                 data, length, out actualDataSize);
@@ -5167,7 +5089,7 @@ namespace EsentLib.Implementation
             PrereadIndexRangesGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetPrereadIndexRanges");
-            this.Capabilities.CheckSupportsWindows8Features("JetPrereadIndexRanges");
+            this._Capabilities.CheckSupportsWindows8Features("JetPrereadIndexRanges");
             Helpers.CheckNotNull(indexRanges, "indexRanges");
             Helpers.CheckDataSize(indexRanges, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
 
@@ -5220,7 +5142,7 @@ namespace EsentLib.Implementation
             out int rangesPreread, JET_COLUMNID[] columnsPreread, PrereadIndexRangesGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetPrereadKeyRanges");
-            this.Capabilities.CheckSupportsWindows8Features("JetPrereadKeyRanges");
+            this._Capabilities.CheckSupportsWindows8Features("JetPrereadKeyRanges");
             Helpers.CheckDataSize(keysStart, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
             Helpers.CheckDataSize(keyStartLengths, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
             Helpers.CheckNotNull(keysStart, "keysStart");
@@ -5288,7 +5210,7 @@ namespace EsentLib.Implementation
         public int JetSetCursorFilter(JET_SESID sesid, JET_TABLEID tableid, JET_INDEX_COLUMN[] filters, CursorFilterGrbit grbit)
         {
             Tracing.TraceFunctionCall("JetSetCursorFilter");
-            this.Capabilities.CheckSupportsWindows8Features("JetSetCursorFilter");
+            this._Capabilities.CheckSupportsWindows8Features("JetSetCursorFilter");
 
             if (filters == null || filters.Length == 0)
             {
@@ -5315,73 +5237,6 @@ namespace EsentLib.Implementation
         #endregion
 
         #region Private utility functions
-        /// <summary>
-        /// Make native indexcreate structures from the managed ones.
-        /// </summary>
-        /// <param name="managedIndexCreates">Index create structures to convert.</param>
-        /// <param name="handles">The handle collection used to pin the data.</param>
-        /// <returns>Pinned native versions of the index creates.</returns>
-        private static unsafe NATIVE_INDEXCREATE3[] GetNativeIndexCreate3s(
-            IList<JET_INDEXCREATE> managedIndexCreates,
-            ref GCHandleCollection handles)
-        {
-            NATIVE_INDEXCREATE3[] nativeIndices = null;
-
-            if (managedIndexCreates != null && managedIndexCreates.Count > 0)
-            {
-                nativeIndices = new NATIVE_INDEXCREATE3[managedIndexCreates.Count];
-
-                for (int i = 0; i < managedIndexCreates.Count; ++i)
-                {
-                    nativeIndices[i] = managedIndexCreates[i].GetNativeIndexcreate3();
-
-                    if (null != managedIndexCreates[i].pidxUnicode)
-                    {
-                        NATIVE_UNICODEINDEX2 unicode = managedIndexCreates[i].pidxUnicode.GetNativeUnicodeIndex2();
-                        unicode.szLocaleName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].pidxUnicode.GetEffectiveLocaleName()));
-                        nativeIndices[i].pidxUnicode = (NATIVE_UNICODEINDEX2*)handles.Add(unicode);
-                        nativeIndices[i].grbit |= (uint)CreateIndexGrbit.IndexUnicode;
-                    }
-
-                    nativeIndices[i].szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szKey));
-                    nativeIndices[i].szIndexName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[i].szIndexName));
-                    nativeIndices[i].rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[i].rgconditionalcolumn, true, ref handles);
-
-                    // Convert pSpaceHints.
-                    if (managedIndexCreates[i].pSpaceHints != null)
-                    {
-                        NATIVE_SPACEHINTS nativeSpaceHints = managedIndexCreates[i].pSpaceHints.GetNativeSpaceHints();
-
-                        nativeIndices[i].pSpaceHints = handles.Add(nativeSpaceHints);
-                    }
-                }
-            }
-
-            return nativeIndices;
-        }
-
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <returns>An error code.</returns>
-        private static int CreateIndexes3(JET_SESID sesid, JET_TABLEID tableid, IList<JET_INDEXCREATE> indexcreates, int numIndexCreates)
-        {
-            // pin the memory
-            var handles = new GCHandleCollection();
-            try
-            {
-                NATIVE_INDEXCREATE3[] nativeIndexcreates = GetNativeIndexCreate3s(indexcreates, ref handles);
-                return Tracing.TraceResult(NativeMethods.JetCreateIndex4W(sesid.Value, tableid.Value, nativeIndexcreates, checked((uint)numIndexCreates)));
-            }
-            finally
-            {
-                handles.Dispose();
-            }
-        }
 
         /// <summary>
         /// Creates a table, adds columns, and indices on that table.
@@ -5406,49 +5261,50 @@ namespace EsentLib.Implementation
                     nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, true, ref handles);
 
                     // Convert/pin the index definitions.
-                    NATIVE_INDEXCREATE3[] nativeIndexCreates = GetNativeIndexCreate3s(tablecreate.rgindexcreate, ref handles);
-                    nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreates);
+                    throw new NotImplementedException(); // For compilation purpose
+                    // NATIVE_INDEXCREATE3[] nativeIndexCreates = GetNativeIndexCreate3s(tablecreate.rgindexcreate, ref handles);
+                    ////nativeTableCreate.rgindexcreate = handles.Add(nativeIndexCreates);
 
-                    // Convert/pin the space hints.
-                    if (tablecreate.pSeqSpacehints != null)
-                    {
-                        NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pSeqSpacehints.GetNativeSpaceHints();
-                        nativeTableCreate.pSeqSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
-                    }
+                    ////// Convert/pin the space hints.
+                    ////if (tablecreate.pSeqSpacehints != null)
+                    ////{
+                    ////    NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pSeqSpacehints.GetNativeSpaceHints();
+                    ////    nativeTableCreate.pSeqSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
+                    ////}
 
-                    if (tablecreate.pLVSpacehints != null)
-                    {
-                        NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pLVSpacehints.GetNativeSpaceHints();
-                        nativeTableCreate.pLVSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
-                    }
+                    ////if (tablecreate.pLVSpacehints != null)
+                    ////{
+                    ////    NATIVE_SPACEHINTS nativeSpaceHints = tablecreate.pLVSpacehints.GetNativeSpaceHints();
+                    ////    nativeTableCreate.pLVSpacehints = (NATIVE_SPACEHINTS*)handles.Add(nativeSpaceHints);
+                    ////}
 
-                    int err = NativeMethods.JetCreateTableColumnIndex4W(sesid.Value, dbid.Value, ref nativeTableCreate);
+                    ////int err = NativeMethods.JetCreateTableColumnIndex4W(sesid.Value, dbid.Value, ref nativeTableCreate);
 
-                    // Modified fields.
-                    tablecreate.tableid = new JET_TABLEID
-                    {
-                        Value = nativeTableCreate.tableid
-                    };
+                    ////// Modified fields.
+                    ////tablecreate.tableid = new JET_TABLEID
+                    ////{
+                    ////    Value = nativeTableCreate.tableid
+                    ////};
 
-                    tablecreate.cCreated = checked((int)nativeTableCreate.cCreated);
+                    ////tablecreate.cCreated = checked((int)nativeTableCreate.cCreated);
 
-                    if (tablecreate.rgcolumncreate != null)
-                    {
-                        for (int i = 0; i < tablecreate.rgcolumncreate.Length; ++i)
-                        {
-                            tablecreate.rgcolumncreate[i].SetFromNativeColumnCreate(nativeTableCreate.rgcolumncreate[i]);
-                        }
-                    }
+                    ////if (tablecreate.rgcolumncreate != null)
+                    ////{
+                    ////    for (int i = 0; i < tablecreate.rgcolumncreate.Length; ++i)
+                    ////    {
+                    ////        tablecreate.rgcolumncreate[i].SetFromNativeColumnCreate(nativeTableCreate.rgcolumncreate[i]);
+                    ////    }
+                    ////}
 
-                    if (tablecreate.rgindexcreate != null)
-                    {
-                        for (int i = 0; i < tablecreate.rgindexcreate.Length; ++i)
-                        {
-                            tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreates[i]);
-                        }
-                    }
+                    ////if (tablecreate.rgindexcreate != null)
+                    ////{
+                    ////    for (int i = 0; i < tablecreate.rgindexcreate.Length; ++i)
+                    ////    {
+                    ////        tablecreate.rgindexcreate[i].SetFromNativeIndexCreate(nativeIndexCreates[i]);
+                    ////    }
+                    ////}
 
-                    return Tracing.TraceResult(err);
+                    ////return Tracing.TraceResult(err);
                 }
                 finally
                 {
@@ -5518,12 +5374,19 @@ namespace EsentLib.Implementation
 
         #endregion
 
+        /// <summary>A dictionary of active sessions keyed by the interface object.</summary>
+        private static Dictionary<IJetSession, JetSession> _activeSessions =
+            new Dictionary<IJetSession, JetSession>();
         /// <summary>Callback wrapper collection. This is used for long-running callbacks
         /// (callbacks which can be called after the API call returns). Create a wrapper
         /// here and occasionally clean them up.</summary>
         private readonly CallbackWrappers callbackWrappers = new CallbackWrappers();
         private JetCapabilities _capabilities;
+        /// <summary>The native istance object.</summary>
         private JET_INSTANCE _instance;
+        /// <summary>The true engine version as retrieved from the ESENT DLL. 0 until
+        /// properly retrieved from the underlying engine.</summary>
+        private uint _version = 0;
         /// <summary>The version of esent. If this is zero then it is looked up with
         /// JetGetVersion.</summary>
         private readonly uint versionOverride;

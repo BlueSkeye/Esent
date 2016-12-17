@@ -9,6 +9,10 @@ namespace EsentLib
     /// <summary></summary>
     public interface IJetTransaction
     {
+        /// <summary>Gets the current transaction level of the <see cref="IJetTransaction"/>.
+        /// Requires Win10.</summary>
+        int TransactionLevel { get; }
+
         /// <summary>Commit a transaction. This object should be in a transaction.
         /// Commits the changes made to the state of the database during the current save point
         /// and migrates them to the previous save point. If the outermost save point is committed

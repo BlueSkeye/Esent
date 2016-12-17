@@ -96,6 +96,7 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="IContentEquatable.cs" />
     <Compile Include="IDeepCloneable.cs" />
+    <Compile Include="IJetCapabilities.cs" />
     <Compile Include="IJetColumn.cs" />
     <Compile Include="IJetEnvironment.cs" />
     <Compile Include="IJetInstance.cs" />

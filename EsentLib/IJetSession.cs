@@ -4,8 +4,18 @@ namespace EsentLib
 {
     /// <summary></summary>
     [CLSCompliant(false)]
-    public interface IJetSession
+    public interface IJetSession : IDisposable
     {
+        /// <summary>Get session id.</summary>
+        IntPtr Id { get; }
+
+        /// <summary>Get instance this session is bound to.</summary>
+        IJetInstance Owner { get; }
+
+        /// <summary>Gets the current transaction level of the <see cref="IJetTransaction"/>.
+        /// Requires Win10.</summary>
+        int TransactionLevel { get; }
+
         /// <summary>Attaches a database file for use with a database instance. In order to
         /// use the database, it will need to be subsequently opened with
         /// <see cref="IJetSession.OpenDatabase"/>.</summary>

@@ -15,7 +15,7 @@ using EsentLib.Platform.Windows7;
 using EsentLib.Platform.Windows8;
 using EsentLib.Platform.Windows2003;
 
-namespace EsentLib.Implementation
+namespace EsentLib
 {
     /// <summary>This interface describes all the methods which have a P/Invoke
     /// implementation. Concrete instances of this interface provide methods that
@@ -25,7 +25,7 @@ namespace EsentLib.Implementation
     {
         /// <summary>Gets a description of the capabilities of the current version
         /// of ESENT.</summary>
-        JetCapabilities Capabilities { get; }
+        IJetCapabilities Capabilities { get; }
 
         /// <summary></summary>
         IntPtr Id { get; }
@@ -45,10 +45,10 @@ namespace EsentLib.Implementation
         /// <param name="password">The parameter is not used.</param>
         /// <returns>A new session.</returns>
         /* <seealso cref="Api.BeginSession"/> */
-        JetSession BeginSession(string username, string password);
+        IJetSession BeginSession(string username, string password);
 
         /// <summary>Terminate an instance that was created with
-        /// <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
+        /// JetInstance.Create(string,string,CreateInstanceGrbit).</summary>
         /// <param name="grbit">Termination options.</param>
         void Close(TermGrbit grbit = TermGrbit.None);
 
@@ -61,7 +61,7 @@ namespace EsentLib.Implementation
         /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database files that should become part of
         /// the backup file set. Only databases that are currently attached to the instance
-        /// using <see cref="JetSession.AttachDatabase"/> will be considered. These files may
+        /// using <see cref="IJetSession.AttachDatabase"/> will be considered. These files may
         /// subsequently be opened using <see cref="IJetInstance.OpenFile"/> and read
         /// using <see cref="JET_HANDLE.Read"/>.</summary>
         /// <returns>Returns a list of strings describing the set of database files that should
@@ -118,10 +118,10 @@ namespace EsentLib.Implementation
 
         /// <summary>Restores and recovers a streaming backup of an instance including all the
         /// attached databases. It is designed to work with a backup created with the
-        /// <see cref="JetInstance.Backup"/> function. This is the simplest and most encapsulated
+        /// <see cref="IJetInstance.Backup"/> function. This is the simplest and most encapsulated
         /// restore function.</summary>
         /// <param name="source">Location of the backup. The backup should have been created with
-        /// <see cref="JetInstance.Backup"/>.</param>
+        /// <see cref="IJetInstance.Backup"/>.</param>
         /// <param name="destination">Name of the folder where the database files from the backup set
         /// will be copied and recovered. If this is set to null, the database files will be copied
         /// and recovered to their original location.</param>
@@ -257,55 +257,17 @@ namespace EsentLib.Implementation
 
         #region DDL
 
-        /// <summary>
-        /// Deletes a table from a database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to delete the table from.</param>
-        /// <param name="table">The name of the table to delete.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetDeleteTable(JET_SESID sesid, JET_DBID dbid, string table);
-
-        /// <summary>
-        /// Creates an index over data in an ESE database. An index can be used to locate
-        /// specific data quickly.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexName">
-        /// Pointer to a null-terminated string that specifies the name of the index to create. 
-        /// </param>
-        /// <param name="grbit">Index creation options.</param>
-        /// <param name="keyDescription">
-        /// Pointer to a double null-terminated string of null-delimited tokens.
-        /// </param>
-        /// <param name="keyDescriptionLength">
-        /// The length, in characters, of szKey including the two terminating nulls.
-        /// </param>
-        /// <param name="density">Initial B+ tree density.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetCreateIndex(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexName,
-            CreateIndexGrbit grbit, 
-            string keyDescription,
-            int keyDescriptionLength,
-            int density);
-
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <returns>An error code.</returns>
-        int JetCreateIndex2(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_INDEXCREATE[] indexcreates,
-            int numIndexCreates);
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates indexes over data in an ESE database.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to create the index on.</param>
+        ///// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
+        ///// <param name="numIndexCreates">Number of index description objects.</param>
+        ///// <returns>An error code.</returns>
+        //int JetCreateIndex2(JET_SESID sesid, JET_TABLEID tableid, JET_INDEXCREATE[] indexcreates,
+        //    int numIndexCreates);
 
         /// <summary>
         /// Creates a temporary table with a single index. A temporary table
@@ -438,17 +400,15 @@ namespace EsentLib.Implementation
         /// <returns>An error code.</returns>
         int JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable);
 
-        /// <summary>
-        /// Creates a table, adds columns, and indices on that table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to which to add the new table.</param>
-        /// <param name="tablecreate">Object describing the table to create.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetCreateTableColumnIndex3(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_TABLECREATE tablecreate);
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates a table, adds columns, and indices on that table.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database to which to add the new table.</param>
+        ///// <param name="tablecreate">Object describing the table to create.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //int JetCreateTableColumnIndex3(JET_SESID sesid, JET_DBID dbid, JET_TABLECREATE tablecreate);
 
         #region JetGetTableColumnInfo overloads
 
@@ -1743,14 +1703,6 @@ namespace EsentLib.Implementation
             ResizeDatabaseGrbit grbit);
 
         #region DDL
-        /// <summary>Creates indexes over data in an ESE database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <returns>An error code.</returns>
-        int JetCreateIndex4(JET_SESID sesid, JET_TABLEID tableid, JET_INDEXCREATE[] indexcreates,
-            int numIndexCreates);
 
         /// <summary>Creates a temporary table with a single index. A temporary table stores and
         /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.

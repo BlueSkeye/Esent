@@ -21,7 +21,7 @@ namespace EsentLib.Platform.Windows8
         /// <see cref="JET_INDEXCREATE"/> structure,  but it contains some additional
         /// members, and it also uses a locale name in the <see cref="JET_UNICODEINDEX"/>
         /// index definition, not an LCID.
-        /// The returned object is suitable for use by <see cref="Windows8Api.JetCreateIndex4"/>.
+        /// The returned object is suitable for use by <see cref="IJetTable.CreateIndex(JET_SESID, JET_INDEXCREATE[], int)"/>.
         /// </summary>
         /// <remarks>Not currently implemented in this layer, but provided for completeness to
         /// match the underlying API layer.</remarks>

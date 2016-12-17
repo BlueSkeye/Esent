@@ -21,7 +21,7 @@ namespace EsentLib.Implementation
         /// begins a transaction. The transaction will be rolled back if not explicitly committed.</summary>
         /// <param name="session">The session to start the transaction for.</param>
         /// <param name="grbit"></param>
-        public JetTransaction(JetSession session, BeginTransactionGrbit grbit = BeginTransactionGrbit.None)
+        internal JetTransaction(JetSession session, BeginTransactionGrbit grbit = BeginTransactionGrbit.None)
         {
             if (null == session) {
                 throw new ArgumentNullException("session");

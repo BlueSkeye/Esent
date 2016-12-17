@@ -34,78 +34,32 @@ namespace EsentLib
 
         #region DDL
 
-        /// <summary>Deletes a table from a database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to delete the table from.</param>
-        /// <param name="table">The name of the table to delete.</param>
-        public static void JetDeleteTable(JET_SESID sesid, JET_DBID dbid, string table)
-        {
-            EsentExceptionHelper.Check(Impl.JetDeleteTable(sesid, dbid, table));
-        }
-
-        /// <summary>
-        /// Creates an index over data in an ESE database. An index can be used to locate
-        /// specific data quickly.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexName">
-        /// Pointer to a null-terminated string that specifies the name of the index to create. 
-        /// </param>
-        /// <param name="grbit">Index creation options.</param>
-        /// <param name="keyDescription">
-        /// Pointer to a double null-terminated string of null-delimited tokens.
-        /// </param>
-        /// <param name="keyDescriptionLength">
-        /// The length, in characters, of szKey including the two terminating nulls.
-        /// </param>
-        /// <param name="density">Initial B+ tree density.</param>
-        /// <seealso cref="Api.JetCreateIndex"/>
-        /// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
-        public static void JetCreateIndex(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexName,
-            CreateIndexGrbit grbit,
-            string keyDescription,
-            int keyDescriptionLength,
-            int density)
-        {
-            EsentExceptionHelper.Check(Impl.JetCreateIndex(sesid, tableid, indexName, grbit, keyDescription, keyDescriptionLength, density));
-        }
-
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <remarks>
-        /// When creating multiple indexes (i.e. with numIndexCreates
-        /// greater than 1) this method MUST be called
-        /// outside of any transactions and with exclusive access to the
-        /// table. The JET_TABLEID returned by "IJetDatabase.CreateTable"
-        /// will have exlusive access or the table can be opened for
-        /// exclusive access by passing <see cref="OpenTableGrbit.DenyRead"/>
-        /// to <see cref="IJetDatabase.OpenTable"/>.<para>
-        /// <see cref="Api.JetCreateIndex2"/> and <see cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
-        /// are very similar, and appear to take the same arguments. The difference is in the
-        /// implementation. JetCreateIndex2 uses LCIDs for Unicode indices (e.g. 1033), while
-        /// JetCreateIndex4 uses Locale Names (e.g. "en-US" or "de-DE". LCIDs are older, and not as well
-        /// supported in newer version of windows.
-        /// </para>
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        /// <seealso cref="Api.JetCreateIndex"/>
-        /// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
-        public static void JetCreateIndex2(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_INDEXCREATE[] indexcreates,
-            int numIndexCreates)
-        {
-            EsentExceptionHelper.Check(Impl.JetCreateIndex2(sesid, tableid, indexcreates, numIndexCreates));            
-        }
+        // NOT IMPLEMENTED : Resort to JetCreateIndex4
+        ///// <summary>Creates indexes over data in an ESE database.</summary>
+        ///// <remarks>When creating multiple indexes (i.e. with numIndexCreates
+        ///// greater than 1) this method MUST be called
+        ///// outside of any transactions and with exclusive access to the
+        ///// table. The JET_TABLEID returned by "IJetDatabase.CreateTable"
+        ///// will have exlusive access or the table can be opened for
+        ///// exclusive access by passing <see cref="OpenTableGrbit.DenyRead"/>
+        ///// to <see cref="IJetDatabase.OpenTable"/>.<para>
+        ///// <see cref="Api.JetCreateIndex2"/> and <see cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
+        ///// are very similar, and appear to take the same arguments. The difference is in the
+        ///// implementation. JetCreateIndex2 uses LCIDs for Unicode indices (e.g. 1033), while
+        ///// JetCreateIndex4 uses Locale Names (e.g. "en-US" or "de-DE". LCIDs are older, and not as well
+        ///// supported in newer version of windows.
+        ///// </para>
+        ///// </remarks>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="tableid">The table to create the index on.</param>
+        ///// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
+        ///// <param name="numIndexCreates">Number of index description objects.</param>
+        ///// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateIndex4"/>
+        //public static void JetCreateIndex2(JET_SESID sesid, JET_TABLEID tableid, JET_INDEXCREATE[] indexcreates,
+        //    int numIndexCreates)
+        //{
+        //    EsentExceptionHelper.Check(Impl.JetCreateIndex2(sesid, tableid, indexcreates, numIndexCreates));            
+        //}
 
         /// <summary>
         /// Creates a temporary table with a single index. A temporary table
@@ -240,20 +194,21 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetOpenTempTable3(sesid, columns, numColumns, unicodeindex, grbit, out tableid, columnids));            
         }
 
-        /// <summary>
-        /// Creates a table, adds columns, and indices on that table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to which to add the new table.</param>
-        /// <param name="tablecreate">Object describing the table to create.</param>
-        /// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateTableColumnIndex4"/>
-        public static void JetCreateTableColumnIndex3(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_TABLECREATE tablecreate)
-        {
-            EsentExceptionHelper.Check(Impl.JetCreateTableColumnIndex3(sesid, dbid, tablecreate));
-        }
+        // NOT IMPLEMENTED
+        ///// <summary>
+        ///// Creates a table, adds columns, and indices on that table.
+        ///// </summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database to which to add the new table.</param>
+        ///// <param name="tablecreate">Object describing the table to create.</param>
+        ///// <seealso cref="EsentLib.Platform.Windows8.Windows8Api.JetCreateTableColumnIndex4"/>
+        //public static void JetCreateTableColumnIndex3(
+        //    JET_SESID sesid,
+        //    JET_DBID dbid,
+        //    JET_TABLECREATE tablecreate)
+        //{
+        //    EsentExceptionHelper.Check(Impl.JetCreateTableColumnIndex3(sesid, dbid, tablecreate));
+        //}
 
         #region JetGetTableColumnInfo overloads
 

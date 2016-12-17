@@ -9,6 +9,7 @@ using EsentLib.Jet;
 namespace EsentLib
 {
     /// <summary></summary>
+    [CLSCompliant(false)]
     public interface IJetDatabase
     {
         /// <summary>Closes a database file that was previously opened with
@@ -35,6 +36,10 @@ namespace EsentLib
         /// The default density of the table. This is used when doing sequential inserts.
         /// </param>
         IJetTable CreateTable(string table, int pages, int density);
+
+        /// <summary>Deletes a table from a database.</summary>
+        /// <param name="table">The name of the table to delete.</param>
+        void DeleteTable(string table);
 
         /// <summary>Retrieves certain information about the given database.</summary>
         /// <param name="infoLevel">The specific data to retrieve.</param>

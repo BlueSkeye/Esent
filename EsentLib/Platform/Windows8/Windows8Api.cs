@@ -90,30 +90,6 @@ namespace EsentLib.Platform.Windows8
         }
 
         #region DDL
-        /// <summary>
-        /// Creates indexes over data in an ESE database.
-        /// </summary>
-        /// <remarks>
-        /// When creating multiple indexes (i.e. with numIndexCreates
-        /// greater than 1) this method MUST be called
-        /// outside of any transactions and with exclusive access to the
-        /// table. The JET_TABLEID returned by "IJetDatabase.CreateTable"
-        /// will have exlusive access or the table can be opened for
-        /// exclusive access by passing <see cref="OpenTableGrbit.DenyRead"/>
-        /// to <see cref="IJetDatabase.OpenTable"/>.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to create the index on.</param>
-        /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
-        /// <param name="numIndexCreates">Number of index description objects.</param>
-        public static void JetCreateIndex4(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_INDEXCREATE[] indexcreates,
-            int numIndexCreates)
-        {
-            EsentExceptionHelper.Check(Api.Impl.JetCreateIndex4(sesid, tableid, indexcreates, numIndexCreates));            
-        }
 
         /// <summary>
         /// Creates a temporary table with a single index. A temporary table

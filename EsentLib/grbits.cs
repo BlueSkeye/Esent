@@ -1221,38 +1221,27 @@ namespace EsentLib
         ColumnDeleteOnZero = 0x20000,
     }
 
-    /// <summary>
-    /// Options for the <see cref="JET_TABLECREATE"/> parameter used by
-    /// <see cref="Api.JetCreateTableColumnIndex3"/>.
-    /// </summary>
+    /// <summary>Options for the <see cref="JET_TABLECREATE"/> parameter used by
+    /// Api.JetCreateTableColumnIndex3.</summary>
     /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.TableCreateImmutableStructure"/>
     [Flags]
     public enum CreateTableColumnIndexGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0x0,
 
-        /// <summary>
-        /// The DDL is fixed.
-        /// </summary>
+        /// <summary>The DDL is fixed.</summary>
         FixedDDL = 0x1,
 
-        /// <summary>
-        /// The DDL is inheritable. Implies FixedDDL.
-        /// </summary>
+        /// <summary>The DDL is inheritable. Implies FixedDDL.</summary>
         TemplateTable = 0x2,
 
-        /// <summary>
-        /// Used in conjunction with TemplateTable.
-        /// </summary>
+        /// <summary>Used in conjunction with TemplateTable.</summary>
         NoFixedVarColumnsInDerivedTables = 0x4,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetCreateIndex"/> and <see cref="JET_INDEXCREATE"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetTable.CreateIndex(JET_SESID, string, CreateIndexGrbit, string, int, int)"/>
+    /// and <see cref="JET_INDEXCREATE"/>.</summary>
     /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.IndexDotNetGuid"/>
     /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.IndexCreateImmutableStructure"/>
     [Flags]

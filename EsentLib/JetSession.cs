@@ -7,6 +7,7 @@ using EsentLib.Jet;
 namespace EsentLib.Implementation
 {
     /// <summary>A JET session bound to a JET engine.</summary>
+    [CLSCompliant(false)]
     public class JetSession : IDisposable, IJetSession
     {
         internal JetSession(JetInstance owner, JET_SESID hSession)
@@ -19,7 +20,7 @@ namespace EsentLib.Implementation
         #region PROPERTIES
         internal JetCapabilities Capabilities
         {
-            get { return _owner.Capabilities; }
+            get { return _owner._Capabilities; }
         }
 
         /// <summary>A 32-bit integer ID that is logged in traces and can be used by clients to
@@ -31,7 +32,8 @@ namespace EsentLib.Implementation
             set { SetParameter(JET_sesparam.CorrelationID, value); }
         }
 
-        internal IntPtr Id
+        /// <summary>Get session identifier.</summary>
+        public IntPtr Id
         {
             get { return _hSession.Value; }
         }
@@ -44,6 +46,9 @@ namespace EsentLib.Implementation
             get { return GetOperationContextParameter(); }
             set { SetParameter(value); }
         }
+
+        /// <summary>Get the instance owning this session.</summary>
+        public IJetInstance Owner { get; private set; }
 
         /// <summary>Gets the current number of nested levels of transactions begun. A value
         /// of zero indicates that the session is not currently in a transaction. This
@@ -97,6 +102,7 @@ namespace EsentLib.Implementation
             int returnCode = NativeMethods.JetEndSession(Id, (uint)grbit);
             Tracing.TraceResult(returnCode);
             if (throwOnError) { EsentExceptionHelper.Check(returnCode); }
+            JetInstance.NotifySessionClosed(this);
         }
 
         /// <summary>Creates and attaches a database file.</summary>
@@ -196,24 +202,6 @@ namespace EsentLib.Implementation
             return new JET_OPERATIONCONTEXT(ref nativeContext);
         }
 
-        /// <summary>Retrieves the version of the database engine.</summary>
-        internal uint GetVersion()
-        {
-            Tracing.TraceFunctionCall("GetVersion");
-            if ((null != _owner) && (0 != _owner.OverridenVersion)) {
-                // We have an explicitly set version
-                Tracing.TraceVerboseLine(string.Format(CultureInfo.InvariantCulture,
-                    "GetVersion overridden with 0x{0:X}", _owner.OverridenVersion));
-                return _owner.OverridenVersion;
-            }
-            // Get the version from Esent
-            uint nativeVersion;
-            int returnCode = NativeMethods.JetGetVersion(Id, out nativeVersion);
-            Tracing.TraceResult(returnCode);
-            EsentExceptionHelper.Check(returnCode);
-            return nativeVersion;
-        }
-
         /// <summary>Opens a database previously attached with <see cref="IJetSession.AttachDatabase"/>,
         /// for use with a database session. This function can be called multiple times for the same
         /// database.</summary>
@@ -221,6 +209,7 @@ namespace EsentLib.Implementation
         /// <param name="connect">Reserved for future use.</param>
         /// <param name="grbit">Open database options.</param>
         /// <returns>A database instance.</returns>
+        [CLSCompliant(false)]
         public IJetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit)
         {
             Tracing.TraceFunctionCall("OpenDatabase");
