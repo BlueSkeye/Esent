@@ -22,8 +22,6 @@ namespace EsentLib
     }
 
     /// <summary>Options for <see cref="EsentLib.Implementation.JetInstance.Initialize"/>.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ReplayIgnoreLostLogs"/>
-    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.KeepDbAttachedAtEndOfRecovery"/>
     [Flags]
     public enum InitGrbit
     {
@@ -46,10 +44,24 @@ namespace EsentLib
         /// <summary>Transaction logs must exist in the log file directory (i.e. can't auto-start
         /// a new stream).</summary>
         LogStreamMustExist = 0x40,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>Recover without error even if uncommitted logs have been lost. Set 
+        /// the recovery waypoint with Windows7Param.WaypointLatency to enable this type
+        /// of recovery.</summary>
+        ReplayIgnoreLostLogs = 0x80,
+
+        // --------- //
+        // WINDOWS 8 //
+        // --------- //
+        /// <summary>Allows db to remain attached at the end of recovery (for faster transition
+        /// to running state).</summary>
+        KeepDbAttachedAtEndOfRecovery = 0x1000,
     }
 
     /// <summary>Options for <see cref="IJetInstance.Close(TermGrbit)"/>.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Dirty"/>
     [Flags]
     public enum TermGrbit
     {
@@ -63,10 +75,15 @@ namespace EsentLib
         /// optional work that would ordinarily be done in the background at run time is
         /// abandoned.</summary>
         Abrupt = 2,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>Terminate without flushing the database cache.</summary>
+        Dirty = 0x8,
     }
 
     /// <summary>Options for <see cref="JetSession.CreateDatabase"/>.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnableCreateDbBackgroundMaintenance"/>
     [Flags]
     public enum CreateDatabaseGrbit
     {
@@ -81,6 +98,16 @@ namespace EsentLib
         /// <summary>Turns off logging. Setting this bit loses the ability to replay log files
         /// and recover the database to a consistent usable state after a crash.</summary>
         RecoveryOff = 0x8,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>The database engine will initiate automatic background database maintenance
+        /// upon database creation.</summary>
+        EnableCreateDbBackgroundMaintenance = 0x800,
+        
+        /// <summary>Compress data in the column, if possible.</summary>
+        ColumnCompressed = 0x80000,
     }
 
     /// <summary>Options for <see cref="JetDatabase.Detach"/>.</summary>
@@ -106,8 +133,6 @@ namespace EsentLib
     }
 
     /// <summary>Options for <see cref="JetSession.AttachDatabase"/>.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnableAttachDbBackgroundMaintenance"/>
-    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.PurgeCacheOnAttach"/>
     [Flags]
     public enum AttachDatabaseGrbit
     {
@@ -126,6 +151,19 @@ namespace EsentLib
         // ------------ //
         /// <summary>Delete all indexes with unicode columns.</summary>
         DeleteUnicodeIndexes = 0x400,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>The database engine will initiate automatic background database maintenance
+        /// upon database attachment.</summary>
+        EnableAttachDbBackgroundMaintenance = 0x800,
+
+        // --------- //
+        // WINDOWS 8 //
+        // --------- //
+        /// <summary>Purge database pages on attach.</summary>
+        PurgeCacheOnAttach = 0x1000,
     }
 
     /// <summary>Options for <see cref="JetSession.OpenDatabase"/>.</summary>
@@ -189,7 +227,6 @@ namespace EsentLib
     }
 
     /// <summary>Options for <see cref="JetEnvironment.PrepareSnapshot"/>.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ExplicitPrepare"/>
     [Flags]
     public enum SnapshotPrepareGrbit
     {
@@ -208,6 +245,14 @@ namespace EsentLib
         /// <summary>The snapshot session continues after JetOSSnapshotThaw and will require a
         /// JetOSSnapshotEnd function call.</summary>
         ContinueAfterThaw = 0x4,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>No instances will be prepared by default. Instances must be added
+        /// explicitly.</summary>
+        ExplicitPrepare = 0x8,
+
     }
 
     /// <summary>Options for <see cref="IJetSnapshot.Thaw"/>.</summary>
@@ -288,7 +333,6 @@ namespace EsentLib
     /// <summary>
     /// Options for JetCommitTransaction.
     /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ForceNewLog"/>
     [Flags]
     public enum CommitTransactionGrbit
     {
@@ -333,6 +377,15 @@ namespace EsentLib
         /// combination with any other option.
         /// </summary>
         WaitAllLevel0Commit = 0x8,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>Force a new logfile to be created. This option may be used even if the
+        /// session is not currently in a transaction. This option cannot be used in combination
+        /// with any other option.</summary>
+        ForceNewLog = 0x10,
+
     }
 
     /// <summary>
@@ -490,41 +543,29 @@ namespace EsentLib
         Table = 0x4,
     }
 
-    /// <summary>
-    /// Options for the <see cref="EsentLib.InternalApi.JetSetColumn(JET_SESID, JET_TABLEID, JET_COLUMNID, byte[], int, int, SetColumnGrbit, JET_SETINFO)"/>
-    /// and its associated overloads.
-    /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Compressed"/>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Uncompressed"/>
+    /// <summary>Options for the <see cref="EsentLib.InternalApi.JetSetColumn(JET_SESID, JET_TABLEID, JET_COLUMNID, byte[], int, int, SetColumnGrbit, JET_SETINFO)"/>
+    /// and its associated overloads.</summary>
     [Flags]
     public enum SetColumnGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// This option is used to append data to a column of type JET_coltypLongText
-        /// or JET_coltypLongBinary. The same behavior can be achieved by determining
-        /// the size of the existing long value and specifying ibLongValue in psetinfo.
-        /// However, its simpler to use this grbit since knowing the size of the existing
-        /// column value is not necessary.
-        /// </summary>
+        /// <summary>This option is used to append data to a column of type JET_coltypLongText
+        /// or JET_coltypLongBinary. The same behavior can be achieved by determining the size
+        /// of the existing long value and specifying ibLongValue in psetinfo. However, its
+        /// simpler to use this grbit since knowing the size of the existing column value is
+        /// not necessary.</summary>
         AppendLV = 0x1,
 
-        /// <summary>
-        /// This option is used replace the existing long value with the newly provided
-        /// data. When this option is used, it is as though the existing long value has
-        /// been set to 0 (zero) length prior to setting the new data.
-        /// </summary>
+        /// <summary>This option is used replace the existing long value with the newly provided
+        /// data. When this option is used, it is as though the existing long value has been
+        /// set to 0 (zero) length prior to setting the new data.</summary>
         OverwriteLV = 0x4,
 
-        /// <summary>
-        /// This option is only applicable for tagged, sparse or multi-valued columns.
+        /// <summary>This option is only applicable for tagged, sparse or multi-valued columns.
         /// It causes the column to return the default column value on subsequent retrieve
-        /// column operations. All existing column values are removed.
-        /// </summary>
+        /// column operations. All existing column values are removed.</summary>
         RevertToDefaultValue = 0x200,
 
         /// <summary>
@@ -578,11 +619,19 @@ namespace EsentLib
         /// separation size.
         /// </summary>
         IntrinsicLV = 0x400,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>Try to compress the data when storing it.</summary>
+        Compressed = 0x20000,
+
+        /// <summary>Don't compress the data when storing it.</summary>
+        Uncompressed = 0x10000,
+
     }
 
-    /// <summary>
-    /// Options for JetRetrieveColumn.
-    /// </summary>
+    /// <summary>Options for JetRetrieveColumn.</summary>
     [Flags]
     public enum RetrieveColumnGrbit
     {
@@ -637,17 +686,12 @@ namespace EsentLib
         RetrieveIgnoreDefault = 0x20,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
-    /// and its associated overloads.
-    /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.EnumerateInRecordOnly"/>
+    /// <summary>Options for <see cref="Api.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
+    /// and its associated overloads.</summary>
     [Flags]
     public enum EnumerateColumnsGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
         /// <summary>
@@ -721,145 +765,108 @@ namespace EsentLib
         /// operating systems.
         /// </remarks>
         EnumerateIgnoreUserDefinedDefault = 0x00100000,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>When enumerating column values only retrieve data that is present in the
+        /// record. This means that BLOB columns will not always be retrieved.</summary>
+        EnumerateInRecordOnly = 0x00200000,
+
     }
 
-    /// <summary>
-    /// Options for <see cref="EsentLib.Platform.Vista.VistaApi.JetGetRecordSize"/>.
-    /// </summary>
-    [Flags]
+/// <summary>Options for <see cref="Api.JetGetRecordSize"/>.</summary>
+[Flags]
     public enum GetRecordSizeGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// Retrieve the size of the record that is in the copy buffer prepared
-        /// or update. Otherwise, the tableid must be positioned on a record,
-        /// and that record will be used.
-        /// </summary>
+        /// <summary>Retrieve the size of the record that is in the copy buffer prepared or
+        /// update. Otherwise, the tableid must be positioned on a record, and that record
+        /// will be used.</summary>
         InCopyBuffer = 0x1,
 
-        /// <summary>
-        /// The JET_RECSIZE is not zeroed before filling the contents, effectively
-        /// acting as an accumulation of the statistics for multiple records visited
-        /// or updated.
+        /// <summary>The JET_RECSIZE is not zeroed before filling the contents, effectively
+        /// acting as an accumulation of the statistics for multiple records visited or updated.
         /// </summary>
         RunningTotal = 0x2,
 
-        /// <summary>
-        /// Ignore non-intrinsic Long Values. Only the local record on the page
-        /// will be used.
+        /// <summary>Ignore non-intrinsic Long Values. Only the local record on the page will be used.
         /// </summary>
         Local = 0x4,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetGetSecondaryIndexBookmark"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="Api.JetGetSecondaryIndexBookmark"/>.</summary>
     [Flags]
     public enum GetSecondaryIndexBookmarkGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetGotoSecondaryIndexBookmark"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="Api.JetGotoSecondaryIndexBookmark"/>.</summary>
     [Flags]
     public enum GotoSecondaryIndexBookmarkGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// In the event that the index entry can no longer be found, the cursor
-        /// will be left positioned where that index entry was previously found.
-        /// The operation will still fail with JET_errRecordDeleted; however,
-        /// it will be possible to move to the next or previous index entry
-        /// relative to the index entry that is now missing.
-        /// </summary>
+        /// <summary>In the event that the index entry can no longer be found, the cursor will
+        /// be left positioned where that index entry was previously found. The operation will
+        /// still fail with JET_errRecordDeleted; however, it will be possible to move to the
+        /// next or previous index entry relative to the index entry that is now missing.</summary>
         BookmarkPermitVirtualCurrency = 0x1,
     }
 
-    /// <summary>
-    /// Options for JetMove.
-    /// </summary>
+    /// <summary>Options for JetMove.</summary>
     [Flags]
     public enum MoveGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// Moves the cursor forward or backward by the number of index entries
-        /// required to skip the requested number of index key values encountered
-        /// in the index. This has the effect of collapsing index entries with
-        /// duplicate key values into a single index entry.
-        /// </summary>
+        /// <summary>Moves the cursor forward or backward by the number of index entries required
+        /// to skip the requested number of index key values encountered in the index. This has
+        /// the effect of collapsing index entries with duplicate key values into a single index
+        /// entry.</summary>
         MoveKeyNE = 0x1,
     }
 
-    /// <summary>
-    /// Options for JetMakeKey.
-    /// </summary>
+    /// <summary>Options for JetMakeKey.</summary>
     [Flags]
     public enum MakeKeyGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// A new search key should be constructed. Any previously existing search
-        /// key is discarded.
-        /// </summary>
+        /// <summary>A new search key should be constructed. Any previously existing search
+        /// key is discarded.</summary>
         NewKey = 0x1,
 
-        /// <summary>
-        /// When this option is specified, all other options are ignored, any
-        /// previously existing search key is discarded, and the contents of the
-        /// input buffer are loaded as the new search key.
-        /// </summary>
+        /// <summary>When this option is specified, all other options are ignored, any previously
+        /// existing search key is discarded, and the contents of the input buffer are loaded as
+        /// the new search key.</summary>
         NormalizedKey = 0x8,
 
-        /// <summary>
-        /// If the size of the input buffer is zero and the current key column
-        /// is a variable length column, this option indicates that the input
-        /// buffer contains a zero length value. Otherwise, an input buffer size
-        /// of zero would indicate a NULL value.
-        /// </summary>
+        /// <summary>If the size of the input buffer is zero and the current key column is a
+        /// variable length column, this option indicates that the input buffer contains a
+        /// zero length value. Otherwise, an input buffer size of zero would indicate a NULL
+        /// value.</summary>
         KeyDataZeroLength = 0x10,
 
-        /// <summary>
-        /// This option indicates that the search key should be constructed
-        /// such that any key columns that come after the current key column
-        /// should be considered to be wildcards.
-        /// </summary>
+        /// <summary>This option indicates that the search key should be constructed such that
+        /// any key columns that come after the current key column should be considered to be
+        /// wildcards.</summary>
         StrLimit = 0x2,
 
-        /// <summary>
-        /// This option indicates that the search key should be constructed
-        /// such that the current key column is considered to be a prefix
-        /// wildcard and that any key columns that come after the current
-        /// key column should be considered to be wildcards.
-        /// </summary>
+        /// <summary>This option indicates that the search key should be constructed such that
+        /// the current key column is considered to be a prefix wildcard and that any key columns
+        /// that come after the current key column should be considered to be wildcards.</summary>
         SubStrLimit = 0x4,
 
-        /// <summary>
-        /// The search key should be constructed such that any key columns
-        /// that come after the current key column should be considered to
-        /// be wildcards.
-        /// </summary>
+        /// <summary>The search key should be constructed such that any key columns that come
+        /// after the current key column should be considered to be wildcards.</summary>
         FullColumnStartLimit = 0x100,
 
         /// <summary>
@@ -1040,46 +1047,42 @@ namespace EsentLib
     /// <summary>
     /// Options for <see cref="Api.JetSetTableSequential"/>.
     /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.Backward"/>
     [Flags]
     public enum SetTableSequentialGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>Hint that the sequential traversal will be in the forward direction.</summary>
+        Forward = 0x1,
+
+        /// <summary>Hint that the sequential traversal will be in the backward direction.</summary>
+        Backward = 0x2,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetResetTableSequential"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="Api.JetResetTableSequential"/>.</summary>
     [Flags]
     public enum ResetTableSequentialGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
-    /// <summary>
-    /// Options for JetGetLock.
-    /// </summary>
+    /// <summary>Options for JetGetLock.</summary>
     [Flags]
     public enum GetLockGrbit
     {
-        /// <summary>
-        /// Acquire a read lock on the current record. Read locks are incompatible with
-        /// write locks already held by other sessions but are compatible with read locks
-        /// held by other sessions.
-        /// </summary>
+        /// <summary>Acquire a read lock on the current record. Read locks are incompatible
+        /// with write locks already held by other sessions but are compatible with read
+        /// locks held by other sessions.</summary>
         Read = 0x1,
 
-        /// <summary>
-        ///  Acquire a write lock on the current record. Write locks are not compatible
-        ///  with write or read locks held by other sessions but are compatible with
-        ///  read locks held by the same session.
-        /// </summary>
+        /// <summary>Acquire a write lock on the current record. Write locks are not compatible
+        ///  with write or read locks held by other sessions but are compatible with read
+        ///  locks held by the same session.</summary>
         Write = 0x2,
     }
 
@@ -1103,7 +1106,6 @@ namespace EsentLib
     }
 
     /// <summary>Options for the <see cref="JET_COLUMNDEF"/> structure.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.ColumnCompressed"/>
     [Flags]
     public enum ColumndefGrbit
     {
@@ -1223,7 +1225,6 @@ namespace EsentLib
 
     /// <summary>Options for the <see cref="JET_TABLECREATE"/> parameter used by
     /// Api.JetCreateTableColumnIndex3.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.TableCreateImmutableStructure"/>
     [Flags]
     public enum CreateTableColumnIndexGrbit
     {
@@ -1238,12 +1239,18 @@ namespace EsentLib
 
         /// <summary>Used in conjunction with TemplateTable.</summary>
         NoFixedVarColumnsInDerivedTables = 0x4,
+
+        // ---------- //
+        // WINDOWS 10 //
+        // ---------- //
+        /// <summary>Do not write to the input structures, so that the structures can be stored
+        /// in readonly memory. Additionally, do not return any auto-opened tableid.</summary>
+        /// seealso cref="Api.JetCreateTableColumnIndex3"
+        TableCreateImmutableStructure = 0x8,
     }
 
-    /// <summary>Options for <see cref="IJetTable.CreateIndex(JET_SESID, string, CreateIndexGrbit, string, int, int)"/>
+    /// <summary>Options for <see cref="IJetTable.CreateIndex(IJetSession, string, CreateIndexGrbit, string, int, int)"/>
     /// and <see cref="JET_INDEXCREATE"/>.</summary>
-    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.IndexDotNetGuid"/>
-    /// <seealso cref="EsentLib.Platform.Windows10.Windows10Grbits.IndexCreateImmutableStructure"/>
     [Flags]
     public enum CreateIndexGrbit
     {        
@@ -1332,6 +1339,24 @@ namespace EsentLib
         /// <summary>LCID field of JET_INDEXCREATE actually points to a JET_UNICODEINDEX struct to
         /// allow user-defined LCMapString() flags.</summary>
         IndexUnicode = 0x00000800,
+
+        // --------- //
+        // WINDOWS 8 //
+        // --------- //
+        /// <summary>Specifying this flag will change GUID sort order to .Net standard.</summary>
+        IndexDotNetGuid = 0x00040000,
+
+        // ---------- //
+        // WINDOWS 10 //
+        // ---------- //
+        /// <summary>Do not write to the input structures, so that the structures can be
+        /// stored in readonly memory.</summary>
+        /// <remarks>This was primarily introduced for the C API so that the input structures
+        /// could be stored in read-only memory. It is of limited use in this managed code
+        /// interop, since the input structures are generated on the fly. It is provided here
+        /// for completeness.</remarks>
+        /// seealso cref="Api.JetCreateIndex2"
+        IndexCreateImmutableStructure = 0x80000,
     }
 
     /// <summary>Key definition grbits. Used when retrieving information about an index, contained
@@ -1357,12 +1382,9 @@ namespace EsentLib
         ColumnMustBeNonNull = 0x2,
     }
 
-    /// <summary>
-    /// Options for temporary table creation, with <see cref="Api.JetOpenTempTable"/>,
+    /// <summary>Options for temporary table creation, with <see cref="IJetSession.OpenTemporaryTable"/>,
     /// Api.JetOpenTempTable2, and <see cref="Api.JetOpenTempTable3"/>.
     /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.IntrinsicLVsOnly"/>
-    /// <seealso cref="EsentLib.Platform.Windows8.Windows8Grbits.TTDotNetGuid"/>
     [Flags]
     public enum TempTableGrbit
     {
@@ -1455,6 +1477,20 @@ namespace EsentLib
         /// for more information.
         /// </summary>        
         ForwardOnly = 0x40,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>Permit only intrinsic LV's (so materialisation is not required simply
+        /// because a TT has an LV column).</summary>
+        IntrinsicLVsOnly = 0x80,
+
+        // --------- //
+        // WINDOWS 8 //
+        // --------- //
+        /// <summary>This option requests that the temporary table sort columns of type
+        /// JET_coltypGUID according to .Net Guid sort order.</summary>        
+        TTDotNetGuid = 0x100,
     }
 
     /// <summary>Options for <see cref="IJetTable.DeleteColumn"/>.</summary>
@@ -1518,11 +1554,7 @@ namespace EsentLib
         GetStatus = 0x04,
     }
 
-    /// <summary>
-    /// Options for <see cref="Api.JetDefragment"/>.
-    /// </summary>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.NoPartialMerges"/>
-    /// <seealso cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>
+    /// <summary>Options for <see cref="Api.JetDefragment"/>.</summary>
     [Flags]
     public enum DefragGrbit
     {
@@ -1545,20 +1577,26 @@ namespace EsentLib
         /// <summary>
         /// Stops a defragmentation task.
         /// </summary>
-        BatchStop = 0x2, 
+        BatchStop = 0x2,
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>While running Online Defragmentation, do not perform partial merges of pages.
+        /// </summary>
+        NoPartialMerges = 0x80,
+
+        /// <summary>Defragment a single BTree.</summary>
+        DefragmentBTree = 0x100,
     }
 
-    /// <summary>
-    /// Grbits for the various Api.JetGetColumnInfo and Api.JetGetTableColumnInfo
-    /// overloads.
-    /// </summary>
-    /// <remarks>
-    /// Internally this value is OR'ed together with the
-    /// <see cref="JET_ColInfo"/> info level. The info level is not publically exposed
-    /// in this CLR code because it's only used to differentiate the type of the output
-    /// parameter, which is covered by having explicit function overloads with different
-    /// signatures. There is no need to expose JET_ColInfo to CLR.
-    /// </remarks>
+    /// <summary>Grbits for the various Api.JetGetColumnInfo and Api.JetGetTableColumnInfo
+    /// overloads.</summary>
+    /// <remarks>Internally this value is OR'ed together with the <see cref="JET_ColInfo"/> info
+    /// level. The info level is not publically exposed in this CLR code because it's only used
+    /// to differentiate the type of the output parameter, which is covered by having explicit
+    /// function overloads with different signatures. There is no need to expose JET_ColInfo to
+    /// CLR.</remarks>
     [Flags]
     public enum ColInfoGrbit
     {
@@ -1658,5 +1696,238 @@ namespace EsentLib
         /// sequentially (from lowest key to highest key).
         /// </summary>
         DeleteHintTableSequential = 0x00000100,
+    }
+    /// <summary>Options for <see cref="IJetSnapshot.Abort"/>.</summary>
+    [Flags]
+    public enum SnapshotAbortGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0,
+    }
+
+    /// <summary>Options for <see cref="IJetInstance.JetUpdate2"/>.</summary>
+    [Flags]
+    public enum UpdateGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0,
+
+        /// <summary>This flag causes the update to return an error if the update would
+        /// not have been possible in the Windows 2000 version of ESE, which
+        /// enforced a smaller maximum number of multi-valued column instances
+        /// in each record than later versions of ESE. This is important only
+        /// for applications that wish to replicate data between applications
+        /// hosted on Windows 2000 and applications hosted on Windows 
+        /// 2003, or later versions of ESE. It should not be necessary for most
+        /// applications.</summary>
+        [Obsolete("Only needed for legacy replication applications.")]
+        CheckESE97Compatibility = 0x1,
+    }
+    /// <summary>Options for <see cref="IJetSnapshot.End"/>.</summary>
+    [Flags]
+    public enum SnapshotEndGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0,
+
+        /// <summary>The snapshot session aborted.</summary>
+        AbortSnapshot = 0x1,
+    }
+
+    /// <summary>Options for <see cref="IJetSnapshot.BindInstance"/>.</summary>
+    [Flags]
+    public enum SnapshotPrepareInstanceGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0,
+    }
+
+    /// <summary>Options for <see cref="IJetSnapshot.TruncateLog"/> and
+    /// <see cref="IJetSnapshot.TruncateInstanceLog"/>.</summary>
+    [Flags]
+    public enum SnapshotTruncateLogGrbit
+    {
+        /// <summary>No truncation will occur.</summary>
+        None = 0,
+
+        /// <summary>All the databases are attached so the storage engine can compute and do
+        /// the log truncation.</summary>
+        AllDatabasesSnapshot = 0x1,
+    }
+
+    /// <summary>Options for <see cref="IJetSnapshot.GetInfo"/>.</summary>
+    [Flags]
+    public enum SnapshotGetFreezeInfoGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0,
+    }
+
+    /// <summary>Information levels for <see cref="EsentLib.Implementation.JetInstance.GetInfo"/>.</summary>
+    [Flags]
+    public enum JET_InstanceMiscInfo
+    {
+        /// <summary>Get the signature of the transaction log associated with this sequence.</summary>
+        LogSignature = 0,
+    }
+    /// <summary>Options for <see cref="Api.JetConfigureProcessForCrashDump"/>.</summary>
+    [Flags]
+    public enum CrashDumpGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0,
+
+        /// <summary>Dump minimum includes <see cref="CacheMinimum"/>.</summary>
+        Minimum = 0x1,
+
+        /// <summary>Dump maximum includes <see cref="CacheMaximum"/>.</summary>
+        Maximum = 0x2,
+
+        /// <summary>CacheMinimum includes pages that are latched. CacheMinimum includes pages
+        /// that are used for memory. CacheMinimum includes pages that are flagged with errors.
+        /// </summary>
+        CacheMinimum = 0x4,
+
+        /// <summary>Cache maximum includes cache minimum. Cache maximum includes the entire
+        /// cache image.</summary>
+        CacheMaximum = 0x8,
+
+        /// <summary>Dump includes pages that are modified.</summary>
+        CacheIncludeDirtyPages = 0x10,
+
+        /// <summary>Dump includes pages that contain valid data.</summary>
+        CacheIncludeCachedPages = 0x20,
+
+        /// <summary>Dump includes pages that are corrupted (expensive to compute).</summary>
+        CacheIncludeCorruptedPages = 0x40,
+    }
+
+    /// <summary>Options for <see cref="Api.JetPrereadKeys(JET_SESID, JET_TABLEID, byte[][], int[], int, int, out int, PrereadKeysGrbit)"/>.
+    /// </summary>
+    [Flags]
+    public enum PrereadKeysGrbit
+    {
+        /// <summary>Preread forward.</summary>
+        Forward = 0x1,
+
+        /// <summary>Preread backwards.</summary>
+        Backwards = 0x2,
+    }
+    /// <summary>Options for <see cref="Api.JetGetErrorInfo"/>.</summary>
+    public enum ErrorInfoGrbit
+    {
+        /// <summary>No option.</summary>
+        None = 0,
+    }
+
+    /// <summary>Options for <see cref="Api.JetResizeDatabase"/>.</summary>
+    [Flags]
+    public enum ResizeDatabaseGrbit
+    {
+        /// <summary>No option.</summary>
+        None = 0,
+
+        /// <summary>Only grow the database. If the resize call would shrink the database, do nothing.</summary>
+        OnlyGrow = 0x1,
+
+        // ----------- //
+        // WINDOWS 8.1 //
+        // ----------- //
+        /// <summary>Only shrink the database to the desired size, but keeping an 
+        /// empty extent at the end. If the resize call would grow the database, do nothing.
+        /// In order to use this functionality, <see cref="EsentLib.Implementation.JetInstance.EnableShrinkDatabase"/>
+        /// must be set to <see cref="Enums.ShrinkDatabaseGrbit.On"/>. Otherwise, an exception may
+        /// be thrown.</summary>
+        OnlyShrink = 0x2,
+    }
+
+    /// <summary>Options passed to log flush callback.</summary>
+    [Flags]
+    public enum DurableCommitCallbackGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0,
+
+        // ---------- //
+        // WINDOWS 10 //
+        // ---------- //
+        /// <summary>Passed back to durable commit callback to let it know that log is down
+        /// (and all pending commits will not be flushed to disk).Used with
+        /// <see cref="EsentLib.Jet.JET_param.DurableCommitCallback"/>.</summary>
+        LogUnavailable = 0x1,
+    }
+
+    /// <summary>Options for <see cref="Api.JetPrereadIndexRanges"/>.</summary>
+    [Flags]
+    public enum PrereadIndexRangesGrbit
+    {
+        /// <summary>Preread forward.</summary>
+        Forward = 0x1,
+
+        /// <summary>Preread backwards.</summary>
+        Backwards = 0x2,
+
+        /// <summary>Preread only first page of any long column.</summary>
+        FirstPageOnly = 0x4,
+
+        /// <summary>Normalized key/bookmark provided instead of column value.</summary>
+        NormalizedKey = 0x8,
+    }
+
+    /// <summary>Options for <see cref="EsentLib.Implementation.JetInstance.Stop"/>.</summary>
+    [Flags]
+    public enum StopServiceGrbit
+    {
+        /// <summary>
+        /// Stops all ESE services for the specified instance.
+        /// </summary>
+        All = 0x00000000,
+
+        /// <summary>
+        /// Stops restartable client specificed background maintenance tasks (B+ Tree Defrag).
+        /// </summary>
+        BackgroundUserTasks = 0x00000002,
+
+        /// <summary>
+        /// Quiesces all dirty caches to disk. Asynchronous. Quiescing is cancelled if the <see cref="Resume"/>
+        /// bit is called subsequently.
+        /// </summary>
+        QuiesceCaches = 0x00000004,
+
+        /// <summary>
+        /// Resumes previously issued StopService operations, i.e. "restarts service".  Can be combined
+        /// with above grbits to Resume specific services, or with 0x0 Resumes all previous stopped services.
+        /// </summary>
+        /// <remarks>
+        /// Warning: This bit can only be used to resume JET_bitStopServiceBackground and JET_bitStopServiceQuiesceCaches, if you 
+        /// did a JET_bitStopServiceAll or JET_bitStopServiceAPI, attempting to use JET_bitStopServiceResume will fail. 
+        /// </remarks>
+        Resume = int.MinValue, // 0x80000000
+    }
+
+    /// <summary>Options passed while setting cursor filters.</summary>
+    /// <seealso cref="Api.JetSetCursorFilter"/>
+    [Flags]
+    public enum CursorFilterGrbit
+    {
+        /// <summary>Default options.</summary>
+        None = 0
+    }
+
+    /// <summary>
+    /// Options for <see cref="EsentLib.Jet.JET_INDEX_COLUMN"/>.
+    /// </summary>
+    [Flags]
+    public enum JetIndexColumnGrbit
+    {
+        /// <summary>
+        /// Default options.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Zero-length value (non-null).
+        /// </summary>
+        ZeroLength = 0x1,
     }
 }

@@ -71,7 +71,7 @@ namespace EsentLib
         /// <summary>Gets a description of the current Esent capabilities.</summary>
         /// <remarks>We allow this to be set separately so that capabilities can be downgraded
         /// for testing.</remarks>
-        private static JetCapabilities Capabilities
+        private static IJetCapabilities Capabilities
         {
             get { return Api.Impl.Capabilities; }
         }

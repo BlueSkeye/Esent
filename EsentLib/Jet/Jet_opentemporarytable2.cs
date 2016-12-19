@@ -8,11 +8,9 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace EsentLib.Jet.Vista
+namespace EsentLib.Jet
 {
-    /// <summary>
-    /// The native version of the JET_OPENTEMPORARYTABLE2 structure.
-    /// </summary>
+    /// <summary>The native version of the JET_OPENTEMPORARYTABLE2 structure.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -68,29 +66,5 @@ namespace EsentLib.Jet.Vista
         /// Returns the tableid of the new table.
         /// </summary>
         public IntPtr tableid;
-    }
-    
-    /// <summary>
-    /// A collection of parameters for the JetOpenTemporaryTable method.
-    /// </summary>
-    public partial class JET_OPENTEMPORARYTABLE
-    {
-        /// <summary>
-        /// Returns the unmanaged opentemporarytable that represents this managed class.
-        /// </summary>
-        /// <returns>
-        /// A native (interop) version of the JET_OPENTEMPORARYTABLE.
-        /// </returns>
-        internal NATIVE_OPENTEMPORARYTABLE2 GetNativeOpenTemporaryTable2()
-        {
-            this.CheckDataSize();
-            var openTemporaryTable = new NATIVE_OPENTEMPORARYTABLE2();
-            openTemporaryTable.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_OPENTEMPORARYTABLE2)));
-            openTemporaryTable.ccolumn = checked((uint)this.ccolumn);
-            openTemporaryTable.grbit = (uint)this.grbit;
-            openTemporaryTable.cbKeyMost = checked((uint)this.cbKeyMost);
-            openTemporaryTable.cbVarSegMac = checked((uint)this.cbVarSegMac);
-            return openTemporaryTable;
-        }
     }
 }

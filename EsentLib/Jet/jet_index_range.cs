@@ -46,9 +46,7 @@ namespace EsentLib.Jet
         public uint cEndColumns;
     }
 
-    /// <summary>
-    /// Contains definition for <see cref="EsentLib.Platform.Windows8.Windows8Api.JetPrereadIndexRanges"/>.
-    /// </summary>
+    /// <summary>Contains definition for <see cref="Api.JetPrereadIndexRanges"/>.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",

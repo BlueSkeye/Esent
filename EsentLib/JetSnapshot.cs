@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using EsentLib.Implementation;
 using EsentLib.Jet;
-using EsentLib.Platform;
 
 namespace EsentLib.Implementation
 {

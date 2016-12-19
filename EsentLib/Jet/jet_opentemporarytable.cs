@@ -9,11 +9,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace EsentLib.Jet.Vista
+namespace EsentLib.Jet
 {
-    /// <summary>
-    /// The native version of the JET_OPENTEMPORARYTABLE structure.
-    /// </summary>
+    /// <summary>The native version of the JET_OPENTEMPORARYTABLE structure.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -71,51 +69,37 @@ namespace EsentLib.Jet.Vista
         public IntPtr tableid;
     }
 
-    /// <summary>
-    /// A collection of parameters for the JetOpenTemporaryTable method.
-    /// </summary>
+    /// <summary>A collection of parameters for the JetOpenTemporaryTable method.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     public partial class JET_OPENTEMPORARYTABLE
     {
-        /// <summary>
-        /// Gets or sets the column definitions for the columns created in
-        /// the temporary table.
-        /// </summary>
+        /// <summary>Gets or sets the column definitions for the columns created in the temporary
+        /// table.</summary>
         public JET_COLUMNDEF[] prgcolumndef { get; set; }
 
-        /// <summary>
-        /// Gets or sets the number of columns in <see cref="prgcolumndef"/>.
-        /// </summary>
+        /// <summary>Gets or sets the number of columns in <see cref="prgcolumndef"/>.</summary>
         /// <seealso cref="prgcolumnid"/>
         public int ccolumn { get; set; }
 
-        /// <summary>
-        /// Gets or sets the locale ID and normalization flags to use to compare any Unicode
-        /// key column data in the temporary table. When this parameter is
-        /// null, then the default LCID will be used to compare any Unicode key
-        /// columns in the temporary table. The default LCID is the U.S. English
-        /// locale. When this parameter is null, then the default normalization
-        /// flags will be used to compare any Unicode key column data in the temp
-        /// table. The default normalization flags are: NORM_IGNORECASE,
-        /// NORM_IGNOREKANATYPE, and NORM_IGNOREWIDTH.
-        /// </summary>
+        /// <summary>Gets or sets the locale ID and normalization flags to use to compare any
+        /// Unicode key column data in the temporary table. When this parameter is null, then
+        /// the default LCID will be used to compare any Unicode key columns in the temporary
+        /// table. The default LCID is the U.S. English locale. When this parameter is null,
+        /// then the default normalization flags will be used to compare any Unicode key column
+        /// data in the temp table. The default normalization flags are: NORM_IGNORECASE,
+        /// NORM_IGNOREKANATYPE, and NORM_IGNOREWIDTH.</summary>
         public JET_UNICODEINDEX pidxunicode { get; set; }
 
-        /// <summary>
-        /// Gets or sets options for the temp table.
-        /// </summary>
+        /// <summary>Gets or sets options for the temp table.</summary>
         public TempTableGrbit grbit { get; set; }
 
-        /// <summary>
-        /// Gets or sets the output buffer that receives the array of column
-        /// IDs generated during the creation of the temporary table. The
-        /// column IDs in this array will exactly correspond to the input array
-        /// of column definitions. As a result, the size of this buffer must
-        /// correspond to the size of <see cref="prgcolumndef"/>.
-        /// </summary>
+        /// <summary>Gets or sets the output buffer that receives the array of column IDs generated
+        /// during the creation of the temporary table. The column IDs in this array will exactly
+        /// correspond to the input array of column definitions. As a result, the size of this
+        /// buffer must correspond to the size of <see cref="prgcolumndef"/>.</summary>
         public JET_COLUMNID[] prgcolumnid { get; set; }
 
         /// <summary>
@@ -210,6 +194,27 @@ namespace EsentLib.Jet.Vista
             {
                 throw new ArgumentOutOfRangeException("ccolumn", this.ccolumn, "cannot be greater than prgcolumnid.Length");
             }
+        }
+
+        // ----- //
+        // VISTA //
+        // ----- //
+        /// <summary>
+        /// Returns the unmanaged opentemporarytable that represents this managed class.
+        /// </summary>
+        /// <returns>
+        /// A native (interop) version of the JET_OPENTEMPORARYTABLE.
+        /// </returns>
+        internal NATIVE_OPENTEMPORARYTABLE2 GetNativeOpenTemporaryTable2()
+        {
+            this.CheckDataSize();
+            var openTemporaryTable = new NATIVE_OPENTEMPORARYTABLE2();
+            openTemporaryTable.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_OPENTEMPORARYTABLE2)));
+            openTemporaryTable.ccolumn = checked((uint)this.ccolumn);
+            openTemporaryTable.grbit = (uint)this.grbit;
+            openTemporaryTable.cbKeyMost = checked((uint)this.cbKeyMost);
+            openTemporaryTable.cbVarSegMac = checked((uint)this.cbVarSegMac);
+            return openTemporaryTable;
         }
     }
 }

@@ -12,9 +12,7 @@ using System.Runtime.InteropServices;
 
 namespace EsentLib.Jet
 {
-    /// <summary>
-    /// The native version of the JET_COLUMNDEF structure.
-    /// </summary>
+    /// <summary>The native version of the JET_COLUMNDEF structure.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -25,58 +23,38 @@ namespace EsentLib.Jet
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     internal struct NATIVE_COLUMNDEF
     {
-        /// <summary>
-        /// Size of the structure.
-        /// </summary>
+        /// <summary>Size of the structure.</summary>
         public uint cbStruct;
 
-        /// <summary>
-        /// Column ID.
-        /// </summary>
+        /// <summary>Column ID.</summary>
         public uint columnid;
 
-        /// <summary>
-        /// Type of the column.
-        /// </summary>
+        /// <summary>Type of the column.</summary>
         public uint coltyp;
 
-        /// <summary>
-        /// Reserved. Should be 0.
-        /// </summary>
+        /// <summary>Reserved. Should be 0.</summary>
         [Obsolete("Reserved")]
         public ushort wCountry;
 
-        /// <summary>
-        /// Obsolete. Should be 0.
-        /// </summary>
+        /// <summary>Obsolete. Should be 0.</summary>
         [Obsolete("Use cp")]
         public ushort langid;
 
-        /// <summary>
-        /// Code page for text columns.
-        /// </summary>
+        /// <summary>Code page for text columns.</summary>
         public ushort cp;
 
-        /// <summary>
-        /// Reserved. Should be 0.
-        /// </summary>
+        /// <summary>Reserved. Should be 0.</summary>
         [Obsolete("Reserved")]
         public ushort wCollate;
 
-        /// <summary>
-        /// Maximum length of the column.
-        /// </summary>
+        /// <summary>Maximum length of the column.</summary>
         public uint cbMax;
 
-        /// <summary>
-        /// Column options.
-        /// </summary>
+        /// <summary>Column options.</summary>
         public uint grbit;
     }
 
-    /// <summary>
-    /// Describes a column in a table of an ESENT database.
-    /// </summary>
+    /// <summary>Describes a column in a table of an ESENT database.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",
@@ -84,36 +62,24 @@ namespace EsentLib.Jet
     [Serializable]
     public sealed class JET_COLUMNDEF : IContentEquatable<JET_COLUMNDEF>, IDeepCloneable<JET_COLUMNDEF>
     {
-        /// <summary>
-        /// The type of the column.
-        /// </summary>
+        /// <summary>The type of the column.</summary>
         private JET_coltyp columnType;
 
-        /// <summary>
-        /// The code page. Only valid for text columns.
-        /// </summary>
+        /// <summary>The code page. Only valid for text columns.</summary>
         private JET_CP codePage;
 
-        /// <summary>
-        /// Maximum size of the column.
-        /// </summary>
+        /// <summary>Maximum size of the column.</summary>
         private int maxSize;
 
-        /// <summary>
-        /// Id of the column. Not serialized because it is an internal
-        /// value and shouldn't be persisted.
-        /// </summary>
+        /// <summary>Id of the column. Not serialized because it is an internal value and
+        /// shouldn't be persisted.</summary>
         [NonSerialized]
         private JET_COLUMNID id;
 
-        /// <summary>
-        /// Column options.
-        /// </summary>
+        /// <summary>Column options.</summary>
         private ColumndefGrbit options;
 
-        /// <summary>
-        /// Gets or sets type of the column.
-        /// </summary>
+        /// <summary>Gets or sets type of the column.</summary>
         public JET_coltyp coltyp
         {
             [DebuggerStepThrough]
@@ -121,10 +87,8 @@ namespace EsentLib.Jet
             set { this.columnType = value; }
         }
 
-        /// <summary>
-        /// Gets or sets code page of the column. This is only meaningful for columns of type
-        /// <see cref="JET_coltyp.Text"/> and <see cref="JET_coltyp.LongText"/>.
-        /// </summary>
+        /// <summary>Gets or sets code page of the column. This is only meaningful for columns
+        /// of type<see cref="JET_coltyp.Text"/> and <see cref="JET_coltyp.LongText"/>.</summary>
         public JET_CP cp
         {
             [DebuggerStepThrough]
@@ -132,11 +96,9 @@ namespace EsentLib.Jet
             set { this.codePage = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the maximum length of the column. This is only meaningful for columns of
-        /// type <see cref="JET_coltyp.Text"/>, <see cref="JET_coltyp.LongText"/>, <see cref="JET_coltyp.Binary"/> and
-        /// <see cref="JET_coltyp.LongBinary"/>.
-        /// </summary>
+        /// <summary>Gets or sets the maximum length of the column. This is only meaningful for
+        /// columns of type <see cref="JET_coltyp.Text"/>, <see cref="JET_coltyp.LongText"/>,
+        /// <see cref="JET_coltyp.Binary"/> and <see cref="JET_coltyp.LongBinary"/>.</summary>
         public int cbMax
         {
             [DebuggerStepThrough]
@@ -144,9 +106,7 @@ namespace EsentLib.Jet
             set { this.maxSize = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the column options.
-        /// </summary>
+        /// <summary>Gets or sets the column options.</summary>
         public ColumndefGrbit grbit
         {
             [DebuggerStepThrough]
@@ -154,9 +114,7 @@ namespace EsentLib.Jet
             set { this.options = value; }
         }
 
-        /// <summary>
-        /// Gets the columnid of the column.
-        /// </summary>
+        /// <summary>Gets the columnid of the column.</summary>
         public JET_COLUMNID columnid
         {
             [DebuggerStepThrough]
@@ -164,40 +122,26 @@ namespace EsentLib.Jet
             internal set { this.id = value; }
         }
 
-        /// <summary>
-        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="JET_COLUMNDEF"/>.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="T:System.String"/> that represents the current <see cref="JET_COLUMNDEF"/>.
-        /// </returns>
+        /// <summary>Returns a <see cref="T:System.String"/> that represents the current <see cref="JET_COLUMNDEF"/>.</summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="JET_COLUMNDEF"/>.</returns>
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "JET_COLUMNDEF({0},{1})", this.columnType, this.options);
+            return string.Format(CultureInfo.InvariantCulture, "JET_COLUMNDEF({0},{1})",
+                this.columnType, this.options);
         }
 
-        /// <summary>
-        /// Returns a value indicating whether this instance is equal
-        /// to another instance.
-        /// </summary>
+        /// <summary>Returns a value indicating whether this instance is equal to another instance.</summary>
         /// <param name="other">An instance to compare with this instance.</param>
         /// <returns>True if the two instances are equal.</returns>
         public bool ContentEquals(JET_COLUMNDEF other)
         {
-            if (null == other)
-            {
-                return false;
-            }
-
-            return this.columnType == other.columnType
-                   && this.codePage == other.codePage
-                   && this.maxSize == other.maxSize
-                   && this.id == other.id
+            if (null == other) { return false; }
+            return this.columnType == other.columnType && this.codePage == other.codePage
+                   && this.maxSize == other.maxSize && this.id == other.id
                    && this.options == other.options;
         }
 
-        /// <summary>
-        /// Returns a deep copy of the object.
-        /// </summary>
+        /// <summary>Returns a deep copy of the object.</summary>
         /// <returns>A deep copy of the object.</returns>
         public JET_COLUMNDEF DeepClone()
         {

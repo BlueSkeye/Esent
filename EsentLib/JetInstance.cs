@@ -21,11 +21,6 @@ using EsentLib.Jet;
 using EsentLib.Jet.Types;
 using EsentLib.Jet.Vista;
 using EsentLib.Jet.Windows8;
-using EsentLib.Platform;
-using EsentLib.Platform.Vista;
-using EsentLib.Platform.Windows7;
-using EsentLib.Platform.Windows8;
-using EsentLib.Platform.Windows2003;
 
 using Win32 = EsentLib.Win32;
 
@@ -82,14 +77,14 @@ namespace EsentLib.Implementation
                 if (EsentVersion.SupportsServer2003Features) {
                     return Util.AddTrailingDirectorySeparator(
                         NativeHelpers.GetStringParameter(_instance,
-                            Server2003Param.AlternateDatabaseRecoveryPath));
+                            JET_param.AlternateDatabaseRecoveryPath));
                 }
                 return null;
             }
             set
             {
                 if (EsentVersion.SupportsServer2003Features) {
-                    NativeHelpers.SetParameter(_instance, Server2003Param.AlternateDatabaseRecoveryPath,
+                    NativeHelpers.SetParameter(_instance, JET_param.AlternateDatabaseRecoveryPath,
                         Util.AddTrailingDirectorySeparator(value));
                 }
             }
@@ -1370,74 +1365,19 @@ namespace EsentLib.Implementation
         /// <param name="columns">Column definitions for the columns created in the temporary
         /// table.</param>
         /// <param name="numColumns">Number of column definitions.</param>
+        /// <param name="lcid">The locale ID to use to compare any Unicode key column data in the
+        /// temporary table. Any locale may be used as long as the appropriate language pack has
+        /// been installed on the machine.</param>
         /// <param name="grbit">Table creation options.</param>
         /// <param name="tableid">Returns the tableid of the temporary table. Closing this tableid
         /// frees the resources associated with the temporary table.</param>
-        /// <param name="columnids">The output buffer that receives the array of column IDs
-        /// generated during the creation of the temporary table. The column IDs in this array
-        /// will exactly correspond to the input array of column definitions. As a result, the
-        /// size of this buffer must correspond to the size of the input array.</param>
+        /// <param name="columnids">The output buffer that receives the array of column IDs generated
+        /// during the creation of the temporary table. The column IDs in this array will exactly
+        /// correspond to the input array of column definitions. As a result, the size of this buffer
+        /// must correspond to the size of the input array.</param>
         /// <returns>An error code.</returns>
-        public int JetOpenTempTable(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
-            TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
-        {
-            Tracing.TraceFunctionCall("JetOpenTempTable");
-            Helpers.CheckNotNull(columns, "columnns");
-            Helpers.CheckDataSize(columns, numColumns, "numColumns");
-            Helpers.CheckNotNull(columnids, "columnids");
-            Helpers.CheckDataSize(columnids, numColumns, "numColumns");
-
-            tableid = JET_TABLEID.Nil;
-
-            NATIVE_COLUMNDEF[] nativecolumndefs = GetNativecolumndefs(columns, numColumns);
-            var nativecolumnids = new uint[numColumns];
-
-            int err = Tracing.TraceResult(NativeMethods.JetOpenTempTable(
-                sesid.Value, nativecolumndefs, checked((uint)numColumns), (uint)grbit, out tableid.Value, nativecolumnids));
-
-            SetColumnids(columns, columnids, nativecolumnids, numColumns);
-
-            return err;
-        }
-
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">
-        /// Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="numColumns">Number of column definitions.</param>
-        /// <param name="lcid">
-        /// The locale ID to use to compare any Unicode key column data in the temporary table.
-        /// Any locale may be used as long as the appropriate language pack has been installed
-        /// on the machine.
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">
-        /// Returns the tableid of the temporary table. Closing this tableid
-        /// frees the resources associated with the temporary table.
-        /// </param>
-        /// <param name="columnids">
-        /// The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this
-        /// array will exactly correspond to the input array of column definitions.
-        /// As a result, the size of this buffer must correspond to the size of the input array.
-        /// </param>
-        /// <returns>An error code.</returns>
-        public int JetOpenTempTable2(
-            JET_SESID sesid,
-            JET_COLUMNDEF[] columns,
-            int numColumns,
-            int lcid,
-            TempTableGrbit grbit,
-            out JET_TABLEID tableid,
-            JET_COLUMNID[] columnids)
+        public int JetOpenTempTable2(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
+            int lcid, TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
         {
             Tracing.TraceFunctionCall("JetOpenTempTable2");
             Helpers.CheckNotNull(columns, "columnns");
@@ -1447,14 +1387,11 @@ namespace EsentLib.Implementation
 
             tableid = JET_TABLEID.Nil;
 
-            NATIVE_COLUMNDEF[] nativecolumndefs = GetNativecolumndefs(columns, numColumns);
+            NATIVE_COLUMNDEF[] nativecolumndefs = columns.GetNativecolumndefs();
             var nativecolumnids = new uint[numColumns];
-
             int err = Tracing.TraceResult(NativeMethods.JetOpenTempTable2(
                 sesid.Value, nativecolumndefs, checked((uint)numColumns), (uint)lcid, (uint)grbit, out tableid.Value, nativecolumnids));
-
-            SetColumnids(columns, columnids, nativecolumnids, numColumns);
-
+            columns.SetColumnids(columnids, nativecolumnids);
             return err;
         }
 
@@ -1505,7 +1442,7 @@ namespace EsentLib.Implementation
 
             tableid = JET_TABLEID.Nil;
 
-            NATIVE_COLUMNDEF[] nativecolumndefs = GetNativecolumndefs(columns, numColumns);
+            NATIVE_COLUMNDEF[] nativecolumndefs = columns.GetNativecolumndefs();
             var nativecolumnids = new uint[numColumns];
 
             int err;
@@ -1520,9 +1457,7 @@ namespace EsentLib.Implementation
                 err = Tracing.TraceResult(NativeMethods.JetOpenTempTable3(
                     sesid.Value, nativecolumndefs, checked((uint)numColumns), IntPtr.Zero, (uint)grbit, out tableid.Value, nativecolumnids));
             }
-
-            SetColumnids(columns, columnids, nativecolumnids, numColumns);
-
+            columns.SetColumnids(columnids, nativecolumnids);
             return err;
         }
 
@@ -1552,27 +1487,23 @@ namespace EsentLib.Implementation
 
             NATIVE_OPENTEMPORARYTABLE nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable();
             var nativecolumnids = new uint[nativetemporarytable.ccolumn];
-            NATIVE_COLUMNDEF[] nativecolumndefs = GetNativecolumndefs(temporarytable.prgcolumndef, temporarytable.ccolumn);
-            unsafe
-            {
-                using (var gchandlecollection = new GCHandleCollection())
-                {
+            NATIVE_COLUMNDEF[] nativecolumndefs = temporarytable.prgcolumndef.GetNativecolumndefs();
+            unsafe {
+                using (var gchandlecollection = new GCHandleCollection()) {
                     // Pin memory
                     nativetemporarytable.prgcolumndef = (NATIVE_COLUMNDEF*)gchandlecollection.Add(nativecolumndefs);
                     nativetemporarytable.rgcolumnid = (uint*)gchandlecollection.Add(nativecolumnids);
-                    if (null != temporarytable.pidxunicode)
-                    {
+                    if (null != temporarytable.pidxunicode) {
                         nativetemporarytable.pidxunicode = (NATIVE_UNICODEINDEX*)
                             gchandlecollection.Add(temporarytable.pidxunicode.GetNativeUnicodeIndex());
                     }
 
                     // Call the interop method
-                    int err = Tracing.TraceResult(NativeMethods.JetOpenTemporaryTable(sesid.Value, ref nativetemporarytable));
-
+                    int err = Tracing.TraceResult(NativeMethods.JetOpenTemporaryTable(sesid.Value,
+                        ref nativetemporarytable));
                     // Convert the return values
-                    SetColumnids(temporarytable.prgcolumndef, temporarytable.prgcolumnid, nativecolumnids, temporarytable.ccolumn);
+                    temporarytable.prgcolumndef.SetColumnids(temporarytable.prgcolumnid, nativecolumnids);
                     temporarytable.tableid = new JET_TABLEID { Value = nativetemporarytable.tableid };
-
                     return err;
                 }
             }
@@ -1768,21 +1699,12 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             _capabilities.CheckSupportsVistaFeatures("JetGetTableColumnInfo");
-            int err;
-
             var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
             nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
-
-            err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
-                sesid.Value,
-                tableid.Value,
-                ref columnid.Value,
-                ref nativeColumnbase,
-                nativeColumnbase.cbStruct,
-                (uint)VistaColInfo.BaseByColid));
-
+            int err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(sesid.Value,
+                tableid.Value, ref columnid.Value, ref nativeColumnbase, nativeColumnbase.cbStruct,
+                (uint)JET_ColInfo.BaseByColid));
             columnbase = new JET_COLUMNBASE(nativeColumnbase);
-
             return err;
         }
 
@@ -2018,12 +1940,8 @@ namespace EsentLib.Implementation
         /// <param name="columnid">The columnid of the column.</param>
         /// <param name="columnbase">Filled in with information about the columns in the table.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                JET_COLUMNID columnid,
-                out JET_COLUMNBASE columnbase)
+        public int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+                JET_COLUMNID columnid, out JET_COLUMNBASE columnbase)
         {
             Tracing.TraceFunctionCall("JetGetColumnInfo");
             _capabilities.CheckSupportsVistaFeatures("JetGetColumnInfo");
@@ -2032,38 +1950,22 @@ namespace EsentLib.Implementation
 
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            if (_capabilities.SupportsWindows8Features)
-            {
+            if (_capabilities.SupportsWindows8Features) {
                 var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
-
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
-                    sesid.Value,
-                    dbid.Value,
-                    tablename,
-                    ref columnid.Value,
-                    ref nativeColumnbase,
-                    nativeColumnbase.cbStruct,
-                    (uint)VistaColInfo.BaseByColid));
-
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(sesid.Value, dbid.Value,
+                    tablename, ref columnid.Value, ref nativeColumnbase, nativeColumnbase.cbStruct,
+                    (uint)JET_ColInfo.BaseByColid));
                 columnbase = new JET_COLUMNBASE(nativeColumnbase);
             }
-            else
-            {
+            else {
                 var nativeColumnbase = new NATIVE_COLUMNBASE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE)));
-
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
-                    sesid.Value,
-                    dbid.Value,
-                    tablename,
-                    ref columnid.Value,
-                    ref nativeColumnbase,
-                    nativeColumnbase.cbStruct,
-                    (uint)VistaColInfo.BaseByColid));
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(sesid.Value, dbid.Value,
+                    tablename, ref columnid.Value, ref nativeColumnbase, nativeColumnbase.cbStruct,
+                    (uint)JET_ColInfo.BaseByColid));
                 columnbase = new JET_COLUMNBASE(nativeColumnbase);
             }
-
             return err;
         }
 
@@ -4082,20 +3984,17 @@ namespace EsentLib.Implementation
         /// <param name="dbid">The database to be defragmented.</param>
         /// <param name="tableName">
         /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="Windows7Grbits.DefragmentBTree"/>) require
-        /// the name of the table to defragment.
+        /// database ID, and other options require the name of the table to defragment.
         /// </param>
         /// <param name="passes">
         /// When starting an online defragmentation task, this parameter sets the maximum number of defragmentation
         /// passes. When stopping an online defragmentation task, this parameter is set to the number of passes
-        /// performed. This is not honored in all modes (such as <see cref="Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
+        /// performed. This is not honored in all modes.</param>
         /// <param name="seconds">
         /// When starting an online defragmentation task, this parameter sets
         /// the maximum time for defragmentation. When stopping an online
         /// defragmentation task, this output buffer is set to the length of
-        /// time used for defragmentation. This is not honored in all modes (such as <see cref="Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
+        /// time used for defragmentation. This is not honored in all modes.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code.</returns>
         /// <seealso cref="JetInstance.Defragment"/>.
@@ -4120,9 +4019,7 @@ namespace EsentLib.Implementation
         /// <param name="dbid">The database to be defragmented.</param>
         /// <param name="tableName">
         /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="Windows7Grbits.DefragmentBTree"/>) require
-        /// the name of the table to defragment.
-        /// </param>
+        /// database ID, and other options require the name of the table to defragment.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code.</returns>
         /// <seealso cref="JetInstance.JetDefragment"/>.
@@ -4146,20 +4043,16 @@ namespace EsentLib.Implementation
         /// <param name="dbid">The database to be defragmented.</param>
         /// <param name="tableName">
         /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="Windows7Grbits.DefragmentBTree"/>) require
-        /// the name of the table to defragment.
-        /// </param>
+        /// database ID, and other options require the name of the table to defragment.</param>
         /// <param name="passes">
         /// When starting an online defragmentation task, this parameter sets the maximum number of defragmentation
         /// passes. When stopping an online defragmentation task, this parameter is set to the number of passes
-        /// performed. This is not honored in all modes (such as <see cref="Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
+        /// performed. This is not honored in all modes .</param>
         /// <param name="seconds">
         /// When starting an online defragmentation task, this parameter sets
         /// the maximum time for defragmentation. When stopping an online
         /// defragmentation task, this output buffer is set to the length of
-        /// time used for defragmentation. This is not honored in all modes (such as <see cref="Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
+        /// time used for defragmentation. This is not honored in all modes.</param>
         /// <param name="callback">Callback function that defrag uses to report progress.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>An error code or warning.</returns>
@@ -4391,67 +4284,31 @@ namespace EsentLib.Implementation
             nativeenumcolumns = null;
         }
 
-        /// <summary>
-        /// Make an array of native columndefs from JET_COLUMNDEFs.
-        /// </summary>
-        /// <param name="columns">Columndefs to convert.</param>
-        /// <param name="numColumns">Number of columndefs to convert.</param>
-        /// <returns>An array of native columndefs.</returns>
-        private static NATIVE_COLUMNDEF[] GetNativecolumndefs(IList<JET_COLUMNDEF> columns, int numColumns)
-        {
-            var nativecolumndefs = new NATIVE_COLUMNDEF[numColumns];
-            for (int i = 0; i < numColumns; ++i)
-            {
-                nativecolumndefs[i] = columns[i].GetNativeColumndef();
-            }
-
-            return nativecolumndefs;
-        }
-
-        /// <summary>
-        /// Make native columncreate structures from the managed ones.
-        /// </summary>
+        /// <summary>Make native columncreate structures from the managed ones.</summary>
         /// <param name="managedColumnCreates">Column create structures to convert.</param>
         /// <param name="useUnicodeData">Wehether to convert the strings with UTF-16.</param>
         /// <param name="handles">The handle collection used to pin the data.</param>
         /// <returns>Pinned native versions of the column creates.</returns>
-        private static IntPtr GetNativeColumnCreates(
-            IList<JET_COLUMNCREATE> managedColumnCreates,
-            bool useUnicodeData,
-            ref GCHandleCollection handles)
+        private static IntPtr GetNativeColumnCreates(IList<JET_COLUMNCREATE> managedColumnCreates,
+            bool useUnicodeData,ref GCHandleCollection handles)
         {
             IntPtr nativeBuffer = IntPtr.Zero;
-
-            if (managedColumnCreates != null && managedColumnCreates.Count > 0)
-            {
+            if (managedColumnCreates != null && managedColumnCreates.Count > 0) {
                 var nativeColumns = new NATIVE_COLUMNCREATE[managedColumnCreates.Count];
-
-                for (int i = 0; i < managedColumnCreates.Count; ++i)
-                {
-                    if (managedColumnCreates[i] != null)
-                    {
+                for (int i = 0; i < managedColumnCreates.Count; ++i) {
+                    if (managedColumnCreates[i] != null) {
                         JET_COLUMNCREATE managedColumn = managedColumnCreates[i];
                         nativeColumns[i] = managedColumn.GetNativeColumnCreate();
-
-                        if (useUnicodeData)
-                        {
-                            nativeColumns[i].szColumnName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedColumn.szColumnName));
-                        }
-                        else
-                        {
-                            nativeColumns[i].szColumnName = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedColumn.szColumnName));
-                        }
-
-                        if (managedColumn.cbDefault > 0)
-                        {
+                        nativeColumns[i].szColumnName = (useUnicodeData) 
+                            ? handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedColumn.szColumnName))
+                            : nativeColumns[i].szColumnName = handles.Add(Util.ConvertToNullTerminatedAsciiByteArray(managedColumn.szColumnName));
+                        if (managedColumn.cbDefault > 0) {
                             nativeColumns[i].pvDefault = handles.Add(managedColumn.pvDefault);
                         }
                     }
                 }
-
                 nativeBuffer = handles.Add(nativeColumns);
             }
-
             return nativeBuffer;
         }
 
@@ -4576,23 +4433,6 @@ namespace EsentLib.Implementation
 
         //    return nativeIndices;
         //}
-
-        /// <summary>
-        /// Set managed columnids from unmanaged columnids. This also sets the columnids
-        /// in the columndefs.
-        /// </summary>
-        /// <param name="columns">The column definitions.</param>
-        /// <param name="columnids">The columnids to set.</param>
-        /// <param name="nativecolumnids">The native columnids.</param>
-        /// <param name="numColumns">The number of columnids to set.</param>
-        private static void SetColumnids(IList<JET_COLUMNDEF> columns, IList<JET_COLUMNID> columnids, IList<uint> nativecolumnids, int numColumns)
-        {
-            for (int i = 0; i < numColumns; ++i)
-            {
-                columnids[i] = new JET_COLUMNID { Value = nativecolumnids[i] };
-                columns[i].columnid = columnids[i];
-            }
-        }
 
         // NOT IMPLEMENTED
         ///// <summary>
@@ -4984,28 +4824,25 @@ namespace EsentLib.Implementation
 
             NATIVE_OPENTEMPORARYTABLE2 nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable2();
             var nativecolumnids = new uint[nativetemporarytable.ccolumn];
-            NATIVE_COLUMNDEF[] nativecolumndefs = GetNativecolumndefs(temporarytable.prgcolumndef, temporarytable.ccolumn);
-            unsafe
-            {
-                using (var gchandlecollection = new GCHandleCollection())
-                {
+            NATIVE_COLUMNDEF[] nativecolumndefs = temporarytable.prgcolumndef.GetNativecolumndefs();
+            unsafe {
+                using (var gchandlecollection = new GCHandleCollection()) {
                     // Pin memory
                     nativetemporarytable.prgcolumndef = (NATIVE_COLUMNDEF*)gchandlecollection.Add(nativecolumndefs);
                     nativetemporarytable.rgcolumnid = (uint*)gchandlecollection.Add(nativecolumnids);
-                    if (null != temporarytable.pidxunicode)
-                    {
+                    if (null != temporarytable.pidxunicode) {
                         NATIVE_UNICODEINDEX2 unicode = temporarytable.pidxunicode.GetNativeUnicodeIndex2();
-                        unicode.szLocaleName = gchandlecollection.Add(Util.ConvertToNullTerminatedUnicodeByteArray(temporarytable.pidxunicode.GetEffectiveLocaleName()));
+                        unicode.szLocaleName = gchandlecollection.Add(
+                            Util.ConvertToNullTerminatedUnicodeByteArray(
+                                temporarytable.pidxunicode.GetEffectiveLocaleName()));
                         nativetemporarytable.pidxunicode = (NATIVE_UNICODEINDEX2*)gchandlecollection.Add(unicode);
                     }
 
                     // Call the interop method
                     int err = Tracing.TraceResult(NativeMethods.JetOpenTemporaryTable2(sesid.Value, ref nativetemporarytable));
-
                     // Convert the return values
-                    SetColumnids(temporarytable.prgcolumndef, temporarytable.prgcolumnid, nativecolumnids, temporarytable.ccolumn);
+                    temporarytable.prgcolumndef.SetColumnids(temporarytable.prgcolumnid, nativecolumnids);
                     temporarytable.tableid = new JET_TABLEID { Value = nativetemporarytable.tableid };
-
                     return err;
                 }
             }

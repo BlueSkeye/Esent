@@ -44,7 +44,17 @@ namespace EsentLib.Implementation
         public JET_OPERATIONCONTEXT OperationContext
         {
             get { return GetOperationContextParameter(); }
-            set { SetParameter(value); }
+            set
+            {
+                Tracing.TraceFunctionCall("Set-OperationContext");
+                this.Capabilities.CheckSupportsWindows10Features("Set-OperationContext");
+                NATIVE_OPERATIONCONTEXT nativeContext = value.GetNativeOperationContext();
+                int dataSize = Marshal.SizeOf(nativeContext);
+                int returnCode = NativeMethods.JetSetSessionParameter(Id,
+                    (uint)JET_sesparam.OperationContext, ref nativeContext, checked((int)dataSize));
+                Tracing.TraceResult(returnCode);
+                EsentExceptionHelper.Check(returnCode);
+            }
         }
 
         /// <summary>Get the instance owning this session.</summary>
@@ -221,6 +231,40 @@ namespace EsentLib.Implementation
             return new JetDatabase(this, dbid, database);
         }
 
+        /// <summary>Creates a temporary table with a single index. A temporary table stores and
+        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        /// However, temporary tables are much faster than ordinary tables due to their volatile
+        /// nature. They can also be used to very quickly sort and perform duplicate removal on
+        /// record sets when accessed in a purely sequential manner. Also see
+        /// <seealso cref="Api.JetOpenTempTable3"/>.
+        /// <seealso cref="Api.JetOpenTemporaryTable"/>.</summary>
+        /// <param name="columns">Column definitions for the columns created in the temporary table.
+        /// </param>
+        /// <param name="grbit">Table creation options.</param>
+        /// <param name="columnids">The output buffer that receives the array of column IDs generated
+        /// during the creation of the temporary table. The column IDs in this array will exactly
+        /// correspond to the input array of column definitions. As a result, the size of this buffer
+        /// must correspond to the size of the input array.</param>
+        /// <returns>Returns the tableid of the temporary table. Closing this tableid with
+        /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
+        public IJetTable OpenTemporaryTable(JET_COLUMNDEF[] columns, TempTableGrbit grbit,
+            JET_COLUMNID[] columnids)
+        {
+            Tracing.TraceFunctionCall("OpenTemporaryTable");
+            Helpers.CheckNotNull(columns, "columnns");
+            Helpers.CheckNotNull(columnids, "columnids");
+            JET_TABLEID tableid = JET_TABLEID.Nil;
+            NATIVE_COLUMNDEF[] nativecolumndefs = columns.GetNativecolumndefs();
+            uint[] nativecolumnids = new uint[columns.Length];
+            int returnCode = NativeMethods.JetOpenTempTable(Id, nativecolumndefs,
+                checked((uint)columns.Length), (uint)grbit, out tableid.Value,
+                nativecolumnids);
+            Tracing.TraceResult(returnCode);
+            columns.SetColumnids(columnids, nativecolumnids);
+            EsentExceptionHelper.Check(returnCode);
+            throw new NotImplementedException();
+        }
+
         /// <summary>Disassociates a session from the current thread. This should be
         /// used in conjunction with <see cref="IJetSession.SetContext"/>.</summary>
         public void ResetContext()
@@ -244,7 +288,8 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
-        /// <summary>Sets a parameter on the provided session state, used for the lifetime of this session or until reset.</summary>
+        /// <summary>Sets a parameter on the provided session state, used for the lifetime of
+        /// this session or until reset.</summary>
         /// <param name="sesparamid">The ID of the session parameter to set.</param>
         /// <param name="valueToSet">A 32-bit integer to set.</param>
         /// <returns>An error if the call fails.</returns>
@@ -254,21 +299,6 @@ namespace EsentLib.Implementation
             this.Capabilities.CheckSupportsWindows8Features("SetParameter");
             int err = NativeMethods.JetSetSessionParameter(Id, (uint)sesparamid, ref valueToSet, sizeof(int));
             return Tracing.TraceResult(err);
-        }
-
-        /// <summary></summary>
-        /// <param name="operationContext"></param>
-        /// <returns></returns>
-        private void SetParameter(JET_OPERATIONCONTEXT operationContext)
-        {
-            Tracing.TraceFunctionCall("SetParameter");
-            this.Capabilities.CheckSupportsWindows10Features("SetParameter");
-            NATIVE_OPERATIONCONTEXT nativeContext = operationContext.GetNativeOperationContext();
-            int dataSize = Marshal.SizeOf(nativeContext);
-            int err = NativeMethods.JetSetSessionParameter(Id, (uint)JET_sesparam.OperationContext,
-                ref nativeContext, checked((int)dataSize));
-            Tracing.TraceResult(err);
-            EsentExceptionHelper.Check(err);
         }
 
         /// <summary>Returns a <see cref="T:System.String"/> that represents the current

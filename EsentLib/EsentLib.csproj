@@ -87,6 +87,7 @@
     <Compile Include="EsentResource.cs" />
     <Compile Include="EsentStopwatch.cs" />
     <Compile Include="EsentVersion.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="FloatColumnValue.cs" />
     <Compile Include="GCHandleCollection.cs" />
     <Compile Include="GenericEnumerable.cs" />
@@ -210,12 +211,7 @@
     <Compile Include="objectinfogrbit.cs" />
     <Compile Include="ObsoleteApi.cs" />
     <Compile Include="OnlineMaintenanceHelpers.cs" />
-    <Compile Include="Platform\Windows81\Windows81DbInfo.cs" />
-    <Compile Include="Platform\Windows81\Windows81Grbits.cs" />
     <Compile Include="RetrieveColumnHelpers.cs" />
-    <Compile Include="Platform\Windows2003\Server2003Api.cs" />
-    <Compile Include="Platform\Windows2003\Server2003Grbits.cs" />
-    <Compile Include="Platform\Windows2003\Server2003Param.cs" />
     <Compile Include="Session.cs" />
     <Compile Include="SetColumnHelpers.cs" />
     <Compile Include="StringCache.cs" />
@@ -230,24 +226,7 @@
     <Compile Include="UInt64ColumnValue.cs" />
     <Compile Include="Update.cs" />
     <Compile Include="Util.cs" />
-    <Compile Include="Platform\Vista\VistaApi.cs" />
-    <Compile Include="Platform\Vista\VistaColinfo.cs" />
-    <Compile Include="Platform\Vista\VistaColtyp.cs" />
-    <Compile Include="Platform\Vista\VistaGrbits.cs" />
-    <Compile Include="Platform\Vista\VistaParam.cs" />
     <Compile Include="Win32NativeMethods.cs" />
-    <Compile Include="Platform\Windows10\Windows10Api.cs" />
-    <Compile Include="Platform\Windows10\Windows10Coltyp.cs" />
-    <Compile Include="Platform\Windows10\Windows10Grbits.cs" />
-    <Compile Include="Platform\Windows10\Windows10Param.cs" />
-    <Compile Include="Platform\Windows10\Windows10Session.cs" />
-    <Compile Include="Platform\Windows7\Windows7Api.cs" />
-    <Compile Include="Platform\Windows7\Windows7ExceptionAction.cs" />
-    <Compile Include="Platform\Windows7\Windows7Grbits.cs" />
-    <Compile Include="Platform\Windows7\Windows7Idxinfo.cs" />
-    <Compile Include="Platform\Windows8\Windows8Api.cs" />
-    <Compile Include="Platform\Windows8\Windows8Grbits.cs" />
-    <Compile Include="Platform\Windows8\Windows8IdxInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

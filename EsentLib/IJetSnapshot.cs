@@ -56,7 +56,7 @@ namespace EsentLib
         /// ends after the call to <see cref="IJetSnapshot.Thaw"/>.</remarks>
         /// <param name="grbit">Options for this call.</param>
         /// <returns>An error code if the call fails.</returns>
-        void TruncateLog(EsentLib.Platform.SnapshotTruncateLogGrbit grbit);
+        void TruncateLog(SnapshotTruncateLogGrbit grbit);
 
         /// <summary>Truncates the log for a specified instance during a snapshot session.
         /// </summary>

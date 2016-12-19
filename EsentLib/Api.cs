@@ -69,49 +69,9 @@ namespace EsentLib
         /// They can also be used to very quickly sort and perform duplicate
         /// removal on record sets when accessed in a purely sequential manner.
         /// Also see
+        /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
         /// <seealso cref="Api.JetOpenTempTable3"/>.
-        /// <seealso cref="EsentLib.Platform.Vista.VistaApi.JetOpenTemporaryTable"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">
-        /// Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="numColumns">Number of column definitions.</param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">
-        /// Returns the tableid of the temporary table. Closing this tableid
-        /// with <see cref="IJetTable.Close"/> frees the resources associated
-        /// with the temporary table.
-        /// </param>
-        /// <param name="columnids">
-        /// The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this
-        /// array will exactly correspond to the input array of column definitions.
-        /// As a result, the size of this buffer must correspond to the size of
-        /// the input array.
-        /// </param>
-        public static void JetOpenTempTable(
-            JET_SESID sesid,
-            JET_COLUMNDEF[] columns,
-            int numColumns,
-            TempTableGrbit grbit,
-            out JET_TABLEID tableid,
-            JET_COLUMNID[] columnids)
-        {
-            EsentExceptionHelper.Check(Impl.JetOpenTempTable(sesid, columns, numColumns, grbit, out tableid, columnids));            
-        }
-
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// Also see
-        /// <seealso cref="Api.JetOpenTempTable"/>,
-        /// <seealso cref="Api.JetOpenTempTable3"/>.
-        /// <seealso cref="EsentLib.Platform.Vista.VistaApi.JetOpenTemporaryTable"/>.
+        /// <seealso cref="Api.JetOpenTemporaryTable"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="columns">
@@ -156,8 +116,8 @@ namespace EsentLib
         /// They can also be used to very quickly sort and perform duplicate
         /// removal on record sets when accessed in a purely sequential manner.
         /// Also see
-        /// <seealso cref="Api.JetOpenTempTable"/>,
-        /// <seealso cref="EsentLib.Platform.Vista.VistaApi.JetOpenTemporaryTable"/>.
+        /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
+        /// <seealso cref="Api.JetOpenTemporaryTable"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="columns">
@@ -1607,38 +1567,26 @@ namespace EsentLib
 
         #region Online Maintenance
 
-        /// <summary>
-        /// Starts and stops database defragmentation tasks that improves data
-        /// organization within a database.
-        /// </summary>
+        /// <summary>Starts and stops database defragmentation tasks that improves data
+        /// organization within a database.</summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="dbid">The database to be defragmented.</param>
-        /// <param name="tableName">
-        /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>) require
-        /// the name of the table to defragment.
-        /// </param>
-        /// <param name="passes">
-        /// When starting an online defragmentation task, this parameter sets the maximum number of defragmentation
-        /// passes. When stopping an online defragmentation task, this parameter is set to the number of passes
-        /// performed. This is not honored in all modes (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
-        /// <param name="seconds">
-        /// When starting an online defragmentation task, this parameter sets
-        /// the maximum time for defragmentation. When stopping an online
-        /// defragmentation task, this output buffer is set to the length of
-        /// time used for defragmentation. This is not honored in all modes (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
+        /// <param name="tableName">Under some options defragmentation is performed for the
+        /// entire database described by the given  database ID, and other options require
+        /// the name of the table to defragment.</param>
+        /// <param name="passes">When starting an online defragmentation task, this parameter
+        /// sets the maximum number of defragmentation passes. When stopping an online
+        /// defragmentation task, this parameter is set to the number of passes performed.
+        /// This is not honored in all modes.</param>
+        /// <param name="seconds">When starting an online defragmentation task, this parameter
+        /// sets the maximum time for defragmentation. When stopping an online defragmentation
+        /// task, this output buffer is set to the length of time used for defragmentation.
+        /// This is not honored in all modes.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>A warning code.</returns>
         /// <seealso cref="Api.Defragment"/>
-        public static JET_wrn JetDefragment(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            string tableName,
-            ref int passes,
-            ref int seconds,
-            DefragGrbit grbit)
+        public static JET_wrn JetDefragment(JET_SESID sesid, JET_DBID dbid, string tableName,
+            ref int passes, ref int seconds, DefragGrbit grbit)
         {
             return EsentExceptionHelper.Check(Impl.JetDefragment(sesid, dbid, tableName, ref passes, ref seconds, grbit));
         }
@@ -1656,20 +1604,17 @@ namespace EsentLib
         /// <param name="dbid">The database to be defragmented.</param>
         /// <param name="tableName">
         /// Under some options defragmentation is performed for the entire database described by the given 
-        /// database ID, and other options (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>) require
-        /// the name of the table to defragment.
+        /// database ID, and other options require the name of the table to defragment.
         /// </param>
         /// <param name="passes">
         /// When starting an online defragmentation task, this parameter sets the maximum number of defragmentation
         /// passes. When stopping an online defragmentation task, this parameter is set to the number of passes
-        /// performed. This is not honored in all modes (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
+        /// performed. This is not honored in all modes .</param>
         /// <param name="seconds">
         /// When starting an online defragmentation task, this parameter sets
         /// the maximum time for defragmentation. When stopping an online
         /// defragmentation task, this output buffer is set to the length of
-        /// time used for defragmentation. This is not honored in all modes (such as <see cref="EsentLib.Platform.Windows7.Windows7Grbits.DefragmentBTree"/>).
-        /// </param>
+        /// time used for defragmentation. This is not honored in all modes .</param>
         /// <param name="callback">Callback function that defrag uses to report progress.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>A warning code.</returns>
@@ -1791,5 +1736,455 @@ namespace EsentLib
         {
             EsentExceptionHelper.Check(Impl.JetDupCursor(sesid, tableid, out newTableid, grbit));
         }
+
+        // ------------ //
+        // WINDOWS 2003 //
+        // ------------ //
+        /// <summary>
+        /// The JetUpdate function performs an update operation including inserting a new row into
+        /// a table or updating an existing row. Deleting a table row is performed by calling
+        /// <see cref="Api.JetDelete"/>.
+        /// </summary>
+        /// <param name="sesid">The session which started the update.</param>
+        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
+        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
+        /// <param name="bookmarkSize">The size of the bookmark buffer.</param>
+        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
+        /// <param name="grbit">Update options.</param>
+        /// <remarks>
+        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
+        /// calling <see cref="Api.JetPrepareUpdate"/> and then by calling
+        /// <see cref="Api.JetSetColumn(JET_SESID,JET_TABLEID,JET_COLUMNID,byte[],int,SetColumnGrbit,JET_SETINFO)"/>
+        /// one or more times to set the record state. Finally, <see cref="JetUpdate2"/>
+        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
+        /// </remarks>
+        public static void JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize, UpdateGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetUpdate2(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize, grbit));
+        }
+
+        // ----- //
+        // VISTA //
+        // ----- //
+        /// <summary>
+        /// Retrieves information about a column in a table.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="dbid">The database that contains the table.</param>
+        /// <param name="tablename">The name of the table containing the column.</param>
+        /// <param name="columnid">The ID of the column.</param>
+        /// <param name="columnbase">Filled in with information about the columns in the table.</param>
+        public static void JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+                JET_COLUMNID columnid, out JET_COLUMNBASE columnbase)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetGetColumnInfo(sesid, dbid, tablename, columnid, out columnbase));
+        }
+
+        #region JetGetTableColumnInfo overloads
+        /// <summary>
+        /// Retrieves information about a table column.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The table containing the column.</param>
+        /// <param name="columnid">The columnid of the column.</param>
+        /// <param name="columnbase">Filled in with information about the column.</param>
+        public static void JetGetTableColumnInfo(
+            JET_SESID sesid,
+            JET_TABLEID tableid,
+            JET_COLUMNID columnid,
+            out JET_COLUMNBASE columnbase)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columnbase));
+        }
+        #endregion
+
+        /// <summary>
+        /// Creates a temporary table with a single index. A temporary table
+        /// stores and retrieves records just like an ordinary table created
+        /// using JetCreateTableColumnIndex. However, temporary tables are
+        /// much faster than ordinary tables due to their volatile nature.
+        /// They can also be used to very quickly sort and perform duplicate
+        /// removal on record sets when accessed in a purely sequential manner.
+        /// Also see
+        /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
+        /// <seealso cref="Api.JetOpenTempTable3"/>.
+        /// </summary>
+        /// <remarks>
+        /// Introduced in Windows Vista. Use <see cref="Api.JetOpenTempTable3"/>
+        /// for earlier versions of Esent.
+        /// </remarks>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="temporarytable">
+        /// Description of the temporary table to create on input. After a
+        /// successful call, the structure contains the handle to the temporary
+        /// table and column identifications. Use <see cref="IJetTable.Close"/>
+        /// to free the temporary table when finished.
+        /// </param>
+        public static void JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetOpenTemporaryTable(sesid, temporarytable));
+        }
+
+        /// <summary>
+        /// Retrieves record size information from the desired location.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">
+        /// The cursor that will be used for the API call. The cursor must be
+        /// positioned on a record, or have an update prepared.
+        /// </param>
+        /// <param name="recsize">Returns the size of the record.</param>
+        /// <param name="grbit">Call options.</param>
+        public static void JetGetRecordSize(JET_SESID sesid, JET_TABLEID tableid, ref JET_RECSIZE recsize, GetRecordSizeGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetGetRecordSize(sesid, tableid, ref recsize, grbit));
+        }
+
+        // --------- //
+        // WINDOWS 7 //
+        // --------- //
+        /// <summary>
+        /// Crash dump options for Watson.
+        /// </summary>
+        /// <param name="grbit">Crash dump options.</param>
+        public static void JetConfigureProcessForCrashDump(CrashDumpGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetConfigureProcessForCrashDump(grbit));
+        }
+
+        /// <summary>
+        /// If the records with the specified keys are not in the buffer cache
+        /// then start asynchronous reads to bring the records into the database
+        /// buffer cache.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The table to issue the prereads against.</param>
+        /// <param name="keys">
+        /// The keys to preread. The keys must be sorted.
+        /// </param>
+        /// <param name="keyLengths">The lengths of the keys to preread.</param>
+        /// <param name="keyIndex">
+        /// The index of the first key in the keys array to read.
+        /// </param>
+        /// <param name="keyCount">
+        /// The maximum number of keys to preread.
+        /// </param>
+        /// <param name="keysPreread">
+        /// Returns the number of keys to actually preread.
+        /// </param>
+        /// <param name="grbit">
+        /// Preread options. Used to specify the direction of the preread.
+        /// </param>
+        public static void JetPrereadKeys(
+            JET_SESID sesid,
+            JET_TABLEID tableid,
+            byte[][] keys,
+            int[] keyLengths,
+            int keyIndex,
+            int keyCount,
+            out int keysPreread,
+            PrereadKeysGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetPrereadKeys(sesid, tableid, keys, keyLengths, keyIndex, keyCount, out keysPreread, grbit));
+        }
+
+        /// <summary>
+        /// If the records with the specified keys are not in the buffer cache
+        /// then start asynchronous reads to bring the records into the database
+        /// buffer cache.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The table to issue the prereads against.</param>
+        /// <param name="keys">
+        /// The keys to preread. The keys must be sorted.
+        /// </param>
+        /// <param name="keyLengths">The lengths of the keys to preread.</param>
+        /// <param name="keyCount">
+        /// The maximum number of keys to preread.
+        /// </param>
+        /// <param name="keysPreread">
+        /// Returns the number of keys to actually preread.
+        /// </param>
+        /// <param name="grbit">
+        /// Preread options. Used to specify the direction of the preread.
+        /// </param>
+        public static void JetPrereadKeys(
+            JET_SESID sesid,
+            JET_TABLEID tableid,
+            byte[][] keys,
+            int[] keyLengths,
+            int keyCount,
+            out int keysPreread,
+            PrereadKeysGrbit grbit)
+        {
+            JetPrereadKeys(sesid, tableid, keys, keyLengths, 0, keyCount, out keysPreread, grbit);
+        }
+
+        // --------- //
+        // WINDOWS 8 //
+        // --------- //
+        #region Transactions
+        /// <summary>
+        /// Causes a session to enter a transaction or create a new save point in an existing
+        /// transaction.
+        /// </summary>
+        /// <param name="sesid">The session to begin the transaction for.</param>
+        /// <param name="userTransactionId">An optional identifier supplied by the user for identifying the transaction.</param>
+        /// <param name="grbit">Transaction options.</param>
+        /// <remarks>Introduced in Windows 8.</remarks>
+        public static void JetBeginTransaction3(JET_SESID sesid, long userTransactionId, BeginTransactionGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetBeginTransaction3(sesid, userTransactionId, grbit));
+        }
+
+        ///// <summary>
+        ///// Commits the changes made to the state of the database during the current save point
+        ///// and migrates them to the previous save point. If the outermost save point is committed
+        ///// then the changes made during that save point will be committed to the state of the
+        ///// database and the session will exit the transaction.
+        ///// </summary>
+        ///// <param name="sesid">The session to commit the transaction for.</param>
+        ///// <param name="grbit">Commit options.</param>
+        ///// <param name="durableCommit">Duration to commit lazy transaction.</param>
+        ///// <param name="commitId">Commit-id associated with this commit record.</param>
+        //public static void JetCommitTransaction2(
+        //    JET_SESID sesid,
+        //    CommitTransactionGrbit grbit,
+        //    TimeSpan durableCommit,
+        //    out JET_COMMIT_ID commitId)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetCommitTransaction2(sesid, grbit, durableCommit, out commitId));
+        //}
+
+        #endregion
+
+        /// <summary>
+        /// Gets extended information about an error.
+        /// </summary>
+        /// <param name="error">The error code about which to retrieve information.</param>
+        /// <param name="errinfo">Information about the specified error code.</param>
+        public static void JetGetErrorInfo(
+            JET_err error,
+            out JET_ERRINFOBASIC errinfo)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetGetErrorInfo(error, out errinfo));
+        }
+
+        /// <summary>Resizes a currently open database. Windows 8: Only supports growing a database file.
+        /// Windows 8.1: When <see cref="JET_param.EnableShrinkDatabase"/> is set to
+        /// <see cref="Enums.ShrinkDatabaseGrbit.On"/>, and if the file system supports Sparse
+        /// Files, then space may be freed up in the middle of the file.</summary>
+        /// <remarks>Many APIs return the logical size of the file, not how many bytes it takes up on disk.
+        /// Win32's GetCompressedFileSize returns the correct on-disk size.
+        /// <see cref="IJetDatabase.GetInfo(JET_DbInfo)"/>
+        /// returns the on-disk size when used with <see cref="JET_DbInfo.FilesizeOnDisk"/></remarks>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="dbid">The database to grow.</param>
+        /// <param name="desiredPages">The desired size of the database, in pages.</param>
+        /// <param name="actualPages">The size of the database, in pages, after the call. </param>
+        /// <param name="grbit">Resize options.</param>
+        public static void JetResizeDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages,
+            out int actualPages, ResizeDatabaseGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit));
+        }
+
+        #region DDL
+
+        /// <summary>
+        /// Creates a temporary table with a single index. A temporary table
+        /// stores and retrieves records just like an ordinary table created
+        /// using JetCreateTableColumnIndex. However, temporary tables are
+        /// much faster than ordinary tables due to their volatile nature.
+        /// They can also be used to very quickly sort and perform duplicate
+        /// removal on record sets when accessed in a purely sequential manner.
+        /// Also see
+        /// <seealso cref="IJetSession.OpenTemporaryTable"/>, "Api.JetOpenTempTable2",
+        /// <seealso cref="Api.JetOpenTempTable3"/>.
+        /// <seealso cref="Api.JetOpenTemporaryTable"/>.</summary>
+        /// <remarks>Use <see cref="Api.JetOpenTemporaryTable"/> for earlier versions of Esent.</remarks>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="temporarytable">
+        /// Description of the temporary table to create on input. After a
+        /// successful call, the structure contains the handle to the temporary
+        /// table and column identifications. Use <see cref="IJetTable.Close"/>
+        /// to free the temporary table when finished.
+        /// </param>
+        public static void JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetOpenTemporaryTable2(sesid, temporarytable));
+        }
+
+        /// <summary>
+        /// Creates a table, adds columns, and indices on that table.
+        /// seealso cref="Api.JetCreateTableColumnIndex3"
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="dbid">The database to which to add the new table.</param>
+        /// <param name="tablecreate">Object describing the table to create.</param>
+        /// seealso cref="Api.JetCreateTableColumnIndex3"
+        public static void JetCreateTableColumnIndex4(
+            JET_SESID sesid,
+            JET_DBID dbid,
+            JET_TABLECREATE tablecreate)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetCreateTableColumnIndex4(sesid, dbid, tablecreate));
+        }
+        #endregion
+
+        #region Session Parameters
+
+        ///// <summary>Gets a parameter on the provided session state, used for the lifetime of this
+        ///// session or until reset.</summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set, see
+        ///// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
+        ///// <param name="value">A 32-bit integer to retrieve.</param>
+        //public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
+        //    out int value)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out value));
+        //}
+
+        ///// <summary>
+        ///// Gets a parameter on the provided session state, used for the lifetime of this session or until reset.
+        ///// </summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set, see
+        ///// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
+        ///// <param name="data">A byte array to retrieve.</param>
+        ///// <param name="length">AThe length of the data array.</param>
+        ///// <param name="actualDataSize">The actual size of the data field.</param>
+        //public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
+        //    byte[] data, int length, out int actualDataSize)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, data, length, out actualDataSize));
+        //}
+
+        ///// <summary>Sets a parameter on the provided session state, used for the lifetime of this session or until reset.</summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set.</param>
+        ///// <param name="value">A 32-bit integer to set.</param>
+        //public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, int value)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, value));
+        //}
+
+        ///// <summary>
+        ///// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
+        ///// </summary>
+        ///// <param name="sesid">The session to set the parameter on.</param>
+        ///// <param name="sesparamid">The ID of the session parameter to set.</param>
+        ///// <param name="data">Data to set in this session parameter.</param>
+        ///// <param name="dataSize">Size of the data provided.</param>
+        //public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
+        //    byte[] data, int dataSize)
+        //{
+        //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, data, dataSize));
+        //}
+
+        #endregion
+
+        #region Misc
+
+        /// <summary>
+        /// If the records with the specified key ranges are not in the buffer
+        /// cache, then start asynchronous reads to bring the records into the
+        /// database buffer cache.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The table to issue the prereads against.</param>
+        /// <param name="indexRanges">The key ranges to preread.</param>
+        /// <param name="rangeIndex">The index of the first key range in the array to read.</param>
+        /// <param name="rangeCount">The maximum number of key ranges to preread.</param>
+        /// <param name="rangesPreread">Returns the number of keys actually preread.</param>
+        /// <param name="columnsPreread">List of column ids for long value columns to preread.</param>
+        /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
+        /// <returns><c>true</c> if some preread done, <c>false</c> otherwise.</returns>
+        public static bool JetTryPrereadIndexRanges(
+            JET_SESID sesid,
+            JET_TABLEID tableid,
+            JET_INDEX_RANGE[] indexRanges,
+            int rangeIndex,
+            int rangeCount,
+            out int rangesPreread,
+            JET_COLUMNID[] columnsPreread,
+            PrereadIndexRangesGrbit grbit)
+        {
+            JET_err err = (JET_err)Api.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit);
+            return err >= JET_err.Success;
+        }
+
+        /// <summary>
+        /// If the records with the specified key ranges are not in the buffer
+        /// cache, then start asynchronous reads to bring the records into the
+        /// database buffer cache.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The table to issue the prereads against.</param>
+        /// <param name="indexRanges">The key ranges to preread.</param>
+        /// <param name="rangeIndex">The index of the first key range in the array to read.</param>
+        /// <param name="rangeCount">The maximum number of key ranges to preread.</param>
+        /// <param name="rangesPreread">Returns the number of keys actually preread.</param>
+        /// <param name="columnsPreread">List of column ids for long value columns to preread.</param>
+        /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
+        public static void JetPrereadIndexRanges(
+            JET_SESID sesid,
+            JET_TABLEID tableid,
+            JET_INDEX_RANGE[] indexRanges,
+            int rangeIndex,
+            int rangeCount,
+            out int rangesPreread,
+            JET_COLUMNID[] columnsPreread,
+            PrereadIndexRangesGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
+        }
+
+        /// <summary>
+        /// If the records with the specified key ranges are not in the
+        /// buffer cache then start asynchronous reads to bring the records
+        /// into the database buffer cache.
+        /// </summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="tableid">The table to issue the prereads against.</param>
+        /// <param name="keysStart">The start of key ranges to preread.</param>
+        /// <param name="keyStartLengths">The lengths of the start keys to preread.</param>
+        /// <param name="keysEnd">The end of key rangess to preread.</param>
+        /// <param name="keyEndLengths">The lengths of the end keys to preread.</param>
+        /// <param name="rangeIndex">The index of the first key range in the array to read.</param>
+        /// <param name="rangeCount">The maximum number of key ranges to preread.</param>
+        /// <param name="rangesPreread">Returns the number of keys actually preread.</param>
+        /// <param name="columnsPreread">List of column ids for long value columns to preread.</param>
+        /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
+        public static void PrereadKeyRanges(
+            JET_SESID sesid,
+            JET_TABLEID tableid,
+            byte[][] keysStart,
+            int[] keyStartLengths,
+            byte[][] keysEnd,
+            int[] keyEndLengths,
+            int rangeIndex,
+            int rangeCount,
+            out int rangesPreread,
+            JET_COLUMNID[] columnsPreread,
+            PrereadIndexRangesGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetPrereadKeyRanges(sesid, tableid, keysStart, keyStartLengths, keysEnd, keyEndLengths, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
+        }
+
+        /// <summary>
+        /// Set an array of simple filters for <see cref="Api.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.
+        /// </summary>
+        /// <param name="sesid">The session to use for the call.</param>
+        /// <param name="tableid">The cursor to position.</param>
+        /// <param name="filters">Simple record filters.</param>
+        /// <param name="grbit">Move options.</param>
+        public static void JetSetCursorFilter(JET_SESID sesid, JET_TABLEID tableid, JET_INDEX_COLUMN[] filters, CursorFilterGrbit grbit)
+        {
+            EsentExceptionHelper.Check(Api.Impl.JetSetCursorFilter(sesid, tableid, filters, grbit));
+        }
+
+        #endregion
     }
 }

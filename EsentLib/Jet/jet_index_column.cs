@@ -104,9 +104,8 @@ namespace EsentLib.Jet
         public uint grbit;
     }
 
-    /// <summary>
-    /// Contains filter definition for <see cref="Windows8Api.JetPrereadIndexRanges"/> and <see cref="Windows8Api.JetSetCursorFilter"/>.
-    /// </summary>
+    /// <summary>Contains filter definition for <see cref="Api.JetPrereadIndexRanges"/> and
+    /// <see cref="Api.JetSetCursorFilter"/>.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",

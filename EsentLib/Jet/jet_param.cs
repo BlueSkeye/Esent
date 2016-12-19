@@ -6,10 +6,6 @@
 
 using System;
 
-using EsentLib.Platform.Vista;
-using EsentLib.Platform.Windows7;
-using EsentLib.Platform.Windows8;
-
 namespace EsentLib.Jet
 {
     /// <summary>ESENT system parameters.
@@ -407,6 +403,16 @@ namespace EsentLib.Jet
         /// </summary>
         DisablePerfmon = 107,
 
+        // ------------ //
+        // WINDOWS 2003 //
+        // ------------ //
+        /// <summary>The full path to each database is persisted in the transaction logs at run
+        /// time. Ordinarily, these databases must remain at the original location for transaction
+        /// replay to function correctly. This parameter can be used to force crash recovery or
+        /// a restore operation to look for the databases referenced in the transaction log in
+        /// the specified folder.</summary>
+        AlternateDatabaseRecoveryPath = 113,
+
         // ----- //
         // VISTA //
         // ----- //
@@ -636,5 +642,12 @@ namespace EsentLib.Jet
         /// which is available on NTFS and ReFS (not FAT). The exact method of releasing space is an
         /// implementation detail and is subject to change.</summary>
         EnableShrinkDatabase = 184,
+
+        // ---------- //
+        // WINDOWS 10 //
+        // ---------- //
+        /// <summary>This allows the client to specify a registry path preceded by a reg: to
+        /// optionally configure loading or overriding parameters from the registry.</summary>
+        ConfigStoreSpec = 189,
     }
 }

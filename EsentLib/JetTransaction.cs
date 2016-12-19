@@ -10,7 +10,6 @@ using System.Globalization;
 
 using EsentLib.Jet;
 using EsentLib.Platform.Windows8;
-using EsentLib.Platform.Windows10;
 
 namespace EsentLib.Implementation
 {
