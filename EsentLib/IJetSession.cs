@@ -54,6 +54,11 @@ namespace EsentLib
         /// <returns>An error if the call fails.</returns>
         IJetSession Duplicate();
 
+        /// <summary></summary>
+        /// <param name="kind"></param>
+        /// <returns></returns>
+        JET_COMMIT_ID FlushTransactions(TransactionFlushKind kind);
+
         /// <summary>Opens a database previously attached with <see cref="AttachDatabase"/>,
         /// for use with a database session. This function can be called multiple times for
         /// the same database.</summary>
@@ -83,11 +88,27 @@ namespace EsentLib
         /// used in conjunction with <see cref="IJetSession.SetContext"/>.</summary>
         void ResetContext();
 
+        /// <summary>Force ew log files creation.</summary>
+        /// <returns>The commit ID assoiated with the commit record on Windows 8 and later
+        /// versions or a null reference for other platforms.</returns>
+        JET_COMMIT_ID RotateTransactionLogs();
+
         /// <summary>Associates a session with the current thread using the given context
         /// handle. This association overrides the default engine requirement that a
         /// transaction for a given session must occur entirely on the same thread.
         /// Use <see cref="ResetContext"/> to remove the association.</summary>
         /// <param name="context">The context to set.</param>
         void SetContext(IntPtr context);
+    }
+
+    /// <summary>An enum for use by <see cref="IJetSession.FlushTransactions(TransactionFlushKind)"/></summary>
+    public enum TransactionFlushKind
+    {
+        /// <summary>All transactions previously committed by any session that have not yet been
+        /// flushed to the transaction log file will be flushed immediately. </summary>
+        AllPending = 1,
+        /// <summary>If the session has previously committed any transactions and they have not
+        /// yet been flushed to the transaction log file, they should be flushed immediately.</summary>
+        SessionPending = 2
     }
 }

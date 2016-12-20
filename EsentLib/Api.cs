@@ -14,7 +14,6 @@ using System.Security.Permissions;
 
 using EsentLib.Implementation;
 using EsentLib.Jet;
-using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -1703,14 +1702,11 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetLS(sesid, tableid, out ls, grbit));
         }
 
-        /// <summary>
-        /// Determine whether an update of the current record of a cursor
-        /// will result in a write conflict, based on the current update
-        /// status of the record. It is possible that a write conflict will
-        /// ultimately be returned even if JetGetCursorInfo returns successfully.
-        /// because another session may update the record before the current
-        /// session is able to update the same record.
-        /// </summary>
+        /// <summary>Determine whether an update of the current record of a cursor will
+        /// result in a write conflict, based on the current update status of the record.
+        /// It is possible that a write conflict will ultimately be returned even if
+        /// JetGetCursorInfo returns successfully. because another session may update the
+        /// record before the current session is able to update the same record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to check.</param>
         public static void JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid)
@@ -1718,16 +1714,13 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetCursorInfo(sesid, tableid));
         }
 
-        /// <summary>
-        /// Duplicates an open cursor and returns a handle to the duplicated cursor.
-        /// If the cursor that was duplicated was a read-only cursor then the
-        /// duplicated cursor is also a read-only cursor.
-        /// Any state related to constructing a search key or updating a record is
-        /// not copied into the duplicated cursor. In addition, the location of the
-        /// original cursor is not duplicated into the duplicated cursor. The
-        /// duplicated cursor is always opened on the clustered index and its
-        /// location is always on the first row of the table.
-        /// </summary>
+        /// <summary>Duplicates an open cursor and returns a handle to the duplicated cursor.
+        /// If the cursor that was duplicated was a read-only cursor then the duplicated
+        /// cursor is also a read-only cursor.Any state related to constructing a search key
+        /// or updating a record isnot copied into the duplicated cursor. In addition, the
+        /// location of the original cursor is not duplicated into the duplicated cursor. The
+        /// duplicated cursor is always opened on the clustered index and its location is
+        /// always on the first row of the table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to duplicate.</param>
         /// <param name="newTableid">The duplicated cursor.</param>
@@ -1766,14 +1759,13 @@ namespace EsentLib
         // ----- //
         // VISTA //
         // ----- //
-        /// <summary>
-        /// Retrieves information about a column in a table.
-        /// </summary>
+        /// <summary>Retrieves information about a column in a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database that contains the table.</param>
         /// <param name="tablename">The name of the table containing the column.</param>
         /// <param name="columnid">The ID of the column.</param>
-        /// <param name="columnbase">Filled in with information about the columns in the table.</param>
+        /// <param name="columnbase">Filled in with information about the columns in the
+        /// table.</param>
         public static void JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
                 JET_COLUMNID columnid, out JET_COLUMNBASE columnbase)
         {
@@ -1781,9 +1773,7 @@ namespace EsentLib
         }
 
         #region JetGetTableColumnInfo overloads
-        /// <summary>
-        /// Retrieves information about a table column.
-        /// </summary>
+        /// <summary>Retrieves information about a table column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnid">The columnid of the column.</param>
@@ -1798,41 +1788,31 @@ namespace EsentLib
         }
         #endregion
 
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// Also see
+        /// <summary>Creates a temporary table with a single index. A temporary table stores
+        /// and retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        /// However, temporary tables are much faster than ordinary tables due to their
+        /// volatile nature. They can also be used to very quickly sort and perform duplicate
+        /// removal on record sets when accessed in a purely sequential manner. Also see
         /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
         /// <seealso cref="Api.JetOpenTempTable3"/>.
         /// </summary>
-        /// <remarks>
-        /// Introduced in Windows Vista. Use <see cref="Api.JetOpenTempTable3"/>
-        /// for earlier versions of Esent.
-        /// </remarks>
+        /// <remarks>Introduced in Windows Vista. Use <see cref="Api.JetOpenTempTable3"/>for
+        /// earlier versions of Esent.</remarks>
         /// <param name="sesid">The session to use.</param>
-        /// <param name="temporarytable">
-        /// Description of the temporary table to create on input. After a
-        /// successful call, the structure contains the handle to the temporary
-        /// table and column identifications. Use <see cref="IJetTable.Close"/>
-        /// to free the temporary table when finished.
-        /// </param>
+        /// <param name="temporarytable">Description of the temporary table to create on
+        /// input. After a successful call, the structure contains the handle to the temporary
+        /// table and column identifications. Use <see cref="IJetTable.Close"/> to free the
+        /// temporary table when finished.</param>
         public static void JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
             EsentExceptionHelper.Check(Api.Impl.JetOpenTemporaryTable(sesid, temporarytable));
         }
 
-        /// <summary>
-        /// Retrieves record size information from the desired location.
-        /// </summary>
+        /// <summary>Retrieves record size information from the desired location.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">
-        /// The cursor that will be used for the API call. The cursor must be
-        /// positioned on a record, or have an update prepared.
-        /// </param>
+        /// The cursor that will be used for the API call. The cursor must be positioned on
+        /// a record, or have an update prepared.</param>
         /// <param name="recsize">Returns the size of the record.</param>
         /// <param name="grbit">Call options.</param>
         public static void JetGetRecordSize(JET_SESID sesid, JET_TABLEID tableid, ref JET_RECSIZE recsize, GetRecordSizeGrbit grbit)
@@ -1843,79 +1823,42 @@ namespace EsentLib
         // --------- //
         // WINDOWS 7 //
         // --------- //
-        /// <summary>
-        /// Crash dump options for Watson.
-        /// </summary>
+        /// <summary>Crash dump options for Watson.</summary>
         /// <param name="grbit">Crash dump options.</param>
         public static void JetConfigureProcessForCrashDump(CrashDumpGrbit grbit)
         {
             EsentExceptionHelper.Check(Api.Impl.JetConfigureProcessForCrashDump(grbit));
         }
 
-        /// <summary>
-        /// If the records with the specified keys are not in the buffer cache
-        /// then start asynchronous reads to bring the records into the database
-        /// buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified keys are not in the buffer cache then
+        /// start asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
-        /// <param name="keys">
-        /// The keys to preread. The keys must be sorted.
-        /// </param>
+        /// <param name="keys">The keys to preread. The keys must be sorted.</param>
         /// <param name="keyLengths">The lengths of the keys to preread.</param>
-        /// <param name="keyIndex">
-        /// The index of the first key in the keys array to read.
-        /// </param>
-        /// <param name="keyCount">
-        /// The maximum number of keys to preread.
-        /// </param>
-        /// <param name="keysPreread">
-        /// Returns the number of keys to actually preread.
-        /// </param>
-        /// <param name="grbit">
-        /// Preread options. Used to specify the direction of the preread.
-        /// </param>
-        public static void JetPrereadKeys(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            byte[][] keys,
-            int[] keyLengths,
-            int keyIndex,
-            int keyCount,
-            out int keysPreread,
-            PrereadKeysGrbit grbit)
+        /// <param name="keyIndex">The index of the first key in the keys array to read.</param>
+        /// <param name="keyCount">The maximum number of keys to preread.</param>
+        /// <param name="keysPreread">Returns the number of keys to actually preread.</param>
+        /// <param name="grbit">Preread options. Used to specify the direction of the
+        /// preread.</param>
+        public static void JetPrereadKeys(JET_SESID sesid, JET_TABLEID tableid, byte[][] keys,
+            int[] keyLengths, int keyIndex, int keyCount, out int keysPreread, PrereadKeysGrbit grbit)
         {
             EsentExceptionHelper.Check(Api.Impl.JetPrereadKeys(sesid, tableid, keys, keyLengths, keyIndex, keyCount, out keysPreread, grbit));
         }
 
-        /// <summary>
-        /// If the records with the specified keys are not in the buffer cache
-        /// then start asynchronous reads to bring the records into the database
-        /// buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified keys are not in the buffer cache then
+        /// start asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
-        /// <param name="keys">
-        /// The keys to preread. The keys must be sorted.
-        /// </param>
+        /// <param name="keys">The keys to preread. The keys must be sorted.</param>
         /// <param name="keyLengths">The lengths of the keys to preread.</param>
-        /// <param name="keyCount">
-        /// The maximum number of keys to preread.
+        /// <param name="keyCount">The maximum number of keys to preread.</param>
+        /// <param name="keysPreread">Returns the number of keys to actually preread.</param>
+        /// <param name="grbit">Preread options. Used to specify the direction of the preread.
         /// </param>
-        /// <param name="keysPreread">
-        /// Returns the number of keys to actually preread.
-        /// </param>
-        /// <param name="grbit">
-        /// Preread options. Used to specify the direction of the preread.
-        /// </param>
-        public static void JetPrereadKeys(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            byte[][] keys,
-            int[] keyLengths,
-            int keyCount,
-            out int keysPreread,
-            PrereadKeysGrbit grbit)
+        public static void JetPrereadKeys(JET_SESID sesid, JET_TABLEID tableid, byte[][] keys,
+            int[] keyLengths, int keyCount, out int keysPreread, PrereadKeysGrbit grbit)
         {
             JetPrereadKeys(sesid, tableid, keys, keyLengths, 0, keyCount, out keysPreread, grbit);
         }
@@ -1924,10 +1867,8 @@ namespace EsentLib
         // WINDOWS 8 //
         // --------- //
         #region Transactions
-        /// <summary>
-        /// Causes a session to enter a transaction or create a new save point in an existing
-        /// transaction.
-        /// </summary>
+        /// <summary>Causes a session to enter a transaction or create a new save point in
+        /// an existing transaction.</summary>
         /// <param name="sesid">The session to begin the transaction for.</param>
         /// <param name="userTransactionId">An optional identifier supplied by the user for identifying the transaction.</param>
         /// <param name="grbit">Transaction options.</param>
@@ -1947,11 +1888,8 @@ namespace EsentLib
         ///// <param name="grbit">Commit options.</param>
         ///// <param name="durableCommit">Duration to commit lazy transaction.</param>
         ///// <param name="commitId">Commit-id associated with this commit record.</param>
-        //public static void JetCommitTransaction2(
-        //    JET_SESID sesid,
-        //    CommitTransactionGrbit grbit,
-        //    TimeSpan durableCommit,
-        //    out JET_COMMIT_ID commitId)
+        //public static void JetCommitTransaction2(JET_SESID sesid, CommitTransactionGrbit grbit,
+        //    TimeSpan durableCommit, out JET_COMMIT_ID commitId)
         //{
         //    EsentExceptionHelper.Check(Api.Impl.JetCommitTransaction2(sesid, grbit, durableCommit, out commitId));
         //}

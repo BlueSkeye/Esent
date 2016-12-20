@@ -75,48 +75,51 @@ namespace EsentLib.Implementation
         /// and migrates them to the previous save point. If the outermost save point is committed
         /// then the changes made during that save point will be committed to the state of the
         /// database and the session will exit the transaction.</summary>
-        /// <param name="grbit">JetCommitTransaction options.</param>
-        public void Commit(CommitTransactionGrbit grbit)
+        /// <returns>Commit-id for this commit record on Windows 8 and later otherise a null
+        /// reference..</returns>
+        public JET_COMMIT_ID Commit()
         {
-            Tracing.TraceFunctionCall("Commit");
-            this.CheckObjectIsNotDisposed();
-            if (!this.IsInTransaction) {
-                throw new InvalidOperationException("Not in a transaction");
-            }
-            int returnCode = NativeMethods.JetCommitTransaction(SessionId, unchecked((uint)grbit));
-            Tracing.TraceResult(returnCode);
-            EsentExceptionHelper.Check(returnCode);
-            this.ResourceWasReleased();
-            Debug.Assert(!this.IsInTransaction, "Commit finished, but object is still in a transaction");
+            return _Commit(null);
         }
 
-        /// <summary>Commit a transaction. This object should be in a transaction.
+        /// <summary>Lasily xommit a transaction. This object should be in a transaction.
         /// Commits the changes made to the state of the database during the current save point
         /// and migrates them to the previous save point. If the outermost save point is committed
         /// then the changes made during that save point will be committed to the state of the
         /// database and the session will exit the transaction.</summary>
-        /// <param name="grbit">JetCommitTransaction options.</param>
-        /// <param name="durableCommit">Duration for committing lazy transactions.</param>
-        /// <param name="commitId">Commit-id for this commit record.</param>
-        public void Commit(CommitTransactionGrbit grbit, TimeSpan durableCommit, out JET_COMMIT_ID commitId)
+        /// <returns>Commit-id for this commit record on Windows 8 and later otherise a null
+        /// reference..</returns>
+        public JET_COMMIT_ID Commit(TimeSpan durableCommit)
         {
+            return _Commit(durableCommit);
+        }
+
+        private JET_COMMIT_ID _Commit(TimeSpan? durableCommit)
+        {
+            Tracing.TraceFunctionCall("Commit");
             this.CheckObjectIsNotDisposed();
             if (!this.IsInTransaction) {
                 throw new InvalidOperationException("Not in a transaction");
             }
-            Tracing.TraceFunctionCall("Commit");
-            _session.Capabilities.CheckSupportsWindows8Features("JetCommitTransaction2");
-            uint cmsecDurableCommit = (uint)durableCommit.TotalMilliseconds;
+            bool windows8FeaturesEnabled = _session.Capabilities.SupportsWindows8Features;
             NATIVE_COMMIT_ID nativeCommitId = new NATIVE_COMMIT_ID();
-            unsafe {
-                int err = NativeMethods.JetCommitTransaction2(SessionId, unchecked((uint)grbit),
-                    cmsecDurableCommit, ref nativeCommitId);
-                Tracing.TraceResult(err);
-                EsentExceptionHelper.Check(err);
+            uint bitmask = 0;
+            uint cmsecDurableCommit = 0;
+            if (durableCommit.HasValue) {
+                bitmask = unchecked((uint)CommitTransactionGrbit.LazyFlush);
+                cmsecDurableCommit = (uint)durableCommit.Value.TotalMilliseconds;
             }
-            commitId = new JET_COMMIT_ID(nativeCommitId);
+            int returnCode = (windows8FeaturesEnabled)
+                ? NativeMethods.JetCommitTransaction2(SessionId, bitmask,
+                    cmsecDurableCommit, ref nativeCommitId)
+                : NativeMethods.JetCommitTransaction(SessionId, bitmask);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
             this.ResourceWasReleased();
             Debug.Assert(!this.IsInTransaction, "Commit finished, but object is still in a transaction");
+            if (!windows8FeaturesEnabled) { return null; }
+            JET_COMMIT_ID commitId = new JET_COMMIT_ID(nativeCommitId);
+            return commitId;
         }
 
         /// <summary>Undoes the changes made to the state of the database and returns to the

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using EsentLib.Jet;
 
 namespace EsentLib
 {
@@ -18,8 +16,16 @@ namespace EsentLib
         /// and migrates them to the previous save point. If the outermost save point is committed
         /// then the changes made during that save point will be committed to the state of the
         /// database and the session will exit the transaction.</summary>
-        /// <param name="grbit">JetCommitTransaction options.</param>
-        void Commit(CommitTransactionGrbit grbit = CommitTransactionGrbit.None);
+        JET_COMMIT_ID Commit();
+
+        /// <summary>Lasily xommit a transaction. This object should be in a transaction.
+        /// Commits the changes made to the state of the database during the current save point
+        /// and migrates them to the previous save point. If the outermost save point is committed
+        /// then the changes made during that save point will be committed to the state of the
+        /// database and the session will exit the transaction.</summary>
+        /// <returns>Commit-id for this commit record on Windows 8 and later otherise a null
+        /// reference..</returns>
+        JET_COMMIT_ID Commit(TimeSpan durableCommit);
 
         /// <summary>Undoes the changes made to the state of the database and returns to the
         /// last save point. JetRollback will also close any cursors opened during the save

@@ -636,6 +636,7 @@ namespace EsentLib.Implementation
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             JetSession result = new JetSession(this, sessionId);
+            // TODO : Consider storing the associated thtrad identifier.
             _activeSessions.Add(result, result);
             return result;
         }
@@ -1268,54 +1269,9 @@ namespace EsentLib.Implementation
             Tracing.TraceFunctionCall("JetGetCursorInfo");
             return Tracing.TraceResult(NativeMethods.JetGetCursorInfo(sesid.Value, tableid.Value, IntPtr.Zero, 0, 0));
         }
-
-        #endregion
-
-        #region Transactions
-
-        ///// <summary>
-        ///// Causes a session to enter a transaction or create a new save point in an existing
-        ///// transaction.
-        ///// </summary>
-        ///// <param name="sesid">The session to begin the transaction for.</param>
-        ///// <returns>An error if the call fails.</returns>
-        //public int JetBeginTransaction(JET_SESID sesid)
-        //{
-        //    return Tracing.TraceResult(NativeMethods.JetBeginTransaction(sesid.Value));
-        //}
-
-        /// <summary>
-        /// Causes a session to enter a transaction or create a new save point in an existing
-        /// transaction.
-        /// </summary>
-        /// <param name="sesid">The session to begin the transaction for.</param>
-        /// <param name="grbit">Transaction options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetBeginTransaction2(JET_SESID sesid, BeginTransactionGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetBeginTransaction2");
-            return Tracing.TraceResult(NativeMethods.JetBeginTransaction2(sesid.Value, unchecked((uint)grbit)));
-        }
-
-        ///// <summary>
-        ///// Commits the changes made to the state of the database during the current save point
-        ///// and migrates them to the previous save point. If the outermost save point is committed
-        ///// then the changes made during that save point will be committed to the state of the
-        ///// database and the session will exit the transaction.
-        ///// </summary>
-        ///// <param name="sesid">The session to commit the transaction for.</param>
-        ///// <param name="grbit">Commit options.</param>
-        ///// <returns>An error if the call fails.</returns>
-        //public int JetCommitTransaction(JET_SESID sesid, CommitTransactionGrbit grbit)
-        //{
-        //    Tracing.TraceFunctionCall("JetCommitTransaction");
-        //    return Tracing.TraceResult(NativeMethods.JetCommitTransaction(sesid.Value, unchecked((uint)grbit)));
-        //}
-
         #endregion
 
         #region DDL
-
         // NOT IMPLEMENTED
         ///// <summary>
         ///// Creates indexes over data in an ESE database.
@@ -4734,38 +4690,9 @@ namespace EsentLib.Implementation
             return Tracing.TraceResult(NativeMethods.JetBeginTransaction3(sesid.Value,
                 userTransactionId, unchecked((uint)grbit)));
         }
-
-        ///// <summary>Commits the changes made to the state of the database during the current
-        ///// save point and migrates them to the previous save point. If the outermost save
-        ///// point is committed then the changes made during that save point will be committed
-        ///// to the state of the database and the session will exit the transaction.</summary>
-        ///// <param name="sesid">The session to commit the transaction for.</param>
-        ///// <param name="grbit">Commit options.</param>
-        ///// <param name="durableCommit">Duration to commit lazy transaction.</param>
-        ///// <param name="commitId">Commit-id associated with this commit record.</param>
-        ///// <returns>An error if the call fails.</returns>
-        //public int JetCommitTransaction2(JET_SESID sesid, CommitTransactionGrbit grbit,
-        //    TimeSpan durableCommit, out JET_COMMIT_ID commitId)
-        //{
-        //    Tracing.TraceFunctionCall("JetCommitTransaction2");
-        //    this.Capabilities.CheckSupportsWindows8Features("JetCommitTransaction2");
-        //    int err;
-        //    uint cmsecDurableCommit = (uint)durableCommit.TotalMilliseconds;
-        //    NATIVE_COMMIT_ID nativeCommitId = new NATIVE_COMMIT_ID();
-        //    unsafe
-        //    {
-        //        err = Tracing.TraceResult(NativeMethods.JetCommitTransaction2(sesid.Value,
-        //            unchecked((uint)grbit), cmsecDurableCommit, ref nativeCommitId));
-        //    }
-        //    commitId = new JET_COMMIT_ID(nativeCommitId);
-        //    return err;
-        //}
-
         #endregion
 
-        /// <summary>
-        /// Gets extended information about an error.
-        /// </summary>
+        /// <summary>Gets extended information about an error.</summary>
         /// <param name="error">The error code about which to retrieve information.</param>
         /// <param name="errinfo">Information about the specified error code.</param>
         /// <returns>An error code.</returns>

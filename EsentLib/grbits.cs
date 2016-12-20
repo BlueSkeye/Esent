@@ -330,52 +330,40 @@ namespace EsentLib
         ReadOnly = 0x1,
     }
 
-    /// <summary>
-    /// Options for JetCommitTransaction.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetTransaction.Commit()"/>, for
+    /// <see cref="IJetSession.FlushTransactions"/> and for
+    /// <see cref="IJetSession.RotateTransactionLogs"/></summary>
     [Flags]
-    public enum CommitTransactionGrbit
+    internal enum CommitTransactionGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// The transaction is committed normally but this Api does not wait for
-        /// the transaction to be flushed to the transaction log file before returning
-        /// to the caller. This drastically reduces the duration of a commit operation
-        /// at the cost of durability. Any transaction that is not flushed to the log
-        /// before a crash will be automatically aborted during crash recovery during
-        /// the next call to JetInit. If WaitLastLevel0Commit or WaitAllLevel0Commit
-        /// are specified, this option is ignored.
-        /// </summary>
+        /// <summary>The transaction is committed normally but this Api does not wait for the
+        /// transaction to be flushed to the transaction log file before returning to the caller.
+        /// This drastically reduces the duration of a commit operation at the cost of durability.
+        /// Any transaction that is not flushed to the log before a crash will be automatically
+        /// aborted during crash recovery during the next call to JetInit. If WaitLastLevel0Commit
+        /// or WaitAllLevel0Commit are specified, this option is ignored.</summary>
         LazyFlush = 0x1,
 
-        /// <summary>
-        ///  If the session has previously committed any transactions and they have not yet
-        ///  been flushed to the transaction log file, they should be flushed immediately.
-        ///  This Api will wait until the transactions have been flushed before returning
-        ///  to the caller. This is useful if the application has previously committed several
-        ///  transactions using JET_bitCommitLazyFlush and now wants to flush all of them to disk.
-        /// </summary>
-        /// <remarks>
-        /// This option may be used even if the session is not currently in a transaction.
-        /// This option cannot be used in combination with any other option.
-        /// </remarks>
+        /// <summary>If the session has previously committed any transactions and they have not
+        /// yet been flushed to the transaction log file, they should be flushed immediately.
+        /// This Api will wait until the transactions have been flushed before returning to the
+        /// caller. This is useful if the application has previously committed several transactions
+        /// using JET_bitCommitLazyFlush and now wants to flush all of them to disk.</summary>
+        /// <remarks>This option may be used even if the session is not currently in a transaction.
+        /// This option cannot be used in combination with any other option.</remarks>
         WaitLastLevel0Commit = 0x2,
 
         // ------------ //
         // WINDOWS 2003 //
         // ------------ //
-        /// <summary>
-        /// All transactions previously committed by any session that have not
-        /// yet been flushed to the transaction log file will be flushed immediately.
-        /// This API will wait until the transactions have been flushed before
-        /// returning to the caller. This option may be used even if the session
-        /// is not currently in a transaction. This option cannot be used in
-        /// combination with any other option.
-        /// </summary>
+        /// <summary>All transactions previously committed by any session that have not yet
+        /// been flushed to the transaction log file will be flushed immediately. This API
+        /// will wait until the transactions have been flushed before returning to the caller.
+        /// This option may be used even if the session is not currently in a transaction.
+        /// This option cannot be used in combination with any other option.</summary>
         WaitAllLevel0Commit = 0x8,
 
         // --------- //
@@ -385,7 +373,6 @@ namespace EsentLib
         /// session is not currently in a transaction. This option cannot be used in combination
         /// with any other option.</summary>
         ForceNewLog = 0x10,
-
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -163,6 +164,26 @@ namespace EsentLib.Implementation
             return new JetSession(this._owner, newSesid);
         }
 
+        /// <summary></summary>
+        /// <param name="kind"></param>
+        /// <returns>The commit ID assoiated with the commit record on Windows 8 and later
+        /// versions or a null reference for other platforms.</returns>
+        public JET_COMMIT_ID FlushTransactions(TransactionFlushKind kind)
+        {
+            switch(kind) {
+                case TransactionFlushKind.SessionPending:
+                    return ManageTransactions(CommitTransactionGrbit.WaitLastLevel0Commit);
+                case TransactionFlushKind.AllPending:
+                    if (!this.Capabilities.SupportsServer2003Features) {
+                        throw new NotSupportedException(
+                            "TransactionFlushKind.AllPending not supported on this platform.");
+                    }
+                    return ManageTransactions(CommitTransactionGrbit.WaitAllLevel0Commit);
+                default:
+                    throw new ArgumentException("kind");
+            }
+        }
+
         /// <summary>Gets a parameter on the provided session state, used for the lifetime of
         /// this session or until reset.</summary>
         /// <param name="sesparamid">The ID of the session parameter to set, see
@@ -210,6 +231,26 @@ namespace EsentLib.Implementation
             }
             Tracing.TraceResult(err);
             return new JET_OPERATIONCONTEXT(ref nativeContext);
+        }
+
+        private JET_COMMIT_ID ManageTransactions(CommitTransactionGrbit grbit)
+        {
+            // TODO
+            // this.CheckObjectIsNotDisposed();
+            Tracing.TraceFunctionCall("FlushTransactions");
+            bool windows8FeaturesEnabled = this.Capabilities.SupportsWindows8Features;
+            NATIVE_COMMIT_ID nativeCommitId = new NATIVE_COMMIT_ID();
+            unsafe {
+                int err = (windows8FeaturesEnabled)
+                    ? NativeMethods.JetCommitTransaction2(this.Id, unchecked((uint)grbit), 0,
+                        ref nativeCommitId)
+                    : NativeMethods.JetCommitTransaction(this.Id, unchecked((uint)grbit));
+                Tracing.TraceResult(err);
+                EsentExceptionHelper.Check(err);
+            }
+            return (windows8FeaturesEnabled)
+                ? new JET_COMMIT_ID(nativeCommitId)
+                : null;
         }
 
         /// <summary>Opens a database previously attached with <see cref="IJetSession.AttachDatabase"/>,
@@ -273,6 +314,17 @@ namespace EsentLib.Implementation
             int returnCode = NativeMethods.JetResetSessionContext(Id);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
+        }
+
+        /// <summary>Force ew log files creation.</summary>
+        /// <returns>The commit ID assoiated with the commit record on Windows 8 and later
+        /// versions or a null reference for other platforms.</returns>
+        public JET_COMMIT_ID RotateTransactionLogs()
+        {
+            if (!this.Capabilities.SupportsWindows7Features) {
+                throw new NotSupportedException();
+            }
+            return ManageTransactions(CommitTransactionGrbit.ForceNewLog);
         }
 
         /// <summary>Associates a session with the current thread using the given context
