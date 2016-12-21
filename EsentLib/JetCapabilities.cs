@@ -4,6 +4,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EsentLib.Api;
+
 namespace EsentLib.Implementation
 {
     /// <summary>Describes the functionality exposed by an object which implements IJetApi.</summary>

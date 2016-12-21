@@ -6,6 +6,8 @@
 
 using System;
 
+using EsentLib.Api;
+
 namespace EsentLib.Jet
 {
     /// <summary>Info levels for retrieve index information with JetGetIndexInfo. and

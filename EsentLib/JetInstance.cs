@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -14,15 +13,11 @@ using System.Runtime.InteropServices;
 using System.Security.Permissions;
 using System.Text;
 using System.Threading;
-using Microsoft.Win32.SafeHandles;
 
-using EsentLib;
+using EsentLib.Api;
 using EsentLib.Jet;
 using EsentLib.Jet.Types;
-using EsentLib.Jet.Vista;
 using EsentLib.Jet.Windows8;
-
-using Win32 = EsentLib.Win32;
 
 namespace EsentLib.Implementation
 {
@@ -4964,7 +4959,7 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>
-        /// Set an array of simple filters for <see cref="Api.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>
+        /// Set an array of simple filters for <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>
         /// </summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>

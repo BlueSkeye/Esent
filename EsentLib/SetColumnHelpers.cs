@@ -21,7 +21,7 @@ namespace EsentLib
     /// Helper methods for the ESENT API. These do data conversion for
     /// setting columns.
     /// </summary>
-    public static partial class Api
+    public static partial class LegacyApi
     {
         /// <summary>
         /// Modifies a single column value in a modified record to be inserted or to
@@ -402,7 +402,7 @@ namespace EsentLib
         {
             if (null == value)
             {
-                Api.SetColumn(sesid, tableid, columnid, null);
+                LegacyApi.SetColumn(sesid, tableid, columnid, null);
             }
             else
             {

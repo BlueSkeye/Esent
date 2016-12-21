@@ -62,7 +62,8 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api.cs" />
+    <Compile Include="Api\Flags\TransactionFlushKind.cs" />
+    <Compile Include="LegacyApi.cs" />
     <Compile Include="BoolColumnValue.cs" />
     <Compile Include="BoxedValueCache.cs" />
     <Compile Include="ByteColumnValue.cs" />
@@ -97,16 +98,16 @@
     <Compile Include="Helpers.cs" />
     <Compile Include="IContentEquatable.cs" />
     <Compile Include="IDeepCloneable.cs" />
-    <Compile Include="IJetCapabilities.cs" />
-    <Compile Include="IJetColumn.cs" />
-    <Compile Include="IJetEnvironment.cs" />
-    <Compile Include="IJetInstance.cs" />
-    <Compile Include="IJetDatabase.cs" />
-    <Compile Include="IJetSession.cs" />
-    <Compile Include="IJetSnapshot.cs" />
-    <Compile Include="IJetSnapshotSession.cs" />
-    <Compile Include="IJetTable.cs" />
-    <Compile Include="IJetTransaction.cs" />
+    <Compile Include="Api\IJetCapabilities.cs" />
+    <Compile Include="Api\IJetColumn.cs" />
+    <Compile Include="Api\IJetEnvironment.cs" />
+    <Compile Include="Api\IJetInstance.cs" />
+    <Compile Include="Api\IJetDatabase.cs" />
+    <Compile Include="Api\IJetSession.cs" />
+    <Compile Include="Api\IJetSnapshot.cs" />
+    <Compile Include="Api\IJetSnapshotSession.cs" />
+    <Compile Include="Api\IJetTable.cs" />
+    <Compile Include="Api\IJetTransaction.cs" />
     <Compile Include="ijet_logtime.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Implementation\NativeHelpers.cs" />

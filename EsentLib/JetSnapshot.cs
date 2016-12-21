@@ -1,5 +1,6 @@
 ﻿using System;
 
+using EsentLib.Api;
 using EsentLib.Jet;
 
 namespace EsentLib.Implementation

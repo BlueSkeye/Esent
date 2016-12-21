@@ -4,7 +4,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using EsentLib.Implementation;
+using EsentLib.Api;
 
 namespace EsentLib
 {
@@ -73,7 +73,7 @@ namespace EsentLib
         /// for testing.</remarks>
         private static IJetCapabilities Capabilities
         {
-            get { return Api.Impl.Capabilities; }
+            get { return LegacyApi.Impl.Capabilities; }
         }
     }
 }

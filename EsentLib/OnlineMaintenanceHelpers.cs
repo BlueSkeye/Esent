@@ -16,7 +16,7 @@ namespace EsentLib
 {
     /// <summary>Helper methods for the ESENT API. These methods deal with database meta-data.
     /// </summary>
-    public static partial class Api
+    public static partial class LegacyApi
     {
         /// <summary>Starts and stops database defragmentation tasks that improves data
         /// organization within a database.</summary>
@@ -28,7 +28,7 @@ namespace EsentLib
         /// defragment.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>A warning code.</returns>
-        /// <seealso cref="Api.JetDefragment"/>
+        /// <seealso cref="LegacyApi.JetDefragment"/>
         public static JET_wrn Defragment(JET_SESID sesid, JET_DBID dbid, string tableName,
             DefragGrbit grbit)
         {

@@ -8,15 +8,14 @@ using System;
 using System.Collections.Generic;
 
 using EsentLib.Jet;
-using EsentLib.Jet.Vista;
 
-namespace EsentLib
+namespace EsentLib.Api
 {
     /// <summary>This interface describes all the methods which have a P/Invoke
     /// implementation. Concrete instances of this interface provide methods that
     /// call ESENT.</summary>
     [CLSCompliant(false)]
-    public partial interface IJetInstance : IDisposable
+    public interface IJetInstance : IDisposable
     {
         /// <summary>Gets a description of the capabilities of the current version
         /// of ESENT.</summary>
@@ -1751,7 +1750,7 @@ namespace EsentLib
             PrereadIndexRangesGrbit grbit);
 
         /// <summary> Set an array of simple filters for
-        /// <see cref="Api.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/></summary>
+        /// <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/></summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>
         /// <param name="filters">Simple record filters.</param>

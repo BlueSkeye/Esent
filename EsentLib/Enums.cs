@@ -16,7 +16,7 @@ namespace EsentLib
             Off = 0x0,
 
             /// <summary>Turns on the database shrinking functionality. If this parameter is not
-            /// set, then <see cref="Api.JetResizeDatabase"/> will be unable to reclaim
+            /// set, then <see cref="LegacyApi.JetResizeDatabase"/> will be unable to reclaim
             /// space to the file system.
             /// Uses the file system's Sparse Files feature to release space
             /// in the middle of a file. When enough rows or tables get free up by

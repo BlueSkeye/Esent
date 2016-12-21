@@ -1,8 +1,9 @@
 ﻿using System;
 
+using EsentLib.Api.Flags;
 using EsentLib.Jet;
 
-namespace EsentLib
+namespace EsentLib.Api
 {
     /// <summary></summary>
     [CLSCompliant(false)]
@@ -73,8 +74,8 @@ namespace EsentLib
         /// However, temporary tables are much faster than ordinary tables due to their volatile
         /// nature. They can also be used to very quickly sort and perform duplicate removal on
         /// record sets when accessed in a purely sequential manner. Also see
-        /// <seealso cref="Api.JetOpenTempTable3"/>.
-        /// <seealso cref="Api.JetOpenTemporaryTable"/>.</summary>
+        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
+        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.</summary>
         /// <param name="columns">Column definitions for the columns created in the temporary table.
         /// </param>
         /// <param name="grbit">Table creation options.</param>
@@ -101,14 +102,4 @@ namespace EsentLib
         void SetContext(IntPtr context);
     }
 
-    /// <summary>An enum for use by <see cref="IJetSession.FlushTransactions(TransactionFlushKind)"/></summary>
-    public enum TransactionFlushKind
-    {
-        /// <summary>All transactions previously committed by any session that have not yet been
-        /// flushed to the transaction log file will be flushed immediately. </summary>
-        AllPending = 1,
-        /// <summary>If the session has previously committed any transactions and they have not
-        /// yet been flushed to the transaction log file, they should be flushed immediately.</summary>
-        SessionPending = 2
-    }
 }

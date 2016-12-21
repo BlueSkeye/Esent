@@ -2,7 +2,7 @@
 
 using EsentLib.Jet;
 
-namespace EsentLib
+namespace EsentLib.Api
 {
     /// <summary></summary>
     public interface IJetTransaction

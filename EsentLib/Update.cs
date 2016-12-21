@@ -49,7 +49,7 @@ namespace EsentLib
             this.sesid = sesid;
             this.tableid = tableid;
             this.prep = prep;
-            Api.JetPrepareUpdate(this.sesid, this.tableid, this.prep);
+            LegacyApi.JetPrepareUpdate(this.sesid, this.tableid, this.prep);
             this.ResourceWasAllocated();
         }
 
@@ -84,7 +84,7 @@ namespace EsentLib
                 throw new InvalidOperationException("Not in an update");
             }
 
-            Api.JetUpdate(this.sesid, this.tableid, bookmark, bookmarkSize, out actualBookmarkSize);
+            LegacyApi.JetUpdate(this.sesid, this.tableid, bookmark, bookmarkSize, out actualBookmarkSize);
             this.ResourceWasReleased();
         }
 
@@ -123,7 +123,7 @@ namespace EsentLib
                 bookmark = Caches.BookmarkCache.Allocate();
                 int actualBookmarkSize;
                 this.Save(bookmark, bookmark.Length, out actualBookmarkSize);
-                Api.JetGotoBookmark(this.sesid, this.tableid, bookmark, actualBookmarkSize);
+                LegacyApi.JetGotoBookmark(this.sesid, this.tableid, bookmark, actualBookmarkSize);
             }
             finally
             {
@@ -145,7 +145,7 @@ namespace EsentLib
                 throw new InvalidOperationException("Not in an update");
             }
 
-            Api.JetPrepareUpdate(this.sesid, this.tableid, JET_prep.Cancel);
+            LegacyApi.JetPrepareUpdate(this.sesid, this.tableid, JET_prep.Cancel);
             this.ResourceWasReleased();
         }
 

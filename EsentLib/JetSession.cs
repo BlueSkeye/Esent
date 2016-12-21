@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+using EsentLib.Api;
+using EsentLib.Api.Flags;
 using EsentLib.Jet;
 
 namespace EsentLib.Implementation
@@ -277,8 +278,8 @@ namespace EsentLib.Implementation
         /// However, temporary tables are much faster than ordinary tables due to their volatile
         /// nature. They can also be used to very quickly sort and perform duplicate removal on
         /// record sets when accessed in a purely sequential manner. Also see
-        /// <seealso cref="Api.JetOpenTempTable3"/>.
-        /// <seealso cref="Api.JetOpenTemporaryTable"/>.</summary>
+        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
+        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.</summary>
         /// <param name="columns">Column definitions for the columns created in the temporary table.
         /// </param>
         /// <param name="grbit">Table creation options.</param>

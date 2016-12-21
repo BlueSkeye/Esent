@@ -186,7 +186,7 @@ Justification = "This should match the unmanaged API, which isn't capitalized.")
 
         /// <summary>
         /// Gets or sets a callback function to use for the table. This is in the form "module!functionName",
-        /// and assumes unmanaged code. See <see cref="Api.JetRegisterCallback"/> for an alternative.
+        /// and assumes unmanaged code. See <see cref="LegacyApi.JetRegisterCallback"/> for an alternative.
         /// </summary>
         public string szCallback
         {

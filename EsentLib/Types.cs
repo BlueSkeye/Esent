@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+using EsentLib.Api;
 using EsentLib.Implementation;
 
 namespace EsentLib
@@ -779,8 +780,8 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Local storage for an ESENT handle. Used by <see cref="Api.JetGetLS"/>
-    /// and <see cref="Api.JetSetLS"/>.
+    /// Local storage for an ESENT handle. Used by <see cref="LegacyApi.JetGetLS"/>
+    /// and <see cref="LegacyApi.JetSetLS"/>.
     /// </summary>
     public struct JET_LS : IEquatable<JET_LS>, IFormattable
     {

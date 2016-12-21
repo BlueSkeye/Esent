@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EsentLib
+﻿
+namespace EsentLib.Api
 {
     /// <summary></summary>
     public interface IJetCapabilities

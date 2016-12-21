@@ -14,7 +14,7 @@ using EsentLib.Jet;
 namespace EsentLib
 {
     /// <summary>Helper methods for the ESENT API. These wrap JetMakeKey.</summary>
-    public static partial class Api
+    public static partial class LegacyApi
     {
         /// <summary>
         /// Explicitly reserve the ability to update a row, write lock, or to explicitly prevent a row from

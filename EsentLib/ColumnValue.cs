@@ -169,7 +169,7 @@ namespace EsentLib
                         }
 
                         // Retrieve the columns
-                        EsentExceptionHelper.Check(Api.Impl.JetRetrieveColumns(sesid, tableid, nativeRetrievecolumns, columnValues.Length));
+                        EsentExceptionHelper.Check(LegacyApi.Impl.JetRetrieveColumns(sesid, tableid, nativeRetrievecolumns, columnValues.Length));
 
                         // Propagate the warnings and output.
                         for (int i = 0; i < columnValues.Length; ++i)
@@ -272,7 +272,7 @@ namespace EsentLib
             }
 
             int err = i == columnValues.Length - 1
-                          ? Api.Impl.JetSetColumns(sesid, tableid, nativeColumns, columnValues.Length)
+                          ? LegacyApi.Impl.JetSetColumns(sesid, tableid, nativeColumns, columnValues.Length)
                           : columnValues[i + 1].SetColumns(sesid, tableid, columnValues, nativeColumns, i + 1);
 
             this.Error = (JET_wrn)nativeColumns[i].err;
@@ -324,7 +324,7 @@ namespace EsentLib
                     // Pin the buffer and retrieve the data
                     fixed (byte* pinnedBuffer = buffer)
                     {
-                        err = Api.Impl.JetRetrieveColumn(
+                        err = LegacyApi.Impl.JetRetrieveColumn(
                                       sesid,
                                       tableid,
                                       columnValues[i].Columnid,

@@ -8,8 +8,8 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 
+using EsentLib.Api;
 using EsentLib.Jet;
-using EsentLib.Platform.Windows8;
 
 namespace EsentLib.Implementation
 {

@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 
+using EsentLib.Api;
 using EsentLib.Implementation;
 using EsentLib.Jet;
 
@@ -20,10 +21,10 @@ namespace EsentLib
     /// <summary>Managed versions of the ESENT Api. This class contains static methods
     /// corresponding with the unmanaged ESENT Api. These methods throw exceptions when
     /// errors are returned.</summary>
-    public static partial class Api
+    public static partial class LegacyApi
     {
         /// <summary>Initializes static members of the Api class.</summary>
-        static Api()
+        static LegacyApi()
         {
             // Api.Impl = new JetInstance();
         }
@@ -69,8 +70,8 @@ namespace EsentLib
         /// removal on record sets when accessed in a purely sequential manner.
         /// Also see
         /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
-        /// <seealso cref="Api.JetOpenTempTable3"/>.
-        /// <seealso cref="Api.JetOpenTemporaryTable"/>.
+        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
+        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="columns">
@@ -95,14 +96,8 @@ namespace EsentLib
         /// As a result, the size of this buffer must correspond to the size of
         /// the input array.
         /// </param>
-        public static void JetOpenTempTable2(
-            JET_SESID sesid,
-            JET_COLUMNDEF[] columns,
-            int numColumns,
-            int lcid,
-            TempTableGrbit grbit,
-            out JET_TABLEID tableid,
-            JET_COLUMNID[] columnids)
+        public static void JetOpenTempTable2(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
+            int lcid, TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
         {
             EsentExceptionHelper.Check(Impl.JetOpenTempTable2(sesid, columns, numColumns, lcid, grbit, out tableid, columnids));
         }
@@ -116,7 +111,7 @@ namespace EsentLib
         /// removal on record sets when accessed in a purely sequential manner.
         /// Also see
         /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
-        /// <seealso cref="Api.JetOpenTemporaryTable"/>.
+        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="columns">
@@ -141,14 +136,8 @@ namespace EsentLib
         /// As a result, the size of this buffer must correspond to the size of
         /// the input array.
         /// </param>
-        public static void JetOpenTempTable3(
-            JET_SESID sesid,
-            JET_COLUMNDEF[] columns,
-            int numColumns,
-            JET_UNICODEINDEX unicodeindex,
-            TempTableGrbit grbit,
-            out JET_TABLEID tableid,
-            JET_COLUMNID[] columnids)
+        public static void JetOpenTempTable3(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
+            JET_UNICODEINDEX unicodeindex, TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
         {
             EsentExceptionHelper.Check(Impl.JetOpenTempTable3(sesid, columns, numColumns, unicodeindex, grbit, out tableid, columnids));            
         }
@@ -1178,7 +1167,7 @@ namespace EsentLib
             {
                 NATIVE_RETRIEVECOLUMN* nativeretrievecolumns = stackalloc NATIVE_RETRIEVECOLUMN[numColumns];
 
-                int err = Api.PinColumnsAndRetrieve(sesid, tableid, nativeretrievecolumns, retrievecolumns, numColumns, 0);
+                int err = LegacyApi.PinColumnsAndRetrieve(sesid, tableid, nativeretrievecolumns, retrievecolumns, numColumns, 0);
                 for (int i = 0; i < numColumns; ++i)
                 {
                     retrievecolumns[i].UpdateFromNativeRetrievecolumn(ref nativeretrievecolumns[i]);
@@ -1583,7 +1572,7 @@ namespace EsentLib
         /// This is not honored in all modes.</param>
         /// <param name="grbit">Defragmentation options.</param>
         /// <returns>A warning code.</returns>
-        /// <seealso cref="Api.Defragment"/>
+        /// <seealso cref="LegacyApi.Defragment"/>
         public static JET_wrn JetDefragment(JET_SESID sesid, JET_DBID dbid, string tableName,
             ref int passes, ref int seconds, DefragGrbit grbit)
         {
@@ -1736,7 +1725,7 @@ namespace EsentLib
         /// <summary>
         /// The JetUpdate function performs an update operation including inserting a new row into
         /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="Api.JetDelete"/>.
+        /// <see cref="LegacyApi.JetDelete"/>.
         /// </summary>
         /// <param name="sesid">The session which started the update.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
@@ -1746,14 +1735,14 @@ namespace EsentLib
         /// <param name="grbit">Update options.</param>
         /// <remarks>
         /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="Api.JetPrepareUpdate"/> and then by calling
-        /// <see cref="Api.JetSetColumn(JET_SESID,JET_TABLEID,JET_COLUMNID,byte[],int,SetColumnGrbit,JET_SETINFO)"/>
+        /// calling <see cref="LegacyApi.JetPrepareUpdate"/> and then by calling
+        /// <see cref="LegacyApi.JetSetColumn(JET_SESID,JET_TABLEID,JET_COLUMNID,byte[],int,SetColumnGrbit,JET_SETINFO)"/>
         /// one or more times to set the record state. Finally, <see cref="JetUpdate2"/>
         /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
         /// </remarks>
         public static void JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize, UpdateGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetUpdate2(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetUpdate2(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize, grbit));
         }
 
         // ----- //
@@ -1769,7 +1758,7 @@ namespace EsentLib
         public static void JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
                 JET_COLUMNID columnid, out JET_COLUMNBASE columnbase)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetGetColumnInfo(sesid, dbid, tablename, columnid, out columnbase));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetGetColumnInfo(sesid, dbid, tablename, columnid, out columnbase));
         }
 
         #region JetGetTableColumnInfo overloads
@@ -1784,7 +1773,7 @@ namespace EsentLib
             JET_COLUMNID columnid,
             out JET_COLUMNBASE columnbase)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columnbase));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columnbase));
         }
         #endregion
 
@@ -1794,9 +1783,9 @@ namespace EsentLib
         /// volatile nature. They can also be used to very quickly sort and perform duplicate
         /// removal on record sets when accessed in a purely sequential manner. Also see
         /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
-        /// <seealso cref="Api.JetOpenTempTable3"/>.
+        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
         /// </summary>
-        /// <remarks>Introduced in Windows Vista. Use <see cref="Api.JetOpenTempTable3"/>for
+        /// <remarks>Introduced in Windows Vista. Use <see cref="LegacyApi.JetOpenTempTable3"/>for
         /// earlier versions of Esent.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="temporarytable">Description of the temporary table to create on
@@ -1805,7 +1794,7 @@ namespace EsentLib
         /// temporary table when finished.</param>
         public static void JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetOpenTemporaryTable(sesid, temporarytable));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetOpenTemporaryTable(sesid, temporarytable));
         }
 
         /// <summary>Retrieves record size information from the desired location.</summary>
@@ -1817,7 +1806,7 @@ namespace EsentLib
         /// <param name="grbit">Call options.</param>
         public static void JetGetRecordSize(JET_SESID sesid, JET_TABLEID tableid, ref JET_RECSIZE recsize, GetRecordSizeGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetGetRecordSize(sesid, tableid, ref recsize, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetGetRecordSize(sesid, tableid, ref recsize, grbit));
         }
 
         // --------- //
@@ -1827,7 +1816,7 @@ namespace EsentLib
         /// <param name="grbit">Crash dump options.</param>
         public static void JetConfigureProcessForCrashDump(CrashDumpGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetConfigureProcessForCrashDump(grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetConfigureProcessForCrashDump(grbit));
         }
 
         /// <summary>If the records with the specified keys are not in the buffer cache then
@@ -1844,7 +1833,7 @@ namespace EsentLib
         public static void JetPrereadKeys(JET_SESID sesid, JET_TABLEID tableid, byte[][] keys,
             int[] keyLengths, int keyIndex, int keyCount, out int keysPreread, PrereadKeysGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetPrereadKeys(sesid, tableid, keys, keyLengths, keyIndex, keyCount, out keysPreread, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetPrereadKeys(sesid, tableid, keys, keyLengths, keyIndex, keyCount, out keysPreread, grbit));
         }
 
         /// <summary>If the records with the specified keys are not in the buffer cache then
@@ -1875,7 +1864,7 @@ namespace EsentLib
         /// <remarks>Introduced in Windows 8.</remarks>
         public static void JetBeginTransaction3(JET_SESID sesid, long userTransactionId, BeginTransactionGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetBeginTransaction3(sesid, userTransactionId, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetBeginTransaction3(sesid, userTransactionId, grbit));
         }
 
         ///// <summary>
@@ -1905,7 +1894,7 @@ namespace EsentLib
             JET_err error,
             out JET_ERRINFOBASIC errinfo)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetGetErrorInfo(error, out errinfo));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetGetErrorInfo(error, out errinfo));
         }
 
         /// <summary>Resizes a currently open database. Windows 8: Only supports growing a database file.
@@ -1924,7 +1913,7 @@ namespace EsentLib
         public static void JetResizeDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages,
             out int actualPages, ResizeDatabaseGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit));
         }
 
         #region DDL
@@ -1938,9 +1927,9 @@ namespace EsentLib
         /// removal on record sets when accessed in a purely sequential manner.
         /// Also see
         /// <seealso cref="IJetSession.OpenTemporaryTable"/>, "Api.JetOpenTempTable2",
-        /// <seealso cref="Api.JetOpenTempTable3"/>.
-        /// <seealso cref="Api.JetOpenTemporaryTable"/>.</summary>
-        /// <remarks>Use <see cref="Api.JetOpenTemporaryTable"/> for earlier versions of Esent.</remarks>
+        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
+        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.</summary>
+        /// <remarks>Use <see cref="LegacyApi.JetOpenTemporaryTable"/> for earlier versions of Esent.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="temporarytable">
         /// Description of the temporary table to create on input. After a
@@ -1950,7 +1939,7 @@ namespace EsentLib
         /// </param>
         public static void JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetOpenTemporaryTable2(sesid, temporarytable));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetOpenTemporaryTable2(sesid, temporarytable));
         }
 
         /// <summary>
@@ -1966,7 +1955,7 @@ namespace EsentLib
             JET_DBID dbid,
             JET_TABLECREATE tablecreate)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetCreateTableColumnIndex4(sesid, dbid, tablecreate));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetCreateTableColumnIndex4(sesid, dbid, tablecreate));
         }
         #endregion
 
@@ -2049,7 +2038,7 @@ namespace EsentLib
             JET_COLUMNID[] columnsPreread,
             PrereadIndexRangesGrbit grbit)
         {
-            JET_err err = (JET_err)Api.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit);
+            JET_err err = (JET_err)LegacyApi.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit);
             return err >= JET_err.Success;
         }
 
@@ -2076,7 +2065,7 @@ namespace EsentLib
             JET_COLUMNID[] columnsPreread,
             PrereadIndexRangesGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
         }
 
         /// <summary>
@@ -2108,11 +2097,11 @@ namespace EsentLib
             JET_COLUMNID[] columnsPreread,
             PrereadIndexRangesGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetPrereadKeyRanges(sesid, tableid, keysStart, keyStartLengths, keysEnd, keyEndLengths, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetPrereadKeyRanges(sesid, tableid, keysStart, keyStartLengths, keysEnd, keyEndLengths, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
         }
 
         /// <summary>
-        /// Set an array of simple filters for <see cref="Api.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.
+        /// Set an array of simple filters for <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.
         /// </summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>
@@ -2120,7 +2109,7 @@ namespace EsentLib
         /// <param name="grbit">Move options.</param>
         public static void JetSetCursorFilter(JET_SESID sesid, JET_TABLEID tableid, JET_INDEX_COLUMN[] filters, CursorFilterGrbit grbit)
         {
-            EsentExceptionHelper.Check(Api.Impl.JetSetCursorFilter(sesid, tableid, filters, grbit));
+            EsentExceptionHelper.Check(LegacyApi.Impl.JetSetCursorFilter(sesid, tableid, filters, grbit));
         }
 
         #endregion

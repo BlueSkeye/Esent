@@ -222,7 +222,7 @@ namespace EsentLib.Jet
 
         /// <summary>
         /// This parameter controls the behavior of online defragmentation when initiated using
-        /// <see cref="Api.JetDefragment"/> and <see cref="Api.JetDefragment2"/>.
+        /// <see cref="LegacyApi.JetDefragment"/> and <see cref="LegacyApi.JetDefragment2"/>.
         /// </summary>
         EnableOnlineDefrag = 35,
 
@@ -338,7 +338,7 @@ namespace EsentLib.Jet
         /// Configures the engine with a <see cref="JET_CALLBACK"/> delegate.
         /// This callback may be called for the following reasons:
         /// <see cref="JET_cbtyp.FreeCursorLS"/>, <see cref="JET_cbtyp.FreeTableLS"/>
-        /// or <see cref="JET_cbtyp.Null"/>. See <see cref="Api.JetSetLS"/>
+        /// or <see cref="JET_cbtyp.Null"/>. See <see cref="LegacyApi.JetSetLS"/>
         /// for more information. This parameter cannot currently be retrieved.
         /// </summary>
         RuntimeCallback = 73,

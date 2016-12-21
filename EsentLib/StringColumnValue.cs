@@ -32,7 +32,7 @@ namespace EsentLib
         }
 
         /// <summary>
-        /// Gets or sets the value of the column. Use <see cref="Api.SetColumns"/> to update a
+        /// Gets or sets the value of the column. Use <see cref="LegacyApi.SetColumns"/> to update a
         /// record with the column value.
         /// </summary>
         public string Value

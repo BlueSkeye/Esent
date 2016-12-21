@@ -47,7 +47,7 @@ namespace EsentLib.Jet
 
     /// <summary>
     /// Enumerates the column values of a record using the JetEnumerateColumns
-    /// function. <see cref="Api.JetEnumerateColumns(JET_SESID, JET_TABLEID, int, JET_ENUMCOLUMNID[], out int, out JET_ENUMCOLUMN[], JET_PFNREALLOC, IntPtr, int, EnumerateColumnsGrbit)"/>
+    /// function. <see cref="LegacyApi.JetEnumerateColumns(JET_SESID, JET_TABLEID, int, JET_ENUMCOLUMNID[], out int, out JET_ENUMCOLUMN[], JET_PFNREALLOC, IntPtr, int, EnumerateColumnsGrbit)"/>
     /// returns an array of JET_ENUMCOLUMNVALUE
     /// structures. The array is returned in memory that was allocated using
     /// the callback that was supplied to that function.

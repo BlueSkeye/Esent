@@ -13,7 +13,7 @@ namespace EsentLib
     /// <summary>
     /// API members that are marked as obsolete.
     /// </summary>
-    public static partial class Api
+    public static partial class LegacyApi
     {
         /// <summary>
         /// Retrieves information about indexes on a table.
@@ -31,7 +31,7 @@ namespace EsentLib
                 string ignored,
                 out JET_INDEXLIST indexlist)
         {
-            Api.JetGetIndexInfo(sesid, dbid, tablename, ignored, out indexlist, JET_IdxInfo.List);
+            LegacyApi.JetGetIndexInfo(sesid, dbid, tablename, ignored, out indexlist, JET_IdxInfo.List);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace EsentLib
                 string indexname,
                 out JET_INDEXLIST indexlist)
         {
-            Api.JetGetTableIndexInfo(sesid, tableid, indexname, out indexlist, JET_IdxInfo.List);
+            LegacyApi.JetGetTableIndexInfo(sesid, tableid, indexname, out indexlist, JET_IdxInfo.List);
         }
     }
 }

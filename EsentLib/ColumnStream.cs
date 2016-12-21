@@ -131,7 +131,7 @@ namespace EsentLib
             {
                 int size;
                 var retinfo = new JET_RETINFO { itagSequence = this.Itag, ibLongValue = 0 };
-                Api.JetRetrieveColumn(this.sesid, this.tableid, this.columnid, null, 0, out size, RetrieveGrbit, retinfo);
+                LegacyApi.JetRetrieveColumn(this.sesid, this.tableid, this.columnid, null, 0, out size, RetrieveGrbit, retinfo);
                 return size;
             }
         }
@@ -191,7 +191,7 @@ namespace EsentLib
             if (this.ibLongValue > length)
             {
                 setinfo = new JET_SETINFO { itagSequence = this.Itag };
-                Api.JetSetColumn(this.sesid, this.tableid, this.columnid, null, this.ibLongValue, SetColumnGrbit.SizeLV, setinfo);
+                LegacyApi.JetSetColumn(this.sesid, this.tableid, this.columnid, null, this.ibLongValue, SetColumnGrbit.SizeLV, setinfo);
                 length = this.ibLongValue;
             }
 
@@ -267,7 +267,7 @@ namespace EsentLib
                 var data = new byte[value];
                 var retinfo = new JET_RETINFO { itagSequence = this.Itag, ibLongValue = 0 };
                 int actualDataSize;
-                Api.JetRetrieveColumn(
+                LegacyApi.JetRetrieveColumn(
                     this.sesid,
                     this.tableid,
                     this.columnid,
@@ -278,13 +278,13 @@ namespace EsentLib
                     retinfo);
 
                 var setinfo = new JET_SETINFO { itagSequence = this.Itag };
-                Api.JetSetColumn(this.sesid, this.tableid, this.columnid, data, data.Length, SetColumnGrbit.None, setinfo);
+                LegacyApi.JetSetColumn(this.sesid, this.tableid, this.columnid, data, data.Length, SetColumnGrbit.None, setinfo);
             }
             else
             {
                 var setinfo = new JET_SETINFO { itagSequence = this.Itag };
                 SetColumnGrbit grbit = (0 == value) ? SetColumnGrbit.ZeroLength : SetColumnGrbit.SizeLV;
-                Api.JetSetColumn(this.sesid, this.tableid, this.columnid, null, checked((int)value), grbit, setinfo);                
+                LegacyApi.JetSetColumn(this.sesid, this.tableid, this.columnid, null, checked((int)value), grbit, setinfo);                
             }
 
             // Setting the length moves the offset back to the end of the data

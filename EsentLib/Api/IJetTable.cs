@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using EsentLib.Jet;
 
-namespace EsentLib
+namespace EsentLib.Api
 {
     /// <summary></summary>
     [CLSCompliant(false)]

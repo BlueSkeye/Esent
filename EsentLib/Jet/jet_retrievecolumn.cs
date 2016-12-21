@@ -83,7 +83,7 @@ namespace EsentLib.Jet
     }
 
     /// <summary>
-    /// Contains input and output parameters for <see cref="Api.JetRetrieveColumns"/>.
+    /// Contains input and output parameters for <see cref="LegacyApi.JetRetrieveColumns"/>.
     /// Fields in the structure describe what column value to retrieve, how to
     /// retrieve it, and where to save results.
     /// </summary>

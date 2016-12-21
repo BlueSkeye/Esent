@@ -20,7 +20,7 @@ namespace EsentLib
 {
     /// <summary>Helper methods for the ESENT API. These aren't interop versions
     /// of the API, but encapsulate very common uses of the functions. </summary>
-    public static partial class Api
+    public static partial class LegacyApi
     {
         /// <summary>Encoding to use to decode ASCII text. We use this because UTF8.GetString
         /// is faster than ASCII.GetString.</summary>
@@ -42,7 +42,7 @@ namespace EsentLib
             {
                 buffer = Caches.BookmarkCache.Allocate();
                 int bookmarkSize;
-                Api.JetGetBookmark(sesid, tableid, buffer, buffer.Length, out bookmarkSize);
+                LegacyApi.JetGetBookmark(sesid, tableid, buffer, buffer.Length, out bookmarkSize);
                 bookmark = MemoryCache.Duplicate(buffer, bookmarkSize);
             }
             finally
@@ -82,7 +82,7 @@ namespace EsentLib
                 int bookmarkSizePrimary;
                 int bookmarkSizeSecondary;
 
-                Api.JetGetSecondaryIndexBookmark(
+                LegacyApi.JetGetSecondaryIndexBookmark(
                     sesid,
                     tableid,
                     bufferSecondary,
@@ -128,7 +128,7 @@ namespace EsentLib
             {
                 buffer = Caches.BookmarkCache.Allocate();
                 int keySize;
-                Api.JetRetrieveKey(sesid, tableid, buffer, buffer.Length, out keySize, grbit);
+                LegacyApi.JetRetrieveKey(sesid, tableid, buffer, buffer.Length, out keySize, grbit);
                 key = MemoryCache.Duplicate(buffer, keySize);
             }
             finally
@@ -931,7 +931,7 @@ namespace EsentLib
             }
 
             int actualSize;
-            if (JET_wrn.ColumnNull == Api.JetRetrieveColumn(sesid, tableid, columnid, null, 0, out actualSize, grbit, null))
+            if (JET_wrn.ColumnNull == LegacyApi.JetRetrieveColumn(sesid, tableid, columnid, null, 0, out actualSize, grbit, null))
             {
                 return null;
             }
@@ -979,7 +979,7 @@ namespace EsentLib
             EnumerateColumnsGrbit grbit)
         {
             IEnumerable<EnumeratedColumn> enumeratedColumns;
-            Api.JetEnumerateColumns(sesid, tableid, grbit, out enumeratedColumns);
+            LegacyApi.JetEnumerateColumns(sesid, tableid, grbit, out enumeratedColumns);
             return enumeratedColumns;
         }
 

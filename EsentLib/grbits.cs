@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 
+using EsentLib.Api;
 using EsentLib.Implementation;
 using EsentLib.Jet;
 
@@ -375,34 +376,24 @@ namespace EsentLib
         ForceNewLog = 0x10,
     }
 
-    /// <summary>
-    /// Options for JetRollbackTransaction.
-    /// </summary>
+    /// <summary>Options for JetRollbackTransaction.</summary>
     [Flags]
     public enum RollbackTransactionGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options;/// </summary>
         None = 0,
 
-        /// <summary>
-        /// This option requests that all changes made to the state of the
-        /// database during all save points be undone. As a result, the
-        /// session will exit the transaction.
-        /// </summary>
+        /// <summary>This option requests that all changes made to the state of the database
+        /// during all save points be undone. As a result, the session will exit the
+        /// transaction.</summary>
         RollbackAll = 0x1,
     }
 
-    /// <summary>
-    /// Options for JetEndSession.
-    /// </summary>
+    /// <summary>Options for JetEndSession.</summary>
     [Flags]
     public enum EndSessionGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
@@ -490,7 +481,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetDupCursor"/>.
+    /// Options for <see cref="LegacyApi.JetDupCursor"/>.
     /// </summary>
     [Flags]
     public enum DupCursorGrbit
@@ -502,7 +493,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetSetLS"/> and <see cref="Api.JetGetLS"/>.
+    /// Options for <see cref="LegacyApi.JetSetLS"/> and <see cref="LegacyApi.JetGetLS"/>.
     /// </summary>
     [Flags]
     public enum LsGrbit
@@ -673,7 +664,7 @@ namespace EsentLib
         RetrieveIgnoreDefault = 0x20,
     }
 
-    /// <summary>Options for <see cref="Api.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
+    /// <summary>Options for <see cref="LegacyApi.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
     /// and its associated overloads.</summary>
     [Flags]
     public enum EnumerateColumnsGrbit
@@ -717,7 +708,7 @@ namespace EsentLib
         /// the default value. No effort is made to remove column values that
         /// match their default values.
         /// It is important to remember that this option affects the output of
-        /// <see cref="Api.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
+        /// <see cref="LegacyApi.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
         /// and its associated overloads when used with 
         /// <see cref="EnumerateColumnsGrbit.EnumeratePresenceOnly"/> or
         /// <see cref="EnumerateColumnsGrbit.EnumerateTaggedOnly"/>.
@@ -762,7 +753,7 @@ namespace EsentLib
 
     }
 
-/// <summary>Options for <see cref="Api.JetGetRecordSize"/>.</summary>
+/// <summary>Options for <see cref="LegacyApi.JetGetRecordSize"/>.</summary>
 [Flags]
     public enum GetRecordSizeGrbit
     {
@@ -784,7 +775,7 @@ namespace EsentLib
         Local = 0x4,
     }
 
-    /// <summary>Options for <see cref="Api.JetGetSecondaryIndexBookmark"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetGetSecondaryIndexBookmark"/>.</summary>
     [Flags]
     public enum GetSecondaryIndexBookmarkGrbit
     {
@@ -792,7 +783,7 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>Options for <see cref="Api.JetGotoSecondaryIndexBookmark"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetGotoSecondaryIndexBookmark"/>.</summary>
     [Flags]
     public enum GotoSecondaryIndexBookmarkGrbit
     {
@@ -898,7 +889,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetSeek"/>.
+    /// Options for <see cref="LegacyApi.JetSeek"/>.
     /// </summary>
     [Flags]
     public enum SeekGrbit
@@ -945,7 +936,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetSetIndexRange"/>.
+    /// Options for <see cref="LegacyApi.JetSetIndexRange"/>.
     /// </summary>
     [Flags]
     public enum SetIndexRangeGrbit
@@ -993,7 +984,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetIntersectIndexes"/>.
+    /// Options for <see cref="LegacyApi.JetIntersectIndexes"/>.
     /// </summary>
     [Flags]
     public enum IntersectIndexesGrbit
@@ -1005,8 +996,8 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetSetCurrentIndex2"/> and 
-    /// <see cref="Api.JetSetCurrentIndex3"/>.
+    /// Options for <see cref="LegacyApi.JetSetCurrentIndex2"/> and 
+    /// <see cref="LegacyApi.JetSetCurrentIndex3"/>.
     /// </summary>
     [Flags]
     public enum SetCurrentIndexGrbit
@@ -1032,7 +1023,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetSetTableSequential"/>.
+    /// Options for <see cref="LegacyApi.JetSetTableSequential"/>.
     /// </summary>
     [Flags]
     public enum SetTableSequentialGrbit
@@ -1050,7 +1041,7 @@ namespace EsentLib
         Backward = 0x2,
     }
 
-    /// <summary>Options for <see cref="Api.JetResetTableSequential"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetResetTableSequential"/>.</summary>
     [Flags]
     public enum ResetTableSequentialGrbit
     {
@@ -1074,7 +1065,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetEscrowUpdate"/>.
+    /// Options for <see cref="LegacyApi.JetEscrowUpdate"/>.
     /// </summary>
     [Flags]
     public enum EscrowUpdateGrbit
@@ -1370,7 +1361,7 @@ namespace EsentLib
     }
 
     /// <summary>Options for temporary table creation, with <see cref="IJetSession.OpenTemporaryTable"/>,
-    /// Api.JetOpenTempTable2, and <see cref="Api.JetOpenTempTable3"/>.
+    /// Api.JetOpenTempTable2, and <see cref="LegacyApi.JetOpenTempTable3"/>.
     /// </summary>
     [Flags]
     public enum TempTableGrbit
@@ -1418,7 +1409,7 @@ namespace EsentLib
         /// <summary>
         /// This option requests that the temporary table be flexible enough to 
         /// allow records to be scanned in arbitrary order and direction using 
-        /// <see cref="Api.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.
+        /// <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.
         /// If this functionality it not required then it is best to not 
         /// request it. If this functionality is not requested then the temporary 
         /// table manager may be able to choose a strategy for managing the 
@@ -1493,7 +1484,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetRenameColumn"/>.
+    /// Options for <see cref="LegacyApi.JetRenameColumn"/>.
     /// </summary>
     [Flags]
     public enum RenameColumnGrbit
@@ -1505,7 +1496,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetSetColumnDefaultValue"/>.
+    /// Options for <see cref="LegacyApi.JetSetColumnDefaultValue"/>.
     /// </summary>
     [Flags]
     public enum SetColumnDefaultValueGrbit
@@ -1517,7 +1508,7 @@ namespace EsentLib
     }
 
     /// <summary>
-    /// Options for <see cref="Api.JetIdle"/>.
+    /// Options for <see cref="LegacyApi.JetIdle"/>.
     /// </summary>
     [Flags]
     public enum IdleGrbit
@@ -1541,7 +1532,7 @@ namespace EsentLib
         GetStatus = 0x04,
     }
 
-    /// <summary>Options for <see cref="Api.JetDefragment"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetDefragment"/>.</summary>
     [Flags]
     public enum DefragGrbit
     {
@@ -1757,7 +1748,7 @@ namespace EsentLib
         /// <summary>Get the signature of the transaction log associated with this sequence.</summary>
         LogSignature = 0,
     }
-    /// <summary>Options for <see cref="Api.JetConfigureProcessForCrashDump"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetConfigureProcessForCrashDump"/>.</summary>
     [Flags]
     public enum CrashDumpGrbit
     {
@@ -1789,7 +1780,7 @@ namespace EsentLib
         CacheIncludeCorruptedPages = 0x40,
     }
 
-    /// <summary>Options for <see cref="Api.JetPrereadKeys(JET_SESID, JET_TABLEID, byte[][], int[], int, int, out int, PrereadKeysGrbit)"/>.
+    /// <summary>Options for <see cref="LegacyApi.JetPrereadKeys(JET_SESID, JET_TABLEID, byte[][], int[], int, int, out int, PrereadKeysGrbit)"/>.
     /// </summary>
     [Flags]
     public enum PrereadKeysGrbit
@@ -1800,14 +1791,14 @@ namespace EsentLib
         /// <summary>Preread backwards.</summary>
         Backwards = 0x2,
     }
-    /// <summary>Options for <see cref="Api.JetGetErrorInfo"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetGetErrorInfo"/>.</summary>
     public enum ErrorInfoGrbit
     {
         /// <summary>No option.</summary>
         None = 0,
     }
 
-    /// <summary>Options for <see cref="Api.JetResizeDatabase"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetResizeDatabase"/>.</summary>
     [Flags]
     public enum ResizeDatabaseGrbit
     {
@@ -1844,7 +1835,7 @@ namespace EsentLib
         LogUnavailable = 0x1,
     }
 
-    /// <summary>Options for <see cref="Api.JetPrereadIndexRanges"/>.</summary>
+    /// <summary>Options for <see cref="LegacyApi.JetPrereadIndexRanges"/>.</summary>
     [Flags]
     public enum PrereadIndexRangesGrbit
     {
@@ -1893,7 +1884,7 @@ namespace EsentLib
     }
 
     /// <summary>Options passed while setting cursor filters.</summary>
-    /// <seealso cref="Api.JetSetCursorFilter"/>
+    /// <seealso cref="LegacyApi.JetSetCursorFilter"/>
     [Flags]
     public enum CursorFilterGrbit
     {

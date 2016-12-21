@@ -6,6 +6,8 @@
 
 using System;
 
+using EsentLib.Api;
+
 namespace EsentLib.Jet
 {
     /// <summary>Conversion options for <see cref="IJetDatabase.CompactDatabase"/>. This feature

@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EsentLib
+namespace EsentLib.Api
 {
     /// <summary></summary>
     [CLSCompliant(false)]
     public interface IJetEnvironment
     {
         #region PROPERTIES
-        /// <summary>Gets the maximum size of a bookmark. <seealso cref="Api.JetGetBookmark"/>.</summary>
+        /// <summary>Gets the maximum size of a bookmark. <seealso cref="LegacyApi.JetGetBookmark"/>.</summary>
         int BookmarkMost { get; }
 
         /// <summary>Gets or sets the size of the database cache in pages. By default the
@@ -128,7 +124,7 @@ namespace EsentLib
         /// <param name="displayName"></param>
         /// <param name="grbit"></param>
         /// <returns></returns>
-        EsentLib.IJetInstance GetInstance(string name, string displayName = null,
+        IJetInstance GetInstance(string name, string displayName = null,
             CreateInstanceGrbit grbit = CreateInstanceGrbit.None);
 
         /// <summary>Retrieves information about the instances that are running.</summary>

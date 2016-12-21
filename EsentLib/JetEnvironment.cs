@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
+using EsentLib.Api;
 using EsentLib.Implementation;
 using EsentLib.Jet;
 using EsentLib.Jet.Types;
@@ -19,7 +19,7 @@ namespace EsentLib
         }
 
         #region PROPERTIES
-        /// <summary>Gets the maximum size of a bookmark. <seealso cref="Api.JetGetBookmark"/>.</summary>
+        /// <summary>Gets the maximum size of a bookmark. <seealso cref="LegacyApi.JetGetBookmark"/>.</summary>
         public int BookmarkMost
         {
             // This correctly returns 256 on pre-Vista systems
@@ -56,7 +56,7 @@ namespace EsentLib
         /// <summary>Gets the maximum number of components in a sort or index key.</summary>
         public int ColumnsKeyMost
         {
-            get { return Api.Impl.Capabilities.ColumnsKeyMost; }
+            get { return LegacyApi.Impl.Capabilities.ColumnsKeyMost; }
         }
 
         /// <summary>Gets or sets a value specifying the default values for the entire set

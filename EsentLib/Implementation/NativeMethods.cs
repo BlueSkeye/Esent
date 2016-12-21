@@ -132,16 +132,11 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetCreateDatabase2W(IntPtr sesid, string szFilename, uint cpgDatabaseSizeMax, out uint dbid, uint grbit);
 
-#if !MANAGEDESENT_ON_WSA
-        [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetAttachDatabase(IntPtr sesid, string szFilename, uint grbit);
-
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetAttachDatabaseW(IntPtr sesid, string szFilename, uint grbit);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetAttachDatabase2(IntPtr sesid, string szFilename, uint cpgDatabaseSizeMax, uint grbit);
-#endif // !MANAGEDESENT_ON_WSA
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetAttachDatabase2W(IntPtr sesid, string szFilename, uint cpgDatabaseSizeMax, uint grbit);
@@ -244,11 +239,6 @@ namespace EsentLib.Implementation
         #endregion
 
         #region Backup/Restore
-
-        [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetBackupInstance(
-            IntPtr instance, string szBackupPath, uint grbit, IntPtr pfnStatus);
-
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetBackupInstanceW(
             IntPtr instance, string szBackupPath, uint grbit, IntPtr pfnStatus);

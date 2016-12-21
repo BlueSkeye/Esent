@@ -11,7 +11,7 @@ namespace EsentLib
 {
     /// <summary>Helper methods for the ESENT API. These do data conversion for
     /// JetMakeKey.</summary>
-    public static partial class Api
+    public static partial class LegacyApi
     {
         /// <summary>
         /// Constructs a search key that may then be used by <see cref="JetSeek"/>
@@ -25,15 +25,15 @@ namespace EsentLib
         {
             if (null == data)
             {
-                Api.JetMakeKey(sesid, tableid, null, 0, grbit);
+                LegacyApi.JetMakeKey(sesid, tableid, null, 0, grbit);
             }
             else if (0 == data.Length)
             {
-                Api.JetMakeKey(sesid, tableid, data, data.Length, grbit | MakeKeyGrbit.KeyDataZeroLength);                
+                LegacyApi.JetMakeKey(sesid, tableid, data, data.Length, grbit | MakeKeyGrbit.KeyDataZeroLength);                
             }
             else
             {
-                Api.JetMakeKey(sesid, tableid, data, data.Length, grbit);
+                LegacyApi.JetMakeKey(sesid, tableid, data, data.Length, grbit);
             }
         }
 
@@ -52,11 +52,11 @@ namespace EsentLib
 
             if (null == data)
             {
-                Api.JetMakeKey(sesid, tableid, null, 0, grbit);
+                LegacyApi.JetMakeKey(sesid, tableid, null, 0, grbit);
             }
             else if (0 == data.Length)
             {
-                Api.JetMakeKey(sesid, tableid, null, 0, grbit | MakeKeyGrbit.KeyDataZeroLength);
+                LegacyApi.JetMakeKey(sesid, tableid, null, 0, grbit | MakeKeyGrbit.KeyDataZeroLength);
             }
             else if (Encoding.Unicode == encoding)
             {
@@ -110,7 +110,7 @@ namespace EsentLib
         public static void MakeKey(JET_SESID sesid, JET_TABLEID tableid, bool data, MakeKeyGrbit grbit)
         {
             byte b = data ? (byte)0xff : (byte)0x0;
-            Api.MakeKey(sesid, tableid, b, grbit);
+            LegacyApi.MakeKey(sesid, tableid, b, grbit);
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public static void MakeKey(JET_SESID sesid, JET_TABLEID tableid, DateTime data, MakeKeyGrbit grbit)
         {
-            Api.MakeKey(sesid, tableid, data.ToOADate(), grbit);
+            LegacyApi.MakeKey(sesid, tableid, data.ToOADate(), grbit);
         }
 
         /// <summary>
