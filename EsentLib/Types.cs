@@ -718,8 +718,8 @@ namespace EsentLib
             return _nativeHandle.GetHashCode();
         }
 
-        /// <summary>Retrieves the contents of a file opened with <see cref="IJetInstance.OpenFile"/>.
-        /// </summary>
+        /// <summary>Retrieves the contents of a file opened with
+        /// <see cref="IJetBackupInstance.OpenFile"/>.</summary>
         /// <param name="buffer">The buffer to read into.</param>
         /// <param name="bufferSize">The size of the buffer.</param>
         /// <returns>Number of bytes read.</returns>

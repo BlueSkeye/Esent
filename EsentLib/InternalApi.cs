@@ -89,33 +89,27 @@ namespace EsentLib
                     "must be inside the data buffer");
             }
 
-            if ((null == data && dataSize > 0) || (null != data && dataSize > data.Length))
-            {
-                throw new ArgumentOutOfRangeException(
-                    "dataSize",
-                    dataSize,
+            if ((null == data && dataSize > 0) || (null != data && dataSize > data.Length)) {
+                throw new ArgumentOutOfRangeException("dataSize", dataSize,
                     "cannot be greater than the length of the data");
             }
-
-            unsafe
-            {
-                fixed (byte* pointer = data)
-                {
-                    return InternalApi.JetRetrieveColumn(
-                        sesid, tableid, columnid, new IntPtr(pointer + dataOffset), dataSize, out actualDataSize, grbit, retinfo);
+            unsafe {
+                fixed (byte* pointer = data) {
+                    return InternalApi.JetRetrieveColumn(sesid, tableid, columnid,
+                        new IntPtr(pointer + dataOffset), dataSize, out actualDataSize,
+                        grbit, retinfo);
                 }
             }
         }
 
-        /// <summary>
-        /// Retrieves a single column value from the current record. The record is that
-        /// record associated with the index entry at the current position of the cursor.
-        /// Alternatively, this function can retrieve a column from a record being created
-        /// in the cursor copy buffer. This function can also retrieve column data from an
-        /// index entry that references the current record. In addition to retrieving the
-        /// actual column value, JetRetrieveColumn can also be used to retrieve the size
-        /// of a column, before retrieving the column data itself so that application
-        /// buffers can be sized appropriately.  </summary>
+        /// <summary>/// Retrieves a single column value from the current record. The record
+        /// is that record associated with the index entry at the current position of the cursor.
+        /// Alternatively, this function can retrieve a column from a record being created in
+        /// the cursor copy buffer. This function can also retrieve column data from an index
+        /// entry that references the current record. In addition to retrieving the actual
+        /// column value, JetRetrieveColumn can also be used to retrieve the size of a column,
+        /// before retrieving the column data itself so that application buffers can be sized
+        /// appropriately.  </summary>
         /// <remarks>This is an internal-use version that takes an IntPtr.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the column from.</param>
@@ -124,10 +118,10 @@ namespace EsentLib
         /// <param name="dataSize">The size of the data buffer.</param>
         /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
         /// <param name="grbit">Retrieve column options.</param>
-        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves
-        /// as though an itagSequence of 1 and an ibLongValue of 0 (zero) were given.
-        /// This causes column retrieval to retrieve the first value of a multi-valued
-        /// column, and to retrieve long data at offset 0 (zero).</param>
+        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves as though
+        /// an itagSequence of 1 and an ibLongValue of 0 (zero) were given. This causes column
+        /// retrieval to retrieve the first value of a multi-valued column, and to retrieve long
+        /// data at offset 0 (zero).</param>
         /// <returns>An ESENT warning code.</returns>
         internal static JET_wrn JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid,
             JET_COLUMNID columnid, IntPtr data, int dataSize, out int actualDataSize,

@@ -186,9 +186,7 @@ namespace EsentLib
     [Flags]
     public enum CloseDatabaseGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
@@ -268,22 +266,16 @@ namespace EsentLib
     [Flags]
     public enum BackupGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
         
-        /// <summary>
-        /// Creates an incremental backup as opposed to a full backup. This
-        /// means that only the log files created since the last full or
-        /// incremental backup will be backed up.
-        /// </summary>
+        /// <summary>Creates an incremental backup as opposed to a full backup. This means that
+        /// only the log files created since the last full or incremental backup will be backed
+        /// up.</summary>
         Incremental = 0x1,
 
-        /// <summary>
-        /// Creates a full backup of the database. This allows the preservation
-        /// of an existing backup in the same directory if the new backup fails.
-        /// </summary>
+        /// <summary>Creates a full backup of the database. This allows the preservation of an existing
+        /// backup in the same directory if the new backup fails.</summary>
         Atomic = 0x4,
     }
 
@@ -486,9 +478,7 @@ namespace EsentLib
     [Flags]
     public enum DupCursorGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
@@ -498,26 +488,17 @@ namespace EsentLib
     [Flags]
     public enum LsGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// The context handle for the chosen object should be reset to JET_LSNil.
-        /// </summary>
+        /// <summary>The context handle for the chosen object should be reset to JET_LSNil.</summary>
         Reset = 0x1,
 
-        /// <summary>
-        /// Specifies the context handle should be associated with the given cursor.
-        /// </summary>
+        /// <summary>Specifies the context handle should be associated with the given cursor.</summary>
         Cursor = 0x2,
 
-        /// <summary>
-        /// Specifies that the context handle should be associated with the
-        /// table associated with the given cursor. It is illegal to use this
-        /// option with <see cref="Cursor"/>.
-        /// </summary>
+        /// <summary>Specifies that the context handle should be associated with the table associated
+        /// with the given cursor. It is illegal to use this option with <see cref="Cursor"/>.</summary>
         Table = 0x4,
     }
 
@@ -556,13 +537,11 @@ namespace EsentLib
         /// </summary>
         SeparateLV = 0x40,
 
-        /// <summary>
-        /// This option is used to interpret the input buffer as a integer number of bytes
-        /// to set as the length of the long value described by the given columnid and if
-        /// provided, the sequence number in psetinfo->itagSequence. If the size given is
-        /// larger than the existing column value, the column will be extended with 0s.
-        /// If the size is smaller than the existing column value then the value will be
-        /// truncated.
+        /// <summary>This option is used to interpret the input buffer as a integer number
+        /// of byte to set as the length of the long value described by the given columnid
+        /// and if provided, the sequence number in psetinfo->itagSequence. If the size given
+        /// is larger than the existing column value, the column will be extended with 0s. If
+        /// the size is smaller than the existing column value then the value will be truncated.
         /// </summary>
         SizeLV = 0x8,
 
@@ -613,9 +592,7 @@ namespace EsentLib
     [Flags]
     public enum RetrieveColumnGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
         /// <summary>
@@ -1049,37 +1026,17 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>Options for JetGetLock.</summary>
-    [Flags]
-    public enum GetLockGrbit
-    {
-        /// <summary>Acquire a read lock on the current record. Read locks are incompatible
-        /// with write locks already held by other sessions but are compatible with read
-        /// locks held by other sessions.</summary>
-        Read = 0x1,
-
-        /// <summary>Acquire a write lock on the current record. Write locks are not compatible
-        ///  with write or read locks held by other sessions but are compatible with read
-        ///  locks held by the same session.</summary>
-        Write = 0x2,
-    }
-
-    /// <summary>
-    /// Options for <see cref="LegacyApi.JetEscrowUpdate"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="LegacyApi.JetEscrowUpdate"/>.</summary>
     [Flags]
     public enum EscrowUpdateGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// Even if the session performing the escrow update has its transaction rollback
-        /// this update will not be undone. As the log records may not be flushed to disk,
-        /// recent escrow updates done with this flag may be lost if there is a crash.
-        /// </summary>
+        /// <summary>Even if the session performing the escrow update has its transaction
+        /// rollback this update will not be undone. As the log records may not be flushed
+        /// to disk, recent escrow updates done with this flag may be lost if there is a
+        /// crash.</summary>
         NoRollback = 0x1,
     }
 
@@ -1360,116 +1317,6 @@ namespace EsentLib
         ColumnMustBeNonNull = 0x2,
     }
 
-    /// <summary>Options for temporary table creation, with <see cref="IJetSession.OpenTemporaryTable"/>,
-    /// Api.JetOpenTempTable2, and <see cref="LegacyApi.JetOpenTempTable3"/>.
-    /// </summary>
-    [Flags]
-    public enum TempTableGrbit
-    {
-        /// <summary>Default options.</summary>
-        None = 0,
-
-        /// <summary>
-        /// This option requests that the temporary table be flexible enough to 
-        /// permit the use of JetSeek to lookup records by index key. If this 
-        /// functionality it not required then it is best to not request it. If this 
-        /// functionality is not requested then the temporary table manager may be 
-        /// able to choose a strategy for managing the temporary table that will 
-        /// result in improved performance. 
-        /// </summary>
-        Indexed = 0x1,
-
-        /// <summary>
-        /// This option requests that records with duplicate index keys be removed 
-        /// from the final set of records in the temporary table. 
-        /// Prior to Windows Server 2003, the database engine always assumed this 
-        /// option to be in effect due to the fact that all clustered indexes must 
-        /// also be a primary key and thus must be unique. As of Windows Server 
-        /// 2003, it is now possible to create a temporary table that does NOT 
-        /// remove duplicates when the <see cref="TempTableGrbit.ForwardOnly"/>
-        /// option is also specified. 
-        /// It is not possible to know which duplicate will win and which duplicates 
-        /// will be discarded in general. However, when the 
-        /// <see cref="ErrorOnDuplicateInsertion"/> option is requested then the first 
-        /// record with a given index key to be inserted into the temporary table 
-        /// will always win. 
-        /// </summary>
-        Unique = 0x2,
-
-        /// <summary>
-        /// This option requests that the temporary table be flexible enough to 
-        /// allow records that have previously been inserted to be subsequently 
-        /// changed. If this functionality it not required then it is best to not 
-        /// request it. If this functionality is not requested then the temporary 
-        /// table manager may be able to choose a strategy for managing the 
-        /// temporary table that will result in improved performance. 
-        /// </summary>
-        Updatable = 0x4,
-
-        /// <summary>
-        /// This option requests that the temporary table be flexible enough to 
-        /// allow records to be scanned in arbitrary order and direction using 
-        /// <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.
-        /// If this functionality it not required then it is best to not 
-        /// request it. If this functionality is not requested then the temporary 
-        /// table manager may be able to choose a strategy for managing the 
-        /// temporary table that will result in improved performance. 
-         /// </summary>
-        Scrollable = 0x8,
-
-        /// <summary>
-        /// This option requests that NULL key column values sort closer
-        /// to the end of the index than non-NULL key column values.
-        /// </summary>
-        SortNullsHigh = 0x10,
-
-        /// <summary>
-        /// This option forces the temporary table manager to abandon
-        /// any attempt to choose a clever strategy for managing the
-        /// temporary table that will result in enhanced performance.
-        /// </summary>
-        ForceMaterialization = 0x20,
-
-        /// <summary>
-        /// This option requests that any attempt to insert a record with the same 
-        /// index key as a previously inserted record will immediately fail with 
-        /// <see cref="JET_err.KeyDuplicate"/>. If this option is not requested then a duplicate 
-        /// may be detected immediately and fail or may be silently removed later 
-        /// depending on the strategy chosen by the database engine to implement the 
-        /// temporary table based on the requested functionality. If this 
-        /// functionality it not required then it is best to not request it. If this 
-        /// functionality is not requested then the temporary table manager may be 
-        /// able to choose a strategy for managing the temporary table that will 
-        /// result in improved performance. 
-        /// </summary>
-        ErrorOnDuplicateInsertion = 0x20,
-
-        /// <summary>
-        /// This option requests that the temporary table only be created if the
-        /// temporary table manager can use the implementation optimized for
-        /// intermediate query results. If any characteristic of the temporary
-        /// table would prevent the use of this optimization then the operation
-        /// will fail with JET_errCannotMaterializeForwardOnlySort. A side effect
-        /// of this option is to allow the temporary table to contain records
-        /// with duplicate index keys. See <see cref="TempTableGrbit.Unique"/>
-        /// for more information.
-        /// </summary>        
-        ForwardOnly = 0x40,
-
-        // --------- //
-        // WINDOWS 7 //
-        // --------- //
-        /// <summary>Permit only intrinsic LV's (so materialisation is not required simply
-        /// because a TT has an LV column).</summary>
-        IntrinsicLVsOnly = 0x80,
-
-        // --------- //
-        // WINDOWS 8 //
-        // --------- //
-        /// <summary>This option requests that the temporary table sort columns of type
-        /// JET_coltypGUID according to .Net Guid sort order.</summary>        
-        TTDotNetGuid = 0x100,
-    }
 
     /// <summary>Options for <see cref="IJetTable.DeleteColumn"/>.</summary>
     [Flags]

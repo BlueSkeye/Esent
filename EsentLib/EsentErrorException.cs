@@ -11,20 +11,14 @@ using EsentLib.Jet;
 
 namespace EsentLib
 {
-    /// <summary>
-    /// Base class for ESENT error exceptions.
-    /// </summary>
+    /// <summary>Base class for ESENT error exceptions.</summary>
     [Serializable]
     public class EsentErrorException : EsentException
     {
-        /// <summary>
-        /// The error code that was encountered.
-        /// </summary>
+        /// <summary>The error code that was encountered.</summary>
         private JET_err errorCode;
 
-        /// <summary>
-        /// Initializes a new instance of the EsentErrorException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentErrorException class.</summary>
         /// <param name="message">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
         internal EsentErrorException(string message, JET_err err) : base(message)
@@ -32,27 +26,20 @@ namespace EsentLib
             this.errorCode = err;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the EsentErrorException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentErrorException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentErrorException(SerializationInfo info, StreamingContext context) :
-                base(info, context)
+        protected EsentErrorException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
             this.errorCode = (JET_err)info.GetInt32("errorCode");
         }
 
-        /// <summary>
-        /// Gets the underlying Esent error for this exception.
-        /// </summary>
+        /// <summary>Gets the underlying Esent error for this exception.</summary>
         public JET_err Error
         {
-            get
-            {
-                return this.errorCode;
-            }
+            get { return this.errorCode; }
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
@@ -68,8 +55,7 @@ namespace EsentLib
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
-            if (info != null)
-            {
+            if (null != info) {
                 info.AddValue("errorCode", this.errorCode, typeof(int));
             }
         }

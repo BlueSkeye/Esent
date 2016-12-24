@@ -94,7 +94,7 @@ namespace EsentLib.Jet
         public JET_UNICODEINDEX pidxunicode { get; set; }
 
         /// <summary>Gets or sets options for the temp table.</summary>
-        public TempTableGrbit grbit { get; set; }
+        public TemporaryTableCreationFlags grbit { get; set; }
 
         /// <summary>Gets or sets the output buffer that receives the array of column IDs generated
         /// during the creation of the temporary table. The column IDs in this array will exactly
@@ -126,10 +126,8 @@ namespace EsentLib.Jet
         /// </summary>
         public int cbVarSegMac { get; set; }
 
-        /// <summary>
-        /// Gets the table handle for the temporary table created as a result
-        /// of a successful call to JetOpenTemporaryTable.
-        /// </summary>
+        /// <summary>Gets the table handle for the temporary table created as a result of a
+        /// successful call to JetOpenTemporaryTable.</summary>
         public JET_TABLEID tableid { get; internal set; }
 
         /// <summary>

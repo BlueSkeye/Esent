@@ -3,11 +3,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using EsentLib.Api;
+using EsentLib.Api.Flags;
 using EsentLib.Jet;
 
 namespace EsentLib.Implementation
 {
     /// <summary></summary>
+    [CLSCompliant(false)]
     public class JetDatabase : IJetDatabase
     {
         internal JetDatabase(JetSession owner, JET_DBID dbid, string name)
@@ -252,6 +254,66 @@ namespace EsentLib.Implementation
                 tablename, parameters, checked((uint)parameters.Length),
                 (uint)grbit, out tableid.Value);
             Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return new JetTable(this, tableid);
+        }
+
+        /// <summary>Creates a temporary table with a single index. A temporary table stores and
+        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        /// However, temporary tables are much faster than ordinary tables due to their volatile
+        /// nature. They can also be used to very quickly sort and perform duplicate removal on
+        /// record sets when accessed in a purely sequential manner.</summary>
+        /// <param name="session">Session to use.</param>
+        /// <param name="columns">Column definitions for the columns created in the temporary table.
+        /// </param>
+        /// <param name="grbit">Table creation options.</param>
+        /// <param name="columnids">The output buffer that receives the array of column IDs generated
+        /// during the creation of the temporary table. The column IDs in this array will exactly
+        /// correspond to the input array of column definitions. As a result, the size of this buffer
+        /// must correspond to the size of the input array.</param>
+        /// <param name="lcid">The locale ID to use to compare any Unicode key column data in
+        /// the temporary table. Any locale may be used as long as the appropriate language pack
+        /// has been installed on the machine. </param>
+        /// <param name="unicodeindex">The Locale ID and normalization flags that will be used
+        /// to compare any Unicode key column data in the temporary table. When this is not
+        /// present then the default options are used. </param>
+        /// <returns>Returns the tableid of the temporary table. Closing this tableid with
+        /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
+        public IJetTable OpenTemporaryTable(IJetSession session, JET_COLUMNDEF[] columns,
+            TemporaryTableCreationFlags grbit, JET_COLUMNID[] columnids, int lcid /* JetOpenTempTable2*/,
+            JET_UNICODEINDEX unicodeindex /* JetOpenTempTable3 */)
+        {
+            Tracing.TraceFunctionCall("OpenTemporaryTable");
+            Helpers.CheckNotNull(session, "session");
+            Helpers.CheckNotNull(columns, "columnns");
+            Helpers.CheckNotNull(columnids, "columnids");
+            JET_TABLEID tableid = JET_TABLEID.Nil;
+            NATIVE_COLUMNDEF[] nativecolumndefs = columns.GetNativecolumndefs();
+            uint[] nativecolumnids = new uint[columns.Length];
+            int returnCode;
+            if (null != unicodeindex) {
+                if (0 != lcid) {
+                    throw new NotSupportedException("lcid and unicodeindex are exclusive.");
+                }
+                NATIVE_UNICODEINDEX nativeunicodeindex = unicodeindex.GetNativeUnicodeIndex();
+                returnCode = NativeMethods.JetOpenTempTable3(session.Id, nativecolumndefs,
+                    checked((uint)columns.Length), ref nativeunicodeindex, (uint)grbit,
+                    out tableid.Value, nativecolumnids);
+            }
+            else {
+                if (0 != lcid) {
+                    returnCode = NativeMethods.JetOpenTempTable2(session.Id, nativecolumndefs,
+                        checked((uint)columns.Length), (uint)lcid, (uint)grbit,
+                        out tableid.Value, nativecolumnids);
+                }
+                else {
+                    returnCode = NativeMethods.JetOpenTempTable(session.Id, nativecolumndefs,
+                        checked((uint)columns.Length), (uint)grbit, out tableid.Value,
+                        nativecolumnids);
+                }
+            }
+            Tracing.TraceResult(returnCode);
+            columns.SetColumnids(columnids, nativecolumnids);
             EsentExceptionHelper.Check(returnCode);
             return new JetTable(this, tableid);
         }

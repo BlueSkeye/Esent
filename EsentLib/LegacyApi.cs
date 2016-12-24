@@ -33,7 +33,6 @@ namespace EsentLib
         internal static IJetInstance Impl { get; set; }
 
         #region DDL
-
         // NOT IMPLEMENTED : Resort to JetCreateIndex4
         ///// <summary>Creates indexes over data in an ESE database.</summary>
         ///// <remarks>When creating multiple indexes (i.e. with numIndexCreates
@@ -61,87 +60,6 @@ namespace EsentLib
         //    EsentExceptionHelper.Check(Impl.JetCreateIndex2(sesid, tableid, indexcreates, numIndexCreates));            
         //}
 
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// Also see
-        /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
-        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
-        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">
-        /// Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="numColumns">Number of column definitions.</param>
-        /// <param name="lcid">
-        /// The locale ID to use to compare any Unicode key column data in the temporary table.
-        /// Any locale may be used as long as the appropriate language pack has been installed
-        /// on the machine. 
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">
-        /// Returns the tableid of the temporary table. Closing this tableid
-        /// with <see cref="IJetTable.Close"/> frees the resources associated
-        /// with the temporary table.
-        /// </param>
-        /// <param name="columnids">
-        /// The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this
-        /// array will exactly correspond to the input array of column definitions.
-        /// As a result, the size of this buffer must correspond to the size of
-        /// the input array.
-        /// </param>
-        public static void JetOpenTempTable2(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
-            int lcid, TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
-        {
-            EsentExceptionHelper.Check(Impl.JetOpenTempTable2(sesid, columns, numColumns, lcid, grbit, out tableid, columnids));
-        }
-
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// Also see
-        /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
-        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">
-        /// Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="numColumns">Number of column definitions.</param>
-        /// <param name="unicodeindex">
-        /// The Locale ID and normalization flags that will be used to compare
-        /// any Unicode key column data in the temporary table. When this 
-        /// is not present then the default options are used. 
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">
-        /// Returns the tableid of the temporary table. Closing this tableid
-        /// with <see cref="IJetTable.Close"/> frees the resources associated
-        /// with the temporary table.
-        /// </param>
-        /// <param name="columnids">
-        /// The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this
-        /// array will exactly correspond to the input array of column definitions.
-        /// As a result, the size of this buffer must correspond to the size of
-        /// the input array.
-        /// </param>
-        public static void JetOpenTempTable3(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
-            JET_UNICODEINDEX unicodeindex, TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
-        {
-            EsentExceptionHelper.Check(Impl.JetOpenTempTable3(sesid, columns, numColumns, unicodeindex, grbit, out tableid, columnids));            
-        }
-
         // NOT IMPLEMENTED
         ///// <summary>
         ///// Creates a table, adds columns, and indices on that table.
@@ -160,66 +78,46 @@ namespace EsentLib
 
         #region JetGetTableColumnInfo overloads
 
-        /// <summary>
-        /// Retrieves information about a table column.
-        /// </summary>
+        /// <summary>Retrieves information about a table column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
-        public static void JetGetTableColumnInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string columnName,
-                out JET_COLUMNDEF columndef)
+        public static void JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string columnName, out JET_COLUMNDEF columndef)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, out columndef));
         }
 
-        /// <summary>
-        /// Retrieves information about a table column.
-        /// </summary>
+        /// <summary>Retrieves information about a table column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnid">The columnid of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
-        public static void JetGetTableColumnInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                JET_COLUMNID columnid,
-                out JET_COLUMNDEF columndef)
+        public static void JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid,
+            JET_COLUMNID columnid, out JET_COLUMNDEF columndef)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columndef));
         }
 
-        /// <summary>
-        /// Retrieves information about a table column.
-        /// </summary>
+        /// <summary>Retrieves information about a table column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columnbase">Filled in with information about the column.</param>
-        public static void JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string columnName,
-            out JET_COLUMNBASE columnbase)
+        public static void JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string columnName, out JET_COLUMNBASE columnbase)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, out columnbase));
         }
 
-        /// <summary>
-        /// Retrieves information about all columns in the table.
-        /// </summary>
+        /// <summary>Retrieves information about all columns in the table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnName">The parameter is ignored.</param>
         /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        public static void JetGetTableColumnInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string columnName,
-                out JET_COLUMNLIST columnlist)
+        public static void JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string columnName, out JET_COLUMNLIST columnlist)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, ColInfoGrbit.None, out columnlist));
         }
@@ -1437,21 +1335,6 @@ namespace EsentLib
         }
 
         /// <summary>
-        /// Explicitly reserve the ability to update a row, write lock, or to explicitly prevent a row from
-        /// being updated by any other session, read lock. Normally, row write locks are acquired implicitly as a
-        /// result of updating rows. Read locks are usually not required because of record versioning. However,
-        /// in some cases a transaction may desire to explicitly lock a row to enforce serialization, or to ensure
-        /// that a subsequent operation will succeed. 
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to use. A lock will be acquired on the current record.</param>
-        /// <param name="grbit">Lock options, use this to specify which type of lock to obtain.</param>
-        public static void JetGetLock(JET_SESID sesid, JET_TABLEID tableid, GetLockGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetLock(sesid, tableid, grbit));
-        }
-
-        /// <summary>
         /// Performs an atomic addition operation on one column. This function allows
         /// multiple sessions to update the same record concurrently without conflicts.
         /// Also see <seealso cref="EscrowUpdate"/>.
@@ -1635,36 +1518,12 @@ namespace EsentLib
 
         #endregion
 
-        #region Error Handling
-        ///// <summary>Throw an exception if the parameter is an ESE error, returns a
-        ///// <see cref="JET_wrn"/> otherwise.</summary>
-        ///// <param name="err">The error code to check.</param>
-        ///// <returns>An ESENT warning code (possibly success).</returns>
-        //internal static JET_wrn Check(int err)
-        //{
-        //    if (err < 0) {
-        //        JET_err error = unchecked((JET_err)err);
-        //        var handler = Api.HandleError;
-        //        if (handler != null) {
-        //            handler(error);
-        //        }
-        //        // We didn't throw an exception from the handler, so
-        //        // generate the default exception.
-        //        throw EsentExceptionHelper.JetErrToException(error);
-        //    }
-        //    return unchecked((JET_wrn)err);
-        //}
-        #endregion Error Handling
-
-        /// <summary>
-        /// Enables the application to associate a context handle known as
-        /// Local Storage with a cursor or the table associated with that
-        /// cursor. This context handle can be used by the application to
-        /// store auxiliary data that is associated with a cursor or table.
-        /// The application is later notified using a runtime callback when
-        /// the context handle must be released. This makes it possible to
-        /// associate dynamically allocated state with a cursor or table.
-        /// </summary>
+        /// <summary>Enables the application to associate a context handle known as Local Storage
+        /// with a cursor or the table associated with that cursor. This context handle can be
+        /// used by the application to store auxiliary data that is associated with a cursor or
+        /// table. The application is later notified using a runtime callback when the context
+        /// handle must be released. This makes it possible to associate dynamically  state with
+        /// a cursor or table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to use.</param>
         /// <param name="ls">The context handle to be associated with the session or cursor.</param>
@@ -1674,14 +1533,11 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetSetLS(sesid, tableid, ls, grbit));
         }
 
-        /// <summary>
-        /// Enables the application to retrieve the context handle known
-        /// as Local Storage that is associated with a cursor or the table
-        /// associated with that cursor. This context handle must have been
-        /// previously set using <see cref="JetSetLS"/>. JetGetLS can also
-        /// be used to simultaneously fetch the current context handle for
-        /// a cursor or table and reset that context handle.  
-        /// </summary>
+        /// <summary>Enables the application to retrieve the context handle known as Local Storage
+        /// that is associated with a cursor or the table associated with that cursor. This context
+        /// handle must have been previously set using <see cref="JetSetLS"/>. JetGetLS can also
+        /// be used to simultaneously fetch the current context handle for a cursor or table and
+        /// reset that context handle.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to use.</param>
         /// <param name="ls">Returns the retrieved context handle.</param>
@@ -1689,18 +1545,6 @@ namespace EsentLib
         public static void JetGetLS(JET_SESID sesid, JET_TABLEID tableid, out JET_LS ls, LsGrbit grbit)
         {
             EsentExceptionHelper.Check(Impl.JetGetLS(sesid, tableid, out ls, grbit));
-        }
-
-        /// <summary>Determine whether an update of the current record of a cursor will
-        /// result in a write conflict, based on the current update status of the record.
-        /// It is possible that a write conflict will ultimately be returned even if
-        /// JetGetCursorInfo returns successfully. because another session may update the
-        /// record before the current session is able to update the same record.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to check.</param>
-        public static void JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetCursorInfo(sesid, tableid));
         }
 
         /// <summary>Duplicates an open cursor and returns a handle to the duplicated cursor.

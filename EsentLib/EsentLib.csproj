@@ -62,7 +62,10 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\Flags\TemporaryTableCreationFlags.cs" />
     <Compile Include="Api\Flags\TransactionFlushKind.cs" />
+    <Compile Include="Api\IJetBackupInstance.cs" />
+    <Compile Include="JetBackupInstance.cs" />
     <Compile Include="LegacyApi.cs" />
     <Compile Include="BoolColumnValue.cs" />
     <Compile Include="BoxedValueCache.cs" />
@@ -92,7 +95,6 @@
     <Compile Include="FloatColumnValue.cs" />
     <Compile Include="GCHandleCollection.cs" />
     <Compile Include="GenericEnumerable.cs" />
-    <Compile Include="GetLockHelpers.cs" />
     <Compile Include="grbits.cs" />
     <Compile Include="GuidColumnValue.cs" />
     <Compile Include="Helpers.cs" />

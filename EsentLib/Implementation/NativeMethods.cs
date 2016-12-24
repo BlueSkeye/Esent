@@ -464,7 +464,7 @@ namespace EsentLib.Implementation
 
         // Introduced in Windows Vista
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetOpenTemporaryTable(IntPtr sesid, [In] [Out] ref NATIVE_OPENTEMPORARYTABLE popentemporarytable);
+        public static extern int JetOpenTemporaryTable(IntPtr sesid, [In, Out] ref NATIVE_OPENTEMPORARYTABLE popentemporarytable);
 
         // Overload to allow for null pidxunicode
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
@@ -897,7 +897,7 @@ namespace EsentLib.Implementation
         #endregion
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetOpenTemporaryTable2(IntPtr sesid, [In] [Out] ref NATIVE_OPENTEMPORARYTABLE2 popentemporarytable);
+        public static extern int JetOpenTemporaryTable2(IntPtr sesid, [In, Out] ref NATIVE_OPENTEMPORARYTABLE2 popentemporarytable);
 
         #region Session Parameters
         [DllImport(Constants.EsentDll, ExactSpelling = true)]

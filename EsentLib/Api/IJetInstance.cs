@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using EsentLib.Jet;
 
@@ -23,6 +24,9 @@ namespace EsentLib.Api
 
         /// <summary></summary>
         IntPtr Id { get; }
+
+        ///// <summary>Get a collection of sessions that were born on the calling thread.</summary>
+        //IJetThreadBornSessionsCollection ThreadBornSessions { get; }
 
         /// <summary>Performs a streaming backup of an instance, including all the attached
         /// databases, to a directory. With multiple backup methods supported by the engine,
@@ -56,8 +60,8 @@ namespace EsentLib.Api
         /// to query an instance for the names of database files that should become part of
         /// the backup file set. Only databases that are currently attached to the instance
         /// using <see cref="IJetSession.AttachDatabase"/> will be considered. These files may
-        /// subsequently be opened using <see cref="IJetInstance.OpenFile"/> and read
-        /// using <see cref="JET_HANDLE.Read"/>.</summary>
+        /// subsequently be opened using <see cref="IJetBackupInstance.OpenFile"/> and read using
+        /// <see cref="JET_HANDLE.Read"/>.</summary>
         /// <returns>Returns a list of strings describing the set of database files that should
         /// be a part of the backup file set. The list of strings returned .</returns>
         List<string> GetBackupFiles();
@@ -65,7 +69,7 @@ namespace EsentLib.Api
         /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database patch files and logfiles that should
         /// become part of the backup file set. These files may subsequently be opened using
-        /// <see cref="IJetInstance.OpenFile"/> and read using <see cref="JET_HANDLE.Read"/>.
+        /// <see cref="IJetBackupInstance.OpenFile"/> and read using <see cref="JET_HANDLE.Read"/>.
         /// </summary>
         /// <returns>Returns a list of strings describing the set of database files that should
         /// be a part of the backup file set. The list of strings returned .</returns>
@@ -94,21 +98,13 @@ namespace EsentLib.Api
         /// <returns>An error if the call fails.</returns>
         void Initialize(InitGrbit grbit = InitGrbit.None, JET_RSTINFO recoveryOptions = null);
 
-        /// <summary>Opens an attached database, database patch file, or transaction log file
-        /// of an active instance for the purpose of performing a streaming fuzzy backup. The
-        /// data from these files can subsequently be read through the returned handle using
-        /// JET_HANDLE.Read. The returned handle must be closed using JET_HANDLE.Close.
-        /// An external backup of the instance must have been previously initiated using
-        /// JetBeginExternalBackupInstance.</summary>
-        /// <param name="file">The file to open.</param>
-        /// <param name="fileSize">Returns the file size.</param>
-        ///<returns>Handle tà ely opeed file.</returns>
-        JET_HANDLE OpenFile(string file, out long fileSize);
-
         /// <summary>Initiates an external backup while the engine and database are online
         /// and active.</summary>
-        /// <param name="grbit">Backup options.</param>
-        void PrepareBackup(BeginExternalBackupGrbit grbit);
+        /// <param name="incremental">Optional : default is false. If true an inremental backup
+        /// is initiated which means that only the log files since the last full or incremental
+        /// backup will be backed up, as opposed to a full backup.</param>
+        /// <returns>A <see cref="IJetBackupInstance"/> implementation.</returns>
+        IJetBackupInstance PrepareBackup(bool incremental = false);
 
         /// <summary>Restores and recovers a streaming backup of an instance including all the
         /// attached databases. It is designed to work with a backup created with the
@@ -157,15 +153,12 @@ namespace EsentLib.Api
         /// <returns>An error if the call fails.</returns>
         int JetDupCursor(JET_SESID sesid, JET_TABLEID tableid, out JET_TABLEID newTableid, DupCursorGrbit grbit);
 
-        /// <summary>
-        /// Enables the application to associate a context handle known as
-        /// Local Storage with a cursor or the table associated with that
-        /// cursor. This context handle can be used by the application to
-        /// store auxiliary data that is associated with a cursor or table.
-        /// The application is later notified using a runtime callback when
-        /// the context handle must be released. This makes it possible to
-        /// associate dynamically allocated state with a cursor or table.
-        /// </summary>
+        /// <summary>Enables the application to associate a context handle known as Local Storage
+        /// with a cursor or the table associated with that cursor. This context handle can be
+        /// used by the application to store auxiliary data that is associated with a cursor or
+        /// table. The application is later notified using a runtime callback when the context
+        /// handle must be released. This makes it possible to associate dynamically allocated
+        /// state with a cursor or table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to use.</param>
         /// <param name="ls">The context handle to be associated with the session or cursor.</param>
@@ -173,33 +166,17 @@ namespace EsentLib.Api
         /// <returns>An error if the call fails.</returns>
         int JetSetLS(JET_SESID sesid, JET_TABLEID tableid, JET_LS ls, LsGrbit grbit);
 
-        /// <summary>
-        /// Enables the application to retrieve the context handle known
-        /// as Local Storage that is associated with a cursor or the table
-        /// associated with that cursor. This context handle must have been
-        /// previously set using <see cref="JetSetLS"/>. JetGetLS can also
-        /// be used to simultaneously fetch the current context handle for
-        /// a cursor or table and reset that context handle.  
-        /// </summary>
+        /// <summary>Enables the application to retrieve the context handle known as Local
+        /// Storage that is associated with a cursor or the table associated with that cursor.
+        /// This context handle must have been previously set using <see cref="JetSetLS"/>.
+        /// JetGetLS can also be used to simultaneously fetch the current context handle for
+        /// a cursor or table and reset that context handle.  </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to use.</param>
         /// <param name="ls">Returns the retrieved context handle.</param>
         /// <param name="grbit">Retrieve options.</param>
         /// <returns>An error if the call fails.</returns>
         int JetGetLS(JET_SESID sesid, JET_TABLEID tableid, out JET_LS ls, LsGrbit grbit);
-
-        /// <summary>
-        /// Determine whether an update of the current record of a cursor
-        /// will result in a write conflict, based on the current update
-        /// status of the record. It is possible that a write conflict will
-        /// ultimately be returned even if JetGetCursorInfo returns successfully.
-        /// because another session may update the record before the current
-        /// session is able to update the same record.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to check.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid);
 
         #endregion
 
@@ -259,88 +236,6 @@ namespace EsentLib.Api
         ///// <returns>An error code.</returns>
         //int JetCreateIndex2(JET_SESID sesid, JET_TABLEID tableid, JET_INDEXCREATE[] indexcreates,
         //    int numIndexCreates);
-
-        /// <summary>Creates a temporary table with a single index. A temporary table stores and
-        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
-        /// However, temporary tables are much faster than ordinary tables due to their volatile
-        /// nature. They can also be used to very quickly sort and perform duplicate removal on
-        /// record sets when accessed in a purely sequential manner.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">Column definitions for the columns created in the temporary
-        /// table.</param>
-        /// <param name="numColumns">Number of column definitions.</param>
-        /// <param name="lcid">The locale ID to use to compare any Unicode key column data in
-        /// the temporary table. Any locale may be used as long as the appropriate language pack
-        /// has been installed on the machine. </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">Returns the tableid of the temporary table. Closing this
-        /// tableid frees the resources associated with the temporary table.</param>
-        /// <param name="columnids">The output buffer that receives the array of column IDs
-        /// generated during the creation of the temporary table. The column IDs in this array
-        /// will exactly correspond to the input array of column definitions. As a result, the
-        /// size of this buffer must correspond to the size of the input array.</param>
-        /// <returns>An error code.</returns>
-        int JetOpenTempTable2(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns, int lcid,
-            TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids);
-
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">
-        /// Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="numColumns">Number of column definitions.</param>
-        /// <param name="unicodeindex">
-        /// The Locale ID and normalization flags that will be used to compare
-        /// any Unicode key column data in the temporary table. When this 
-        /// is not present then the default options are used. 
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">
-        /// Returns the tableid of the temporary table. Closing this tableid
-        /// frees the resources associated with the temporary table.
-        /// </param>
-        /// <param name="columnids">
-        /// The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this
-        /// array will exactly correspond to the input array of column definitions.
-        /// As a result, the size of this buffer must correspond to the size of the input array.
-        /// </param>
-        /// <returns>An error code.</returns>
-        int JetOpenTempTable3(
-            JET_SESID sesid,
-            JET_COLUMNDEF[] columns,
-            int numColumns,
-            JET_UNICODEINDEX unicodeindex,
-            TempTableGrbit grbit,
-            out JET_TABLEID tableid,
-            JET_COLUMNID[] columnids);
-
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// </summary>
-        /// <remarks>
-        /// Introduced in Windows Vista.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="temporarytable">
-        /// Description of the temporary table to create on input. After a
-        /// successful call, the structure contains the handle to the temporary
-        /// table and column identifications.
-        /// </param>
-        /// <returns>An error code.</returns>
-        int JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable);
 
         // NOT IMPLEMENTED
         ///// <summary>
@@ -1284,10 +1179,7 @@ namespace EsentLib.Api
         /// <param name="grbit">Enumerate options.</param>
         /// <param name="enumeratedColumns">The discovered columns and their values.</param>
         /// <returns>A warning or success.</returns>
-        int JetEnumerateColumns(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            EnumerateColumnsGrbit grbit,
+        int JetEnumerateColumns(JET_SESID sesid, JET_TABLEID tableid, EnumerateColumnsGrbit grbit,
             out IEnumerable<EnumeratedColumn> enumeratedColumns);
 
         /// <summary>
@@ -1400,19 +1292,6 @@ namespace EsentLib.Api
         /// </param>
         /// <returns>An error code or warning.</returns>
         unsafe int JetSetColumns(JET_SESID sesid, JET_TABLEID tableid, NATIVE_SETCOLUMN* setcolumns, int numColumns);
-
-        /// <summary>
-        /// Explicitly reserve the ability to update a row, write lock, or to explicitly prevent a row from
-        /// being updated by any other session, read lock. Normally, row write locks are acquired implicitly as a
-        /// result of updating rows. Read locks are usually not required because of record versioning. However,
-        /// in some cases a transaction may desire to explicitly lock a row to enforce serialization, or to ensure
-        /// that a subsequent operation will succeed. 
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to use. A lock will be acquired on the current record.</param>
-        /// <param name="grbit">Lock options, use this to specify which type of lock to obtain.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetLock(JET_SESID sesid, JET_TABLEID tableid, GetLockGrbit grbit);
 
         /// <summary>
         /// Performs an atomic addition operation on one column. This function allows

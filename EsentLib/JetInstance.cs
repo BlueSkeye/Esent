@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 
 using EsentLib.Api;
+using EsentLib.Api.Flags;
 using EsentLib.Jet;
 using EsentLib.Jet.Types;
 using EsentLib.Jet.Windows8;
@@ -23,7 +24,7 @@ namespace EsentLib.Implementation
 {
     /// <summary>Calls to the ESENT interop layer. These calls take the managed types
     /// (e.g. JET_SESID) and return errors.</summary>
-    internal sealed partial class JetInstance :
+    internal class JetInstance :
         // TODO : SafeHandleZeroOrMinusOneIsInvalid,
         IJetInstance, IDisposable
     {
@@ -47,14 +48,14 @@ namespace EsentLib.Implementation
         /// to be set.</summary>
         /// <param name="version">The version of Esent. This is used to override the results
         /// of JetGetVersion.</param>
-        private JetInstance(uint version)
+        protected JetInstance(uint version)
         {
             this.versionOverride = version;
             _capabilities = JetEnvironment.DetermineCapabilities(version);
         }
 
         /// <summary>Initializes a new instance of the JetEngine class.</summary>
-        private JetInstance()
+        protected JetInstance()
         {
             this.versionOverride = 8250 << 8;
             _capabilities = JetEnvironment.Current.DefaultCapabilities;
@@ -564,6 +565,17 @@ namespace EsentLib.Implementation
 
         public TermGrbit TerminationBits { get; private set; }
 
+        ///// <summary>Get a collection of sessions that were born on the calling thread.</summary>
+        //public IJetThreadBornSessionsCollection ThreadBornSessions
+        //{
+        //    get
+        //    {
+        //        int threadId = Thread.CurrentThread.ManagedThreadId;
+        //        IJetThreadBornSessionsCollection result;
+        //        return (_threadBornSessions.TryGetValue(threadId, out result)) ? result : null;
+        //    }
+        //}
+
         /// <summary>Gets or sets the the number of background cleanup work items that can be
         /// queued to the database engine thread pool at any one time.</summary>
         public int VersionStoreTaskQueueMax
@@ -632,7 +644,15 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
             JetSession result = new JetSession(this, sessionId);
             // TODO : Consider storing the associated thtrad identifier.
-            _activeSessions.Add(result, result);
+            int threadId = Thread.CurrentThread.ManagedThreadId;
+            List<JetSession> thisThreadSessions;
+            if (!_activeSessions.TryGetValue(threadId, out thisThreadSessions)) {
+                thisThreadSessions = new List<JetSession>();
+                _activeSessions.Add(threadId, thisThreadSessions);
+            }
+            thisThreadSessions.Add(result);
+            _perSessionThreadId.Add(result, threadId);
+            _perInterfaceSession.Add((IJetSession)result, result);
             return result;
         }
 
@@ -737,7 +757,7 @@ namespace EsentLib.Implementation
         /// to query an instance for the names of database files that should become part of
         /// the backup file set. Only databases that are currently attached to the instance
         /// using <see cref="JetSession.AttachDatabase"/> will be considered. These files may
-        /// subsequently be opened using <see cref="IJetInstance.OpenFile"/> and read
+        /// subsequently be opened using <see cref="IJetBackupInstance.OpenFile"/> and read
         /// using <see cref="JET_HANDLE.Read"/>.</summary>
         /// <remarks>It is important to note that this API does not return an error or warning
         /// if the output buffer is too small to accept the full list of files that should be
@@ -768,7 +788,7 @@ namespace EsentLib.Implementation
         /// <summary>Used during a backup initiated by <see cref="IJetInstance.PrepareBackup"/>
         /// to query an instance for the names of database patch files and logfiles that should
         /// become part of the backup file set. These files may subsequently be opened using
-        /// <see cref="IJetInstance.OpenFile"/> and read using <see cref="JET_HANDLE.Read"/>.
+        /// <see cref="IJetBackupInstance.OpenFile"/> and read using <see cref="JET_HANDLE.Read"/>.
         /// </summary>
         /// <returns>Returns a list of strings describing the set of database files that should
         /// be a part of the backup file set. The list of strings returned .</returns>
@@ -841,7 +861,7 @@ namespace EsentLib.Implementation
         internal static JetSession GetSession(IJetSession candidate)
         {
             JetSession result;
-            if (_activeSessions.TryGetValue(candidate, out result)) { return result; }
+            if (_perInterfaceSession.TryGetValue(candidate, out result)) { return result; }
             throw new ApplicationException();
         }
 
@@ -924,46 +944,41 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
-        internal static void NotifySessionClosed(JetSession session)
+        internal void NotifySessionClosed(JetSession session)
         {
-            if (!_activeSessions.Remove((IJetSession)session)) {
+            int threadId;
+            if (!_perSessionThreadId.TryGetValue(session, out threadId)
+                || !_perSessionThreadId.Remove(session)) {
                 throw new ApplicationException();
             }
-        }
-        
-        /// <summary>Opens an attached database, database patch file, or transaction log file
-        /// of an active instance for the purpose of performing a streaming fuzzy backup. The
-        /// data from these files can subsequently be read through the returned handle using
-        /// JET_HANDLE.Read. The returned handle must be closed using JET_HANDLE.Close.
-        /// An external backup of the instance must have been previously initiated using
-        /// JetBeginExternalBackupInstance.</summary>
-        /// <param name="file">The file to open.</param>
-        /// <param name="fileSize">Returns the file size.</param>
-        ///<returns>Handle tà ely opeed file.</returns>
-        public JET_HANDLE OpenFile(string file, out long fileSize)
-        {
-            Tracing.TraceFunctionCall("OpenFile");
-            Helpers.CheckNotNull(file, "file");
-            JET_HANDLE handle = JET_HANDLE.Nil;
-            uint nativeFileSizeLow;
-            uint nativeFileSizeHigh;
-            int returnCode = NativeMethods.JetOpenFileInstanceW(_instance.Value, file,
-                out handle._nativeHandle, out nativeFileSizeLow, out nativeFileSizeHigh);
-            Tracing.TraceResult(returnCode);
-            fileSize = (nativeFileSizeLow + (nativeFileSizeHigh << 32));
-            EsentExceptionHelper.Check(returnCode);
-            return handle;
+            List<JetSession> sessions;
+            if (!_activeSessions.TryGetValue(threadId, out sessions)) {
+                throw new ApplicationException();
+            }
+            if (!sessions.Remove(session)) {
+                throw new ApplicationException();
+            }
+            if (0 == sessions.Count) {
+                _activeSessions.Remove(threadId);
+            }
+            _perInterfaceSession.Remove((IJetSession)session);
+            return;
         }
 
         /// <summary>Initiates an external backup while the engine and database are online
         /// and active.</summary>
-        /// <param name="grbit">Backup options.</param>
-        public void PrepareBackup(BeginExternalBackupGrbit grbit)
+        /// <param name="incremental">Optional : default is false. If true an inremental backup
+        /// is initiated which means that only the log files since the last full or incremental
+        /// backup will be backed up, as opposed to a full backup.</param>
+        /// <returns>A <see cref="IJetBackupInstance"/> implementation.</returns>
+        public IJetBackupInstance PrepareBackup(bool incremental = false)
         {
             Tracing.TraceFunctionCall("PrepareBackup");
-            int returnCode = NativeMethods.JetBeginExternalBackupInstance(_instance.Value, (uint)grbit);
+            int returnCode = NativeMethods.JetBeginExternalBackupInstance(_instance.Value,
+                (incremental) ? (uint)BeginExternalBackupGrbit.Incremental : 0);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
+            return new JetBackupInstance();
         }
 
         /// <summary>Reports the exception to a central authority.</summary>
@@ -1247,23 +1262,6 @@ namespace EsentLib.Implementation
             ls = new JET_LS { Value = native };
             return Tracing.TraceResult(err);
         }
-
-        /// <summary>
-        /// Determine whether an update of the current record of a cursor
-        /// will result in a write conflict, based on the current update
-        /// status of the record. It is possible that a write conflict will
-        /// ultimately be returned even if JetGetCursorInfo returns successfully.
-        /// because another session may update the record before the current
-        /// session is able to update the same record.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to check.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetCursorInfo(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            Tracing.TraceFunctionCall("JetGetCursorInfo");
-            return Tracing.TraceResult(NativeMethods.JetGetCursorInfo(sesid.Value, tableid.Value, IntPtr.Zero, 0, 0));
-        }
         #endregion
 
         #region DDL
@@ -1328,7 +1326,7 @@ namespace EsentLib.Implementation
         /// must correspond to the size of the input array.</param>
         /// <returns>An error code.</returns>
         public int JetOpenTempTable2(JET_SESID sesid, JET_COLUMNDEF[] columns, int numColumns,
-            int lcid, TempTableGrbit grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
+            int lcid, TemporaryTableCreationFlags grbit, out JET_TABLEID tableid, JET_COLUMNID[] columnids)
         {
             Tracing.TraceFunctionCall("JetOpenTempTable2");
             Helpers.CheckNotNull(columns, "columnns");
@@ -1346,89 +1344,16 @@ namespace EsentLib.Implementation
             return err;
         }
 
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// </summary>
+        /// <summary>Creates a temporary table with a single index. A temporary table stores
+        /// and retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        /// However, temporary tables are much faster than ordinary tables due to their volatile
+        /// nature. They can also be used to very quickly sort and perform duplicate removal on
+        /// record sets when accessed in a purely sequential manner.</summary>
+        /// <remarks>Introduced in Windows Vista.</remarks>
         /// <param name="sesid">The session to use.</param>
-        /// <param name="columns">
-        /// Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="numColumns">Number of column definitions.</param>
-        /// <param name="unicodeindex">
-        /// The Locale ID and normalization flags that will be used to compare
-        /// any Unicode key column data in the temporary table. When this
-        /// is not present then the default options are used.
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="tableid">
-        /// Returns the tableid of the temporary table. Closing this tableid
-        /// frees the resources associated with the temporary table.
-        /// </param>
-        /// <param name="columnids">
-        /// The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this
-        /// array will exactly correspond to the input array of column definitions.
-        /// As a result, the size of this buffer must correspond to the size of the input array.
-        /// </param>
-        /// <returns>An error code.</returns>
-        public int JetOpenTempTable3(
-            JET_SESID sesid,
-            JET_COLUMNDEF[] columns,
-            int numColumns,
-            JET_UNICODEINDEX unicodeindex,
-            TempTableGrbit grbit,
-            out JET_TABLEID tableid,
-            JET_COLUMNID[] columnids)
-        {
-            Tracing.TraceFunctionCall("JetOpenTempTable3");
-            Helpers.CheckNotNull(columns, "columnns");
-            Helpers.CheckDataSize(columns, numColumns, "numColumns");
-            Helpers.CheckNotNull(columnids, "columnids");
-            Helpers.CheckDataSize(columnids, numColumns, "numColumns");
-
-            tableid = JET_TABLEID.Nil;
-
-            NATIVE_COLUMNDEF[] nativecolumndefs = columns.GetNativecolumndefs();
-            var nativecolumnids = new uint[numColumns];
-
-            int err;
-            if (null != unicodeindex)
-            {
-                NATIVE_UNICODEINDEX nativeunicodeindex = unicodeindex.GetNativeUnicodeIndex();
-                err = Tracing.TraceResult(NativeMethods.JetOpenTempTable3(
-                    sesid.Value, nativecolumndefs, checked((uint)numColumns), ref nativeunicodeindex, (uint)grbit, out tableid.Value, nativecolumnids));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetOpenTempTable3(
-                    sesid.Value, nativecolumndefs, checked((uint)numColumns), IntPtr.Zero, (uint)grbit, out tableid.Value, nativecolumnids));
-            }
-            columns.SetColumnids(columnids, nativecolumnids);
-            return err;
-        }
-
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// </summary>
-        /// <remarks>
-        /// Introduced in Windows Vista.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="temporarytable">
-        /// Description of the temporary table to create on input. After a
-        /// successful call, the structure contains the handle to the temporary
-        /// table and column identifications.
-        /// </param>
+        /// <param name="temporarytable">Description of the temporary table to create on input.
+        /// After a successful call, the structure contains the handle to the temporary table
+        /// and column identifications.</param>
         /// <returns>An error code.</returns>
         public int JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
         {
@@ -3802,23 +3727,6 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>
-        /// Explicitly reserve the ability to update a row, write lock, or to explicitly prevent a row from
-        /// being updated by any other session, read lock. Normally, row write locks are acquired implicitly as a
-        /// result of updating rows. Read locks are usually not required because of record versioning. However,
-        /// in some cases a transaction may desire to explicitly lock a row to enforce serialization, or to ensure
-        /// that a subsequent operation will succeed.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to use. A lock will be acquired on the current record.</param>
-        /// <param name="grbit">Lock options, use this to specify which type of lock to obtain.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetLock(JET_SESID sesid, JET_TABLEID tableid, GetLockGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetGetLock");
-            return Tracing.TraceResult(NativeMethods.JetGetLock(sesid.Value, tableid.Value, unchecked((uint)grbit)));
-        }
-
-        /// <summary>
         /// Performs an atomic addition operation on one column. This function allows
         /// multiple sessions to update the same record concurrently without conflicts.
         /// </summary>
@@ -4627,47 +4535,6 @@ namespace EsentLib.Implementation
 
         #endregion
 
-        #region Hooks for not-yet-published APIs.
-        /// <summary>
-        /// Provides a hook to allow population of additional fields in
-        /// a different file. These additonal fields are not yet published
-        /// on MSDN.
-        /// </summary>
-        /// <param name="databaseName">The name of the database about which to retrieve information.</param>
-        /// <param name="dbinfomisc">The output structure to populate.</param>
-        /// <param name="infoLevel">Specifies which information to retrieve.</param>
-        /// <param name="notYetPublishedSupported">Whether the additional fields specified by in <paramref name="infoLevel"/>
-        /// are populated.</param>
-        /// <param name="err">The <see cref="JET_err"/> error code returned.</param>
-        partial void NotYetPublishedGetDbinfomisc(
-            string databaseName,
-            ref JET_DBINFOMISC dbinfomisc,
-            JET_DbInfo infoLevel,
-            ref bool notYetPublishedSupported,
-            ref int err);
-
-        /// <summary>
-        /// Provides a hook to allow population of additional fields in
-        /// a different file. These additonal fields are not yet published
-        /// on MSDN.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database identifier.</param>
-        /// <param name="dbinfomisc">The output structure to populate.</param>
-        /// <param name="infoLevel">Specifies which information to retrieve.</param>
-        /// <param name="notYetPublishedSupported">Whether the additional fields specified by in <paramref name="infoLevel"/>
-        /// are populated.</param>
-        /// <param name="err">The <see cref="JET_err"/> error code returned.</param>
-        partial void NotYetPublishedGetDbinfomisc(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            ref JET_DBINFOMISC dbinfomisc,
-            JET_DbInfo infoLevel,
-            ref bool notYetPublishedSupported,
-            ref int err);
-
-        #endregion
-
         // --------- //
         // WINDOWS 8 //
         // --------- //
@@ -5133,16 +5000,19 @@ namespace EsentLib.Implementation
 
         #endregion
 
-        /// <summary>A dictionary of active sessions keyed by the interface object.</summary>
-        private static Dictionary<IJetSession, JetSession> _activeSessions =
-            new Dictionary<IJetSession, JetSession>();
+        /// <summary>A dictionary of active sessions keyed by the identifier of the thread
+        /// they were born from.</summary>
+        private Dictionary<int, List<JetSession>> _activeSessions = new Dictionary<int, List<JetSession>>();
         /// <summary>Callback wrapper collection. This is used for long-running callbacks
         /// (callbacks which can be called after the API call returns). Create a wrapper
         /// here and occasionally clean them up.</summary>
         private readonly CallbackWrappers callbackWrappers = new CallbackWrappers();
         private JetCapabilities _capabilities;
         /// <summary>The native istance object.</summary>
-        private JET_INSTANCE _instance;
+        protected JET_INSTANCE _instance;
+        private static Dictionary<IJetSession, JetSession> _perInterfaceSession =
+            new Dictionary<IJetSession, JetSession>();
+        private Dictionary<JetSession, int> _perSessionThreadId = new Dictionary<JetSession, int>();
         /// <summary>The true engine version as retrieved from the ESENT DLL. 0 until
         /// properly retrieved from the underlying engine.</summary>
         private uint _version = 0;

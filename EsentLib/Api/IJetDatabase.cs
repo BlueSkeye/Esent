@@ -1,5 +1,6 @@
 ﻿using System;
 
+using EsentLib.Api.Flags;
 using EsentLib.Jet;
 
 namespace EsentLib.Api
@@ -78,6 +79,31 @@ namespace EsentLib.Api
         /// <param name="grbit">Table open options.</param>
         /// <returns>An ESENT warning.</returns>
         IJetTable OpenTable(string tablename, byte[] parameters, OpenTableGrbit grbit);
+
+        /// <summary>Creates a temporary table with a single index. A temporary table stores and
+        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        /// However, temporary tables are much faster than ordinary tables due to their volatile
+        /// nature. They can also be used to very quickly sort and perform duplicate removal on
+        /// record sets when accessed in a purely sequential manner.</summary>
+        /// <param name="session">Session to use.</param>
+        /// <param name="columns">Column definitions for the columns created in the temporary table.
+        /// </param>
+        /// <param name="grbit">Table creation options.</param>
+        /// <param name="columnids">The output buffer that receives the array of column IDs generated
+        /// during the creation of the temporary table. The column IDs in this array will exactly
+        /// correspond to the input array of column definitions. As a result, the size of this buffer
+        /// must correspond to the size of the input array.</param>
+        /// <param name="lcid">The locale ID to use to compare any Unicode key column data in
+        /// the temporary table. Any locale may be used as long as the appropriate language pack
+        /// has been installed on the machine. </param>
+        /// <param name="unicodeindex">The Locale ID and normalization flags that will be used
+        /// to compare any Unicode key column data in the temporary table. When this is not
+        /// present then the default options are used. </param>
+        /// <returns>Returns the tableid of the temporary table. Closing this tableid with
+        /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
+        IJetTable OpenTemporaryTable(IJetSession session, JET_COLUMNDEF[] columns,
+            TemporaryTableCreationFlags grbit, JET_COLUMNID[] columnids, int lcid /* JetOpenTempTable2*/,
+            JET_UNICODEINDEX unicodeindex /* JetOpenTempTable3 */);
 
         /// <summary>Extends the size of a database that is currently open.</summary>
         /// <param name="desiredPages">The desired size of the database, in pages.</param>

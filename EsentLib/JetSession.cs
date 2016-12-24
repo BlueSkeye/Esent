@@ -114,7 +114,8 @@ namespace EsentLib.Implementation
             int returnCode = NativeMethods.JetEndSession(Id, (uint)grbit);
             Tracing.TraceResult(returnCode);
             if (throwOnError) { EsentExceptionHelper.Check(returnCode); }
-            JetInstance.NotifySessionClosed(this);
+            _owner.NotifySessionClosed(this);
+            return;
         }
 
         /// <summary>Creates and attaches a database file.</summary>
@@ -271,40 +272,6 @@ namespace EsentLib.Implementation
                 (uint)grbit);
             Tracing.TraceResult(returnCode);
             return new JetDatabase(this, dbid, database);
-        }
-
-        /// <summary>Creates a temporary table with a single index. A temporary table stores and
-        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
-        /// However, temporary tables are much faster than ordinary tables due to their volatile
-        /// nature. They can also be used to very quickly sort and perform duplicate removal on
-        /// record sets when accessed in a purely sequential manner. Also see
-        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
-        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.</summary>
-        /// <param name="columns">Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="columnids">The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this array will exactly
-        /// correspond to the input array of column definitions. As a result, the size of this buffer
-        /// must correspond to the size of the input array.</param>
-        /// <returns>Returns the tableid of the temporary table. Closing this tableid with
-        /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
-        public IJetTable OpenTemporaryTable(JET_COLUMNDEF[] columns, TempTableGrbit grbit,
-            JET_COLUMNID[] columnids)
-        {
-            Tracing.TraceFunctionCall("OpenTemporaryTable");
-            Helpers.CheckNotNull(columns, "columnns");
-            Helpers.CheckNotNull(columnids, "columnids");
-            JET_TABLEID tableid = JET_TABLEID.Nil;
-            NATIVE_COLUMNDEF[] nativecolumndefs = columns.GetNativecolumndefs();
-            uint[] nativecolumnids = new uint[columns.Length];
-            int returnCode = NativeMethods.JetOpenTempTable(Id, nativecolumndefs,
-                checked((uint)columns.Length), (uint)grbit, out tableid.Value,
-                nativecolumnids);
-            Tracing.TraceResult(returnCode);
-            columns.SetColumnids(columnids, nativecolumnids);
-            EsentExceptionHelper.Check(returnCode);
-            throw new NotImplementedException();
         }
 
         /// <summary>Disassociates a session from the current thread. This should be

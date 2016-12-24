@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using EsentLib.Api;
 using EsentLib.Jet;
@@ -152,9 +153,52 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
-        /// <summary>
-        /// Make native conditionalcolumn structures from the managed ones.
-        /// </summary>
+        /// <summary>Determine whether an update of the current record of a cursor will result
+        /// in a write conflict, based on the current update status of the record. It is possible
+        /// that a write conflict will ultimately be returned even if IsWriteConflictExpected
+        /// returns successfully. because another session may update the record before the current
+        /// session is able to update the same record.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <returns>An error if the call fails.</returns>
+        public bool IsWriteConflictExpected(IJetSession session)
+        {
+            Tracing.TraceFunctionCall("IsWriteConflictExpected");
+            int returnCode = NativeMethods.JetGetCursorInfo(session.Id, _id.Value, IntPtr.Zero, 0, 0);
+            Tracing.TraceResult(returnCode);
+            switch ((JET_err)returnCode) {
+                case JET_err.Success:
+                    return false;
+                case JET_err.WriteConflict:
+                    return true;
+                default:
+                    EsentExceptionHelper.Check(returnCode);
+                    // Should never be reached. Exception thrown above.
+                    return true;
+            }
+        }
+
+        /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
+        /// prevent a row from being updated by any other session, read lock. Normally, row write
+        /// locks are acquired implicitly as a result of updating rows. Read locks are usually not
+        /// required because of record versioning. However, in some cases a transaction may desire
+        /// to explicitly lock a row to enforce serialization, or to ensure that a subsequent
+        /// operation will succeed.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="readLock">Acquire a read lock on the current record. Read locks are
+        /// incompatible with write locks already held by other sessions but are compatible with
+        /// read locks held by other sessions.</param>
+        /// <param name="writeLock">Acquire a write lock on the current record. Write locks are not
+        /// compatible with write or read locks held by other sessions but are compatible with read
+        /// locks held by the same session.</param>
+        public void GetLock(IJetSession session, bool readLock, bool writeLock)
+        {
+            Tracing.TraceFunctionCall("GetLock");
+            JET_err result = _TryGetLock(session, readLock, writeLock);
+            EsentExceptionHelper.Check((int)result);
+            return;
+        }
+
+        /// <summary>Make native conditionalcolumn structures from the managed ones.</summary>
         /// <param name="conditionalColumns">The conditional columns to convert.</param>
         /// <param name="useUnicodeData">Wehether to convert the strings with UTF-16.</param>
         /// <param name="handles">The handle collection used to pin the data.</param>
@@ -205,7 +249,58 @@ namespace EsentLib.Implementation
             return result;
         }
 
+        /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
+        /// prevent a row from being updated by any other session, read lock. Normally, row write
+        /// locks are acquired implicitly as a result of updating rows. Read locks are usually not
+        /// required because of record versioning. However, in some cases a transaction may desire
+        /// to explicitly lock a row to enforce serialization, or to ensure that a subsequent
+        /// operation will succeed. </summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="readLock">Acquire a read lock on the current record. Read locks are
+        /// incompatible with write locks already held by other sessions but are compatible with
+        /// read locks held by other sessions.</param>
+        /// <param name="writeLock">Acquire a write lock on the current record. Write locks are not
+        /// compatible with write or read locks held by other sessions but are compatible with read
+        /// locks held by the same session.</param>
+        /// <returns>True if the lock was obtained, false otherwise. An exception is thrown if an
+        /// unexpected error is encountered.</returns>
+        public bool TryGetLock(IJetSession session, bool readLock, bool writeLock)
+        {
+            Tracing.TraceFunctionCall("TryGetLock");
+            JET_err err = _TryGetLock(session, readLock, writeLock);
+            if (JET_err.WriteConflict == err) { return false;   }
+            Debug.Assert(err >= JET_err.Success, "Exception should have been thrown in case of error");
+            return true;
+        }
+
+        private JET_err _TryGetLock(IJetSession session, bool readLock, bool writeLock)
+        {
+            GetLockGrbit flags = 0;
+            if (readLock) { flags &= GetLockGrbit.Read; }
+            if (writeLock) { flags &= GetLockGrbit.Write; }
+            if (0 == flags) {
+                throw new InvalidOperationException("At least of of readLok or writeLock must be true.");
+            }
+            int result = NativeMethods.JetGetLock(session.Id, _id.Value, (uint)flags);
+            Tracing.TraceResult(result);
+            return (JET_err)result;
+        }
+
         private JET_TABLEID _id;
         private JetDatabase _owner;
+
+        /// <summary>Options for JetGetLock.</summary>
+        [Flags]
+        private enum GetLockGrbit : uint
+        {
+            /// <summary>Acquire a read lock on the current record. Read locks are incompatible
+            /// with write locks already held by other sessions but are compatible with read locks
+            /// held by other sessions.</summary>
+            Read = 0x1,
+            /// <summary>Acquire a write lock on the current record. Write locks are not compatible
+            /// with write or read locks held by other sessions but are compatible with read locks
+            /// held by the same session.</summary>
+            Write = 0x2,
+        }
     }
 }

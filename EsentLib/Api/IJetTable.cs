@@ -63,5 +63,46 @@ namespace EsentLib.Api
         /// <param name="session">Session to use.</param>
         /// <param name="index">The name of the index to be deleted.</param>
         void DeleteIndex(IJetSession session, string index);
+
+        /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
+        /// prevent a row from being updated by any other session, read lock. Normally, row write
+        /// locks are acquired implicitly as a result of updating rows. Read locks are usually not
+        /// required because of record versioning. However, in some cases a transaction may desire
+        /// to explicitly lock a row to enforce serialization, or to ensure that a subsequent
+        /// operation will succeed.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="readLock">Acquire a read lock on the current record. Read locks are
+        /// incompatible with write locks already held by other sessions but are compatible with
+        /// read locks held by other sessions.</param>
+        /// <param name="writeLock">Acquire a write lock on the current record. Write locks are not
+        /// compatible with write or read locks held by other sessions but are compatible with read
+        /// locks held by the same session.</param>
+        void GetLock(IJetSession session, bool readLock, bool writeLock);
+
+        /// <summary>Determine whether an update of the current record of a cursor will result
+        /// in a write conflict, based on the current update status of the record. It is possible
+        /// that a write conflict will ultimately be returned even if IsWriteConflictExpected
+        /// returns successfully. because another session may update the record before the current
+        /// session is able to update the same record.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <returns>An error if the call fails.</returns>
+        bool IsWriteConflictExpected(IJetSession session);
+
+        /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
+        /// prevent a row from being updated by any other session, read lock. Normally, row write
+        /// locks are acquired implicitly as a result of updating rows. Read locks are usually not
+        /// required because of record versioning. However, in some cases a transaction may desire
+        /// to explicitly lock a row to enforce serialization, or to ensure that a subsequent
+        /// operation will succeed. </summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="readLock">Acquire a read lock on the current record. Read locks are
+        /// incompatible with write locks already held by other sessions but are compatible with
+        /// read locks held by other sessions.</param>
+        /// <param name="writeLock">Acquire a write lock on the current record. Write locks are not
+        /// compatible with write or read locks held by other sessions but are compatible with read
+        /// locks held by the same session.</param>
+        /// <returns>True if the lock was obtained, false otherwise. An exception is thrown if an
+        /// unexpected error is encountered.</returns>
+        bool TryGetLock(IJetSession session, bool readLock, bool writeLock);
     }
 }

@@ -69,24 +69,8 @@ namespace EsentLib.Api
         /// <returns>An error or warning.</returns>
         IJetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit);
 
-        /// <summary>Creates a temporary table with a single index. A temporary table stores and
-        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
-        /// However, temporary tables are much faster than ordinary tables due to their volatile
-        /// nature. They can also be used to very quickly sort and perform duplicate removal on
-        /// record sets when accessed in a purely sequential manner. Also see
-        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
-        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.</summary>
-        /// <param name="columns">Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="columnids">The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this array will exactly
-        /// correspond to the input array of column definitions. As a result, the size of this buffer
-        /// must correspond to the size of the input array.</param>
-        IJetTable OpenTemporaryTable(JET_COLUMNDEF[] columns, TempTableGrbit grbit, JET_COLUMNID[] columnids);
-
         /// <summary>Disassociates a session from the current thread. This should be
-        /// used in conjunction with <see cref="IJetSession.SetContext"/>.</summary>
+        /// used in conjunction with <see cref="SetContext"/>.</summary>
         void ResetContext();
 
         /// <summary>Force ew log files creation.</summary>
