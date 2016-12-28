@@ -435,8 +435,8 @@ namespace EsentLib.Implementation
         public static extern int JetCreateIndex(IntPtr sesid, IntPtr tableid, string szIndexName, uint grbit, string szKey, uint cbKey, uint lDensity);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetCreateIndex2(
-            IntPtr sesid, IntPtr tableid, [In] JET_INDEXCREATE.NATIVE_INDEXCREATE[] pindexcreate, uint cIndexCreate);
+        public static extern int JetCreateIndex2(IntPtr sesid, IntPtr tableid,
+            [In] JET_INDEXCREATE.NATIVE_INDEXCREATE[] pindexcreate, uint cIndexCreate);
 
         // Introduced in Windows Vista, this version takes the larger NATIVE_INDEXCREATE1 structure.
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
@@ -446,8 +446,8 @@ namespace EsentLib.Implementation
         // Introduced in Windows 7, this version takes the larger NATIVE_INDEXCREATE2 structure, supporting
         // space hints.
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetCreateIndex3W(
-            IntPtr sesid, IntPtr tableid, [In] JET_INDEXCREATE.NATIVE_INDEXCREATE2[] pindexcreate, uint cIndexCreate);
+        public static extern int JetCreateIndex3W(IntPtr sesid, IntPtr tableid,
+            [In] JET_INDEXCREATE.NATIVE_INDEXCREATE2[] pindexcreate, uint cIndexCreate);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetOpenTempTable(IntPtr sesid, [In] NATIVE_COLUMNDEF[] rgcolumndef,
@@ -466,6 +466,10 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetOpenTemporaryTable(IntPtr sesid, [In, Out] ref NATIVE_OPENTEMPORARYTABLE popentemporarytable);
 
+        // OMMITED : workaroud method
+        //[DllImport(Constants.EsentDll, ExactSpelling = true)]
+        //public static extern int JetOpenTemporaryTable2(IntPtr sesid, [In, Out] ref NATIVE_OPENTEMPORARYTABLE2 popentemporarytable);
+
         // Overload to allow for null pidxunicode
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetOpenTempTable3(IntPtr sesid, [In] NATIVE_COLUMNDEF[] rgcolumndef,
@@ -483,32 +487,34 @@ namespace EsentLib.Implementation
         public static extern int JetCreateTableColumnIndex3W(IntPtr sesid, uint dbid, ref JET_TABLECREATE.NATIVE_TABLECREATE3 tablecreate3);
 
         #region JetGetTableColumnInfo overlaods.
-        [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfo(IntPtr sesid, IntPtr tableid, string szColumnName, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
-
-        [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfo(IntPtr sesid, IntPtr tableid, ref uint pcolumnid, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
-
-        [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfo(IntPtr sesid, IntPtr tableid, string szColumnName, ref NATIVE_COLUMNBASE columnbase, uint cbMax, uint InfoLevel);
-
-        [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfo(IntPtr sesid, IntPtr tableid, string szIgnored, ref NATIVE_COLUMNLIST columnlist, uint cbMax, uint InfoLevel);
+        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
+        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid,
+            IntPtr searchKey, ref object columndef, int cbMax, uint InfoLevel);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid, string szColumnName, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
+        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid,
+            string szColumnName, ref NATIVE_COLUMNDEF columndef, uint cbMax,
+            uint InfoLevel);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid, ref uint pcolumnid, ref NATIVE_COLUMNDEF columndef, uint cbMax, uint InfoLevel);
+        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid,
+            ref uint pcolumnid, ref NATIVE_COLUMNDEF columndef, uint cbMax,
+            uint InfoLevel);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid, string szColumnName, ref NATIVE_COLUMNBASE_WIDE columnbase, uint cbMax, uint InfoLevel);
+        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid,
+            string szColumnName, ref NATIVE_COLUMNBASE_WIDE columnbase, uint cbMax,
+            uint InfoLevel);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid, ref uint pcolumnid, ref NATIVE_COLUMNBASE_WIDE columnbase, uint cbMax, uint InfoLevel);
+        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid,
+            ref uint pcolumnid, ref NATIVE_COLUMNBASE_WIDE columnbase, uint cbMax,
+            uint InfoLevel);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid, string szIgnored, ref NATIVE_COLUMNLIST columnlist, uint cbMax, uint InfoLevel);
+        public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid,
+            string szIgnored, ref NATIVE_COLUMNLIST columnlist, uint cbMax,
+            uint InfoLevel);
         #endregion
 
         #region JetGetColumnInfo overlaods.
@@ -888,16 +894,14 @@ namespace EsentLib.Implementation
             out uint pcpgActual, uint grbit);
 
         #region DDL
-        [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
-        public static extern int JetCreateIndex4W(
-            IntPtr sesid, IntPtr tableid, [In] NATIVE_INDEXCREATE3[] pindexcreate, uint cIndexCreate);
+        // OMMITED : workaround method
+        //[DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
+        //public static extern int JetCreateIndex4W(
+        //    IntPtr sesid, IntPtr tableid, [In] NATIVE_INDEXCREATE3[] pindexcreate, uint cIndexCreate);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetCreateTableColumnIndex4W(IntPtr sesid, uint dbid, ref NATIVE_TABLECREATE4 tablecreate3);
         #endregion
-
-        [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetOpenTemporaryTable2(IntPtr sesid, [In, Out] ref NATIVE_OPENTEMPORARYTABLE2 popentemporarytable);
 
         #region Session Parameters
         [DllImport(Constants.EsentDll, ExactSpelling = true)]

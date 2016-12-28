@@ -19,14 +19,16 @@ namespace EsentLib.Implementation
         /// <summary>Initializes a new instance of the Transaction class. This automatically
         /// begins a transaction. The transaction will be rolled back if not explicitly committed.</summary>
         /// <param name="session">The session to start the transaction for.</param>
-        /// <param name="grbit"></param>
-        internal JetTransaction(JetSession session, BeginTransactionGrbit grbit = BeginTransactionGrbit.None)
+        /// <param name="readOnly">true if transaction is readonly.</param>
+        /// <param name="userTransactionId">An optional identifier supplied by the user for
+        /// identifying the transaction.</param>
+        internal JetTransaction(JetSession session, bool readOnly = false, long? userTransactionId = null)
         {
             if (null == session) {
                 throw new ArgumentNullException("session");
             }
             this._session = session;
-            this.Begin(grbit);
+            this.Begin(readOnly, userTransactionId);
         }
 
         /// <summary></summary>
@@ -54,16 +56,23 @@ namespace EsentLib.Implementation
 
         /// <summary>Causes a session to enter a transaction or create a new save point in an
         /// existing transaction.</summary>
+        /// <param name="readOnly">true if transaction is readonly.</param>
+        /// <param name="userTransactionId">An optional identifier supplied by the user for
+        /// identifying the transaction.</param>
         /// <returns>An error if the call fails.</returns>
-        private void Begin(BeginTransactionGrbit grbit)
+        private void Begin(bool readOnly, long? userTransactionId = null)
         {
             this.CheckObjectIsNotDisposed();
             if (this.IsInTransaction) {
                 throw new InvalidOperationException("Already in a transaction");
             }
-            int returnCode = (BeginTransactionGrbit.None == grbit)
-                ? NativeMethods.JetBeginTransaction(SessionId)
-                : NativeMethods.JetBeginTransaction2(SessionId, (uint)grbit);
+            uint creationFlags = (readOnly) ? (uint)BeginTransactionGrbit.ReadOnly : 0;
+            int returnCode = (userTransactionId.HasValue)
+                ? NativeMethods.JetBeginTransaction3(SessionId, userTransactionId.Value,
+                    creationFlags)
+                : (readOnly)
+                    ? NativeMethods.JetBeginTransaction2(SessionId, creationFlags)
+                    : NativeMethods.JetBeginTransaction(SessionId);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             this.ResourceWasAllocated();
@@ -157,5 +166,20 @@ namespace EsentLib.Implementation
 
         /// <summary>The underlying session.</summary>
         private readonly JetSession _session;
+
+        /// <summary>Options for <see cref="JetSession.BeginTransaction"/>.</summary>
+        [Flags()]
+        [CLSCompliant(false)]
+        public enum BeginTransactionGrbit : uint
+        {
+            /// <summary>Default options.</summary>
+            None = 0,
+
+            /// <summary>The transaction will not modify the database. If an update is attempted,
+            /// that operation will fail with <see cref="JET_err.TransReadOnly"/>. This option is
+            /// ignored unless it is requested when the given session is not already in a transaction.
+            /// </summary>
+            ReadOnly = 0x1,
+        }
     }
 }

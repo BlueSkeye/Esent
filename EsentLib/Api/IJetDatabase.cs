@@ -80,35 +80,18 @@ namespace EsentLib.Api
         /// <returns>An ESENT warning.</returns>
         IJetTable OpenTable(string tablename, byte[] parameters, OpenTableGrbit grbit);
 
-        /// <summary>Creates a temporary table with a single index. A temporary table stores and
-        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
-        /// However, temporary tables are much faster than ordinary tables due to their volatile
-        /// nature. They can also be used to very quickly sort and perform duplicate removal on
-        /// record sets when accessed in a purely sequential manner.</summary>
+        /// <summary>Resizes a currently open database. Windows 8: Only supports growing a database file.
+        /// Windows 8.1: When <see cref="JET_param.EnableShrinkDatabase"/> is set to
+        /// <see cref="ShrinkDatabaseGrbit.On"/>, and if the file system supports Sparse
+        /// Files, then space may be freed up in the middle of the file.</summary>
+        /// <remarks>Many APIs return the logical size of the file, not how many bytes it takes up on disk.
+        /// Win32's GetCompressedFileSize returns the correct on-disk size. <see cref="GetInfo(JET_DbInfo)"/>
+        /// returns the on-disk size when used with <see cref="JET_DbInfo.FilesizeOnDisk"/></remarks>
         /// <param name="session">Session to use.</param>
-        /// <param name="columns">Column definitions for the columns created in the temporary table.
-        /// </param>
-        /// <param name="grbit">Table creation options.</param>
-        /// <param name="columnids">The output buffer that receives the array of column IDs generated
-        /// during the creation of the temporary table. The column IDs in this array will exactly
-        /// correspond to the input array of column definitions. As a result, the size of this buffer
-        /// must correspond to the size of the input array.</param>
-        /// <param name="lcid">The locale ID to use to compare any Unicode key column data in
-        /// the temporary table. Any locale may be used as long as the appropriate language pack
-        /// has been installed on the machine. </param>
-        /// <param name="unicodeindex">The Locale ID and normalization flags that will be used
-        /// to compare any Unicode key column data in the temporary table. When this is not
-        /// present then the default options are used. </param>
-        /// <returns>Returns the tableid of the temporary table. Closing this tableid with
-        /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
-        IJetTable OpenTemporaryTable(IJetSession session, JET_COLUMNDEF[] columns,
-            TemporaryTableCreationFlags grbit, JET_COLUMNID[] columnids, int lcid /* JetOpenTempTable2*/,
-            JET_UNICODEINDEX unicodeindex /* JetOpenTempTable3 */);
-
-        /// <summary>Extends the size of a database that is currently open.</summary>
         /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">The size of the database, in pages, after the call.</param>
-        /// <returns>An error if the call fails.</returns>
-        int SetSize(int desiredPages, out int actualPages);
+        /// <param name="grbit">Resize options.</param>
+        /// <returns>The size of the database, in pages, after the call.</returns>
+        int Resize(IJetSession session, int desiredPages,
+            ResizeDatabaseGrbit grbit = ResizeDatabaseGrbit.None);
     }
 }

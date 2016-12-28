@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 using EsentLib.Api;
 using EsentLib.Jet;
@@ -95,6 +96,7 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
+        // OMITTED : workaround method.
         /// <summary>Creates indexes over data in an ESE database.</summary>
         /// <param name="session">The session to use.</param>
         /// <param name="indexcreates">Array of objects describing the indexes to be created.</param>
@@ -115,11 +117,12 @@ namespace EsentLib.Implementation
             // pin the memory
             var handles = new GCHandleCollection();
             try {
-                NATIVE_INDEXCREATE3[] nativeIndexcreates = GetNativeIndexCreate3s(indexcreates, ref handles);
-                int returnCode = NativeMethods.JetCreateIndex4W(session.Id, _id.Value, nativeIndexcreates,
-                    checked((uint)numIndexCreates));
-                Tracing.TraceResult(returnCode);
-                EsentExceptionHelper.Check(returnCode);
+                throw new NotImplementedException();
+                //NATIVE_INDEXCREATE3[] nativeIndexcreates = GetNativeIndexCreate3s(indexcreates, ref handles);
+                //int returnCode = NativeMethods.JetCreateIndex4W(session.Id, _id.Value, nativeIndexcreates,
+                //    checked((uint)numIndexCreates));
+                //Tracing.TraceResult(returnCode);
+                //EsentExceptionHelper.Check(returnCode);
             }
             finally { handles.Dispose(); }
         }
@@ -153,28 +156,59 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
-        /// <summary>Determine whether an update of the current record of a cursor will result
-        /// in a write conflict, based on the current update status of the record. It is possible
-        /// that a write conflict will ultimately be returned even if IsWriteConflictExpected
-        /// returns successfully. because another session may update the record before the current
-        /// session is able to update the same record.</summary>
+        /// <summary>Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and name.</summary>
         /// <param name="session">The session to use.</param>
-        /// <returns>An error if the call fails.</returns>
-        public bool IsWriteConflictExpected(IJetSession session)
+        /// <param name="columnName">The name of the column.</param>
+        /// <returns>A olumn definition.</returns>
+        public JET_COLUMNBASE GetTableColumn(IJetSession session, string columnName)
         {
-            Tracing.TraceFunctionCall("IsWriteConflictExpected");
-            int returnCode = NativeMethods.JetGetCursorInfo(session.Id, _id.Value, IntPtr.Zero, 0, 0);
-            Tracing.TraceResult(returnCode);
-            switch ((JET_err)returnCode) {
-                case JET_err.Success:
-                    return false;
-                case JET_err.WriteConflict:
-                    return true;
-                default:
-                    EsentExceptionHelper.Check(returnCode);
-                    // Should never be reached. Exception thrown above.
-                    return true;
+            uint nativeSize = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
+            object nativeColumnbase = new NATIVE_COLUMNBASE_WIDE() { cbStruct = nativeSize };
+            IntPtr searchKey = Marshal.StringToHGlobalUni(columnName);
+            try {
+                return new JET_COLUMNBASE((NATIVE_COLUMNBASE_WIDE)_GetTableColumn(session, searchKey,
+                    ref nativeColumnbase, (int)nativeSize, JET_ColInfo.Base));
             }
+            finally { Marshal.FreeHGlobal(searchKey); }
+        }
+
+        /// <summary>Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and name.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="searchKey">The native search argument.</param>
+        /// <param name="nativeArgument">The native argument.</param>
+        /// <param name="nativeArgumentSize">Native argument size.</param>
+        /// <param name="flags">Query flags.</param>
+        /// <returns>An error if the call fails.</returns>
+        private object _GetTableColumn(IJetSession session, IntPtr searchKey,
+            ref object nativeArgument, int nativeArgumentSize, JET_ColInfo flags)
+        {
+            Helpers.CheckNotNull(nativeArgument, "nativeArgument");
+            int returnCode = NativeMethods.JetGetTableColumnInfoW(session.Id, _id.Value,
+                searchKey, ref nativeArgument, nativeArgumentSize, (uint)flags);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return nativeArgument;
+        }
+
+        /// <summary>Retrieves information about all columns in the table.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
+        /// <returns>Filled in with information about the columns in the table.</returns>
+        public JET_COLUMNLIST GetTableColumns(IJetSession session, ColInfoGrbit grbit = ColInfoGrbit.None)
+        {
+            Tracing.TraceFunctionCall("GetTableColumns");
+            JET_COLUMNLIST columnlist = new JET_COLUMNLIST();
+            NATIVE_COLUMNLIST nativeColumnlist = new NATIVE_COLUMNLIST();
+            nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
+            // Technically, this should have worked in Vista. But there was a bug, and
+            // it was fixed after Windows 7.
+            int returnCode = NativeMethods.JetGetTableColumnInfoW(session.Id, this._id.Value,
+                null, ref nativeColumnlist, nativeColumnlist.cbStruct,
+                (uint)grbit | (uint)JET_ColInfo.List);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            columnlist.SetFromNativeColumnlist(nativeColumnlist);
+            return columnlist;
         }
 
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
@@ -218,36 +252,61 @@ namespace EsentLib.Implementation
             return handles.Add(nativeConditionalcolumns);
         }
 
-        /// <summary>Make native indexcreate structures from the managed ones.</summary>
-        /// <param name="managedIndexCreates">Index create structures to convert.</param>
-        /// <param name="handles">The handle collection used to pin the data.</param>
-        /// <returns>Pinned native versions of the index creates.</returns>
-        private static unsafe NATIVE_INDEXCREATE3[] GetNativeIndexCreate3s(
-            IList<JET_INDEXCREATE> managedIndexCreates, ref GCHandleCollection handles)
+        /// <summary>Determine whether an update of the current record of a cursor will result
+        /// in a write conflict, based on the current update status of the record. It is possible
+        /// that a write conflict will ultimately be returned even if IsWriteConflictExpected
+        /// returns successfully. because another session may update the record before the current
+        /// session is able to update the same record.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <returns>An error if the call fails.</returns>
+        public bool IsWriteConflictExpected(IJetSession session)
         {
-            if ((null == managedIndexCreates) || (0 >= managedIndexCreates.Count)) {
-                return null;
+            Tracing.TraceFunctionCall("IsWriteConflictExpected");
+            int returnCode = NativeMethods.JetGetCursorInfo(session.Id, _id.Value, IntPtr.Zero, 0, 0);
+            Tracing.TraceResult(returnCode);
+            switch ((JET_err)returnCode) {
+                case JET_err.Success:
+                    return false;
+                case JET_err.WriteConflict:
+                    return true;
+                default:
+                    EsentExceptionHelper.Check(returnCode);
+                    // Should never be reached. Exception thrown above.
+                    return true;
             }
-            NATIVE_INDEXCREATE3[] result = new NATIVE_INDEXCREATE3[managedIndexCreates.Count];
-            for (int index = 0; index < managedIndexCreates.Count; ++index) {
-                result[index] = managedIndexCreates[index].GetNativeIndexcreate3();
-                if (null != managedIndexCreates[index].pidxUnicode) {
-                    NATIVE_UNICODEINDEX2 unicode = managedIndexCreates[index].pidxUnicode.GetNativeUnicodeIndex2();
-                    unicode.szLocaleName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[index].pidxUnicode.GetEffectiveLocaleName()));
-                    result[index].pidxUnicode = (NATIVE_UNICODEINDEX2*)handles.Add(unicode);
-                    result[index].grbit |= (uint)CreateIndexGrbit.IndexUnicode;
-                }
-                result[index].szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[index].szKey));
-                result[index].szIndexName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[index].szIndexName));
-                result[index].rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[index].rgconditionalcolumn, true, ref handles);
-                // Convert pSpaceHints.
-                if (managedIndexCreates[index].pSpaceHints != null) {
-                    result[index].pSpaceHints = handles.Add(
-                        managedIndexCreates[index].pSpaceHints.GetNativeSpaceHints());
-                }
-            }
-            return result;
         }
+
+        // OMITTED : workaround method.
+        ///// <summary>Make native indexcreate structures from the managed ones.</summary>
+        ///// <param name="managedIndexCreates">Index create structures to convert.</param>
+        ///// <param name="handles">The handle collection used to pin the data.</param>
+        ///// <returns>Pinned native versions of the index creates.</returns>
+        //private static unsafe NATIVE_INDEXCREATE3[] GetNativeIndexCreate3s(
+        //    IList<JET_INDEXCREATE> managedIndexCreates, ref GCHandleCollection handles)
+        //{
+        //    if ((null == managedIndexCreates) || (0 >= managedIndexCreates.Count)) {
+        //        return null;
+        //    }
+        //    NATIVE_INDEXCREATE3[] result = new NATIVE_INDEXCREATE3[managedIndexCreates.Count];
+        //    for (int index = 0; index < managedIndexCreates.Count; ++index) {
+        //        result[index] = managedIndexCreates[index].GetNativeIndexcreate3();
+        //        if (null != managedIndexCreates[index].pidxUnicode) {
+        //            NATIVE_UNICODEINDEX2 unicode = managedIndexCreates[index].pidxUnicode.GetNativeUnicodeIndex2();
+        //            unicode.szLocaleName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[index].pidxUnicode.GetEffectiveLocaleName()));
+        //            result[index].pidxUnicode = (NATIVE_UNICODEINDEX2*)handles.Add(unicode);
+        //            result[index].grbit |= (uint)CreateIndexGrbit.IndexUnicode;
+        //        }
+        //        result[index].szKey = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[index].szKey));
+        //        result[index].szIndexName = handles.Add(Util.ConvertToNullTerminatedUnicodeByteArray(managedIndexCreates[index].szIndexName));
+        //        result[index].rgconditionalcolumn = GetNativeConditionalColumns(managedIndexCreates[index].rgconditionalcolumn, true, ref handles);
+        //        // Convert pSpaceHints.
+        //        if (managedIndexCreates[index].pSpaceHints != null) {
+        //            result[index].pSpaceHints = handles.Add(
+        //                managedIndexCreates[index].pSpaceHints.GetNativeSpaceHints());
+        //        }
+        //    }
+        //    return result;
+        //}
 
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
         /// prevent a row from being updated by any other session, read lock. Normally, row write

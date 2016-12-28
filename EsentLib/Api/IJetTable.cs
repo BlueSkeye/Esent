@@ -56,13 +56,18 @@ namespace EsentLib.Api
         /// <param name="session">Session to use.</param>
         /// <param name="column">The name of the column to be deleted.</param>
         /// <param name="grbit">Optional deletion flag.</param>
-        void DeleteColumn(IJetSession session, string column,
-            DeleteColumnGrbit grbit = DeleteColumnGrbit.None);
+        void DeleteColumn(IJetSession session, string column, DeleteColumnGrbit grbit = DeleteColumnGrbit.None);
 
         /// <summary>Deletes an index from a database table.</summary>
         /// <param name="session">Session to use.</param>
         /// <param name="index">The name of the index to be deleted.</param>
         void DeleteIndex(IJetSession session, string index);
+
+        /// <summary>Retrieves information about all columns in the table.</summary>
+        /// <param name="sesion">The session to use.</param>
+        /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
+        /// <returns>Filled in with information about the columns in the table.</returns>
+        JET_COLUMNLIST GetTableColumns(IJetSession sesion, ColInfoGrbit grbit = ColInfoGrbit.None);
 
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
         /// prevent a row from being updated by any other session, read lock. Normally, row write

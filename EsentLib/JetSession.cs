@@ -95,10 +95,13 @@ namespace EsentLib.Implementation
 
         /// <summary>Causes a session to enter a transaction or create a new save point in an
         /// existing transaction.</summary>
-        /// <returns></returns>
-        public IJetTransaction BeginTransaction(BeginTransactionGrbit grbit = BeginTransactionGrbit.None)
+        /// <param name="readOnly">true if transaction is readonly.</param>
+        /// <param name="userTransactionId">An optional identifier supplied by the user for
+        /// identifying the transaction.</param>
+        /// <returns>The newly created transaction.</returns>
+        public IJetTransaction BeginTransaction(bool readOnly = false, long? userTransactionId = null)
         {
-            return new JetTransaction(this, grbit);
+            return new JetTransaction(this, readOnly, userTransactionId);
         }
 
         /// <summary>Ends a session.</summary>
@@ -272,6 +275,105 @@ namespace EsentLib.Implementation
                 (uint)grbit);
             Tracing.TraceResult(returnCode);
             return new JetDatabase(this, dbid, database);
+        }
+
+        // OMITTED : workaround method
+        ///// <summary>Creates a temporary table with a single index. A temporary table stores and
+        ///// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        ///// However, temporary tables are much faster than ordinary tables due to their volatile
+        ///// nature. They can also be used to very quickly sort and perform duplicate removal on
+        ///// record sets when accessed in a purely sequential manner.</summary>
+        ///// <param name="temporarytable">Description of the temporary table to create on input.
+        ///// After a successful call, the structure contains the handle to the temporary table and
+        ///// column identifications.</param>
+        ///// <returns>Returns the tableid of the temporary table. Closing this tableid with
+        ///// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
+        //public IJetTable OpenTemporaryTable(JET_OPENTEMPORARYTABLE temporarytable)
+        //{
+        //    Tracing.TraceFunctionCall("OpenTemporaryTable");
+        //    Helpers.CheckNotNull(temporarytable, "temporarytable");
+        //    _owner._Capabilities.CheckSupportsWindows8Features("OpenTemporaryTable");
+        //    NATIVE_OPENTEMPORARYTABLE2 nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable2();
+        //    uint[] nativecolumnids = new uint[nativetemporarytable.ccolumn];
+        //    NATIVE_COLUMNDEF[] nativecolumndefs = temporarytable.prgcolumndef.GetNativecolumndefs();
+        //    unsafe {
+        //        using (var gchandlecollection = new GCHandleCollection()) {
+        //            // Pin memory
+        //            nativetemporarytable.prgcolumndef = (NATIVE_COLUMNDEF*)gchandlecollection.Add(nativecolumndefs);
+        //            nativetemporarytable.rgcolumnid = (uint*)gchandlecollection.Add(nativecolumnids);
+        //            if (null != temporarytable.pidxunicode) {
+        //                NATIVE_UNICODEINDEX2 unicode = temporarytable.pidxunicode.GetNativeUnicodeIndex2();
+        //                unicode.szLocaleName = gchandlecollection.Add(
+        //                    Util.ConvertToNullTerminatedUnicodeByteArray(
+        //                        temporarytable.pidxunicode.GetEffectiveLocaleName()));
+        //                nativetemporarytable.pidxunicode = (NATIVE_UNICODEINDEX2*)gchandlecollection.Add(unicode);
+        //            }
+        //            // Call the interop method
+        //            int returnCode = NativeMethods.JetOpenTemporaryTable2(Id, ref nativetemporarytable);
+        //            Tracing.TraceResult(returnCode);
+        //            EsentExceptionHelper.Check(returnCode);
+        //            // Convert the return values
+        //            temporarytable.prgcolumndef.SetColumnids(temporarytable.prgcolumnid, nativecolumnids);
+        //            return new JetTable(null, new JET_TABLEID { Value = nativetemporarytable.tableid });
+        //        }
+        //    }
+        //}
+
+        /// <summary>Creates a temporary table with a single index. A temporary table stores and
+        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        /// However, temporary tables are much faster than ordinary tables due to their volatile
+        /// nature. They can also be used to very quickly sort and perform duplicate removal on
+        /// record sets when accessed in a purely sequential manner.</summary>
+        /// <param name="columns">Column definitions for the columns created in the temporary table.
+        /// </param>
+        /// <param name="grbit">Table creation options.</param>
+        /// <param name="columnids">The output buffer that receives the array of column IDs generated
+        /// during the creation of the temporary table. The column IDs in this array will exactly
+        /// correspond to the input array of column definitions. As a result, the size of this buffer
+        /// must correspond to the size of the input array.</param>
+        /// <param name="lcid">The locale ID to use to compare any Unicode key column data in
+        /// the temporary table. Any locale may be used as long as the appropriate language pack
+        /// has been installed on the machine. </param>
+        /// <param name="unicodeindex">The Locale ID and normalization flags that will be used
+        /// to compare any Unicode key column data in the temporary table. When this is not
+        /// present then the default options are used. </param>
+        /// <returns>Returns the tableid of the temporary table. Closing this tableid with
+        /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
+        public IJetTable OpenTemporaryTable(JET_COLUMNDEF[] columns, TemporaryTableCreationFlags grbit,
+            JET_COLUMNID[] columnids, int lcid /* JetOpenTempTable2*/, JET_UNICODEINDEX unicodeindex /* JetOpenTempTable3 */)
+        {
+            Tracing.TraceFunctionCall("OpenTemporaryTable");
+            Helpers.CheckNotNull(columns, "columnns");
+            Helpers.CheckNotNull(columnids, "columnids");
+            JET_TABLEID tableid = JET_TABLEID.Nil;
+            NATIVE_COLUMNDEF[] nativecolumndefs = columns.GetNativecolumndefs();
+            uint[] nativecolumnids = new uint[columns.Length];
+            int returnCode;
+            if (null != unicodeindex) {
+                if (0 != lcid) {
+                    throw new NotSupportedException("lcid and unicodeindex are exclusive.");
+                }
+                NATIVE_UNICODEINDEX nativeunicodeindex = unicodeindex.GetNativeUnicodeIndex();
+                returnCode = NativeMethods.JetOpenTempTable3(this.Id, nativecolumndefs,
+                    checked((uint)columns.Length), ref nativeunicodeindex, (uint)grbit,
+                    out tableid.Value, nativecolumnids);
+            }
+            else {
+                if (0 != lcid) {
+                    returnCode = NativeMethods.JetOpenTempTable2(this.Id, nativecolumndefs,
+                        checked((uint)columns.Length), (uint)lcid, (uint)grbit,
+                        out tableid.Value, nativecolumnids);
+                }
+                else {
+                    returnCode = NativeMethods.JetOpenTempTable(this.Id, nativecolumndefs,
+                        checked((uint)columns.Length), (uint)grbit, out tableid.Value,
+                        nativecolumnids);
+                }
+            }
+            Tracing.TraceResult(returnCode);
+            columns.SetColumnids(columnids, nativecolumnids);
+            EsentExceptionHelper.Check(returnCode);
+            return new JetTable(null, tableid);
         }
 
         /// <summary>Disassociates a session from the current thread. This should be

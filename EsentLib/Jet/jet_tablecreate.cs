@@ -48,65 +48,42 @@ Justification = "This should match the unmanaged API, which isn't capitalized.")
         /// </summary>
         private JET_COLUMNCREATE[] columnCreates;
 
-        /// <summary>
-        /// Number of columns to create.
-        /// </summary>
+        /// <summary>Number of columns to create.</summary>
         private int columnCreateCount;
 
-        /// <summary>
-        /// Array of indices to create, pointer to <see cref="NATIVE_INDEXCREATE3"/>.
-        /// </summary>
+        /// <summary>Array of indices to create, pointer to see cref="NATIVE_INDEXCREATE3".</summary>
         private JET_INDEXCREATE[] indexCreates;
 
-        /// <summary>
-        /// Number of indices to create.
-        /// </summary>
+        /// <summary>Number of indices to create.</summary>
         private int indexCreateCount;
 
-        /// <summary>
-        /// Callback function to use for the table.
-        /// </summary>
+        /// <summary>Callback function to use for the table.</summary>
         private string callbackFunction;
 
-        /// <summary>
-        /// Type of the callback function.
-        /// </summary>
+        /// <summary>Type of the callback function.</summary>
         private JET_cbtyp callbackType;
 
-        /// <summary>
-        /// Table options.
-        /// </summary>
+        /// <summary>Table options.</summary>
         private CreateTableColumnIndexGrbit options;
 
-        /// <summary>
-        /// Space allocation, maintenance, and usage hints for default sequential index.
-        /// </summary>
+        /// <summary>Space allocation, maintenance, and usage hints for default sequential
+        /// index.</summary>
         private JET_SPACEHINTS seqSpacehints;
 
-        /// <summary>
-        /// Space allocation, maintenance, and usage hints for Separated LV tree.
-        /// </summary>
+        /// <summary>Space allocation, maintenance, and usage hints for Separated LV tree.</summary>
         private JET_SPACEHINTS longValueSpacehints;
 
-        /// <summary>
-        /// Heuristic size to separate a intrinsic LV from the primary record.
-        /// </summary>
+        /// <summary>Heuristic size to separate a intrinsic LV from the primary record.</summary>
         private int separateLvThresholdHint;
 
-        /// <summary>
-        /// Returned tabledid.
-        /// </summary>
+        /// <summary>Returned tabledid.</summary>
         [NonSerialized]
         private JET_TABLEID tableIdentifier;
 
-        /// <summary>
-        /// Count of objects created (columns+table+indexes+callbacks).
-        /// </summary>
+        /// <summary>Count of objects created (columns+table+indexes+callbacks).</summary>
         private int objectsCreated;
 
-        /// <summary>
-        /// Gets or sets the name of the table to create.
-        /// </summary>
+        /// <summary>Gets or sets the name of the table to create.</summary>
         public string szTableName
         {
             [DebuggerStepThrough]
@@ -114,9 +91,7 @@ Justification = "This should match the unmanaged API, which isn't capitalized.")
             set { this.tableName = value; }
         }
 
-        /// <summary>
-        /// Gets or sets the name of the table from which to inherit base DDL.
-        /// </summary>
+        /// <summary>Gets or sets the name of the table from which to inherit base DDL.</summary>
         public string szTemplateTableName
         {
             [DebuggerStepThrough]

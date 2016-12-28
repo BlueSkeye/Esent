@@ -1,8 +1,10 @@
 ﻿using System;
 
+using EsentLib.Jet;
+
 namespace EsentLib.Api.Flags
 {
-    /// <summary>Options for temporary table creation, with <see cref="IJetDatabase.OpenTemporaryTable"/>
+    /// <summary>Options for temporary table creation, with <see cref="IJetSession.OpenTemporaryTable"/>
     /// </summary>
     [Flags]
     public enum TemporaryTableCreationFlags
@@ -54,8 +56,7 @@ namespace EsentLib.Api.Flags
         ForceMaterialization = 0x20,
 
         /// <summary>This option requests that any attempt to insert a record with the same 
-        /// index key as a previously inserted record will immediately fail with 
-        /// <see cref="JET_err.KeyDuplicate"/>. If this option is not requested then a duplicate 
+        /// index key as a previously inserted record will immediately fail with <see cref="JET_err.KeyDuplicate"/>. If this option is not requested then a duplicate 
         /// may be detected immediately and fail or may be silently removed later depending
         /// on the strategy chosen by the database engine to implement the temporary table
         /// based on the requested functionality. If this functionality it not required then

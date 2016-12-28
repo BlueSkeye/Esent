@@ -6,8 +6,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
+using EsentLib.Api.Flags;
 using EsentLib.Jet;
 
 namespace EsentLib.Api
@@ -257,10 +257,7 @@ namespace EsentLib.Api
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string columnName,
+        int JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid, string columnName,
             out JET_COLUMNDEF columndef);
 
         /// <summary>
@@ -271,10 +268,7 @@ namespace EsentLib.Api
         /// <param name="columnid">The columnid of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_COLUMNID columnid,
+        int JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
             out JET_COLUMNDEF columndef);
 
         /// <summary>
@@ -285,10 +279,7 @@ namespace EsentLib.Api
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columnbase">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string columnName,
+        int JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid, string columnName,
             out JET_COLUMNBASE columnbase);
 
         /// <summary>
@@ -299,27 +290,8 @@ namespace EsentLib.Api
         /// <param name="columnid">The columnid of the column.</param>
         /// <param name="columnbase">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_COLUMNID columnid,
+        int JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
             out JET_COLUMNBASE columnbase);
-
-        /// <summary>
-        /// Retrieves information about all columns in the table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table containing the column.</param>
-        /// <param name="ignored">The parameter is ignored.</param>
-        /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
-        /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string ignored,
-            ColInfoGrbit grbit,
-            out JET_COLUMNLIST columnlist);
 
         #endregion
 
@@ -334,11 +306,7 @@ namespace EsentLib.Api
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetColumnInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            string tablename,
-            string columnName,
+        int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename, string columnName,
             out JET_COLUMNDEF columndef);
 
         /// <summary>
@@ -350,11 +318,7 @@ namespace EsentLib.Api
         /// <param name="ignored">This parameter is ignored.</param>
         /// <param name="columnlist">Filled in with information about the columns in the table.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetColumnInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            string tablename,
-            string ignored,
+        int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename, string ignored,
             out JET_COLUMNLIST columnlist);
 
         /// <summary>
@@ -366,12 +330,8 @@ namespace EsentLib.Api
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columnbase">Filled in with information about the columns in the table.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string columnName,
-                out JET_COLUMNBASE columnbase);
+        int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename, string columnName,
+            out JET_COLUMNBASE columnbase);
 
         /// <summary>
         /// Retrieves information about a column in a table.
@@ -382,13 +342,8 @@ namespace EsentLib.Api
         /// <param name="columnid">The ID of the column.</param>
         /// <param name="columnbase">Filled in with information about the columns in the table.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetColumnInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            string columnName,
-            JET_COLUMNID columnid,
-            out JET_COLUMNBASE columnbase);
-
+        int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string columnName,
+            JET_COLUMNID columnid, out JET_COLUMNBASE columnbase);
         #endregion
 
         #region JetGetObjectInfo overloads
@@ -1478,14 +1433,6 @@ namespace EsentLib.Api
         // WINDOWS 8 //
         // --------- //
         #region Transactions
-        /// <summary>Causes a session to enter a transaction or create a new save point in an
-        /// existing transaction.</summary>
-        /// <param name="sesid">The session to begin the transaction for.</param>
-        /// <param name="userTransactionId">An optional identifier supplied by the user for
-        /// identifying the transaction.</param>
-        /// <param name="grbit">Transaction options.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetBeginTransaction3(JET_SESID sesid, long userTransactionId, BeginTransactionGrbit grbit);
 
         ///// <summary>Commits the changes made to the state of the database during the current
         ///// save point and migrates them to the previous save point. If the outermost save point
@@ -1507,29 +1454,7 @@ namespace EsentLib.Api
         /// <returns>An error code.</returns>
         int JetGetErrorInfo(JET_err error, out JET_ERRINFOBASIC errinfo);
 
-        /// <summary>Resizes a currently open database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">The size of the database, in pages, after the call. </param>
-        /// <param name="grbit">Resize options.</param>
-        /// <returns>An error code.</returns>
-        int JetResizeDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages, out int actualPages,
-            ResizeDatabaseGrbit grbit);
-
         #region DDL
-
-        /// <summary>Creates a temporary table with a single index. A temporary table stores and
-        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
-        /// However, temporary tables are much faster than ordinary tables due to their volatile
-        /// nature. They can also be used to very quickly sort and perform duplicate removal on
-        /// record sets when accessed in a purely sequential manner.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="temporarytable">Description of the temporary table to create on input.
-        /// After a successful call, the structure contains the handle to the temporary table
-        /// and column identifications.</param>
-        /// <returns>An error code.</returns>
-        int JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable);
 
         /// <summary>Creates a table, adds columns, and indices on that table.</summary>
         /// <param name="sesid">The session to use.</param>

@@ -111,89 +111,42 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, out columnbase));
         }
 
-        /// <summary>Retrieves information about all columns in the table.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table containing the column.</param>
-        /// <param name="columnName">The parameter is ignored.</param>
-        /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        public static void JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid,
-            string columnName, out JET_COLUMNLIST columnlist)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, ColInfoGrbit.None, out columnlist));
-        }
-
-        /// <summary>
-        /// Retrieves information about all columns in the table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table containing the column.</param>
-        /// <param name="columnName">The parameter is ignored.</param>
-        /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
-        /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        public static void JetGetTableColumnInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string columnName,
-                ColInfoGrbit grbit,
-                out JET_COLUMNLIST columnlist)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetTableColumnInfo(sesid, tableid, columnName, grbit, out columnlist));
-        }
-
         #endregion
 
         #region JetGetColumnInfo overloads
 
-        /// <summary>
-        /// Retrieves information about a table column.
-        /// </summary>
+        /// <summary>Retrieves information about a table column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database that contains the table.</param>
         /// <param name="tablename">The name of the table containing the column.</param>
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
-        public static void JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string columnName,
-                out JET_COLUMNDEF columndef)
+        public static void JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string columnName, out JET_COLUMNDEF columndef)
         {
             EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columndef));
         }
 
-        /// <summary>
-        /// Retrieves information about all columns in a table.
-        /// </summary>
+        /// <summary>Retrieves information about all columns in a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database that contains the table.</param>
         /// <param name="tablename">The name of the table containing the column.</param>
         /// <param name="columnName">This parameter is ignored.</param>
         /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        public static void JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string columnName,
-                out JET_COLUMNLIST columnlist)
+        public static void JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string columnName, out JET_COLUMNLIST columnlist)
         {
             EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnlist));
         }
 
-        /// <summary>
-        /// Retrieves information about a column in a table.
-        /// </summary>
+        /// <summary>Retrieves information about a column in a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database that contains the table.</param>
         /// <param name="tablename">The name of the table containing the column.</param>
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columnbase">Filled in with information about the columns in the table.</param>
-        public static void JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string columnName,
-                out JET_COLUMNBASE columnbase)
+        public static void JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string columnName, out JET_COLUMNBASE columnbase)
         {
             EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnbase));
         }
@@ -1621,26 +1574,6 @@ namespace EsentLib
         }
         #endregion
 
-        /// <summary>Creates a temporary table with a single index. A temporary table stores
-        /// and retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
-        /// However, temporary tables are much faster than ordinary tables due to their
-        /// volatile nature. They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner. Also see
-        /// <seealso cref="IJetSession.OpenTemporaryTable"/>,
-        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
-        /// </summary>
-        /// <remarks>Introduced in Windows Vista. Use <see cref="LegacyApi.JetOpenTempTable3"/>for
-        /// earlier versions of Esent.</remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="temporarytable">Description of the temporary table to create on
-        /// input. After a successful call, the structure contains the handle to the temporary
-        /// table and column identifications. Use <see cref="IJetTable.Close"/> to free the
-        /// temporary table when finished.</param>
-        public static void JetOpenTemporaryTable(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
-        {
-            EsentExceptionHelper.Check(LegacyApi.Impl.JetOpenTemporaryTable(sesid, temporarytable));
-        }
-
         /// <summary>Retrieves record size information from the desired location.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">
@@ -1700,16 +1633,6 @@ namespace EsentLib
         // WINDOWS 8 //
         // --------- //
         #region Transactions
-        /// <summary>Causes a session to enter a transaction or create a new save point in
-        /// an existing transaction.</summary>
-        /// <param name="sesid">The session to begin the transaction for.</param>
-        /// <param name="userTransactionId">An optional identifier supplied by the user for identifying the transaction.</param>
-        /// <param name="grbit">Transaction options.</param>
-        /// <remarks>Introduced in Windows 8.</remarks>
-        public static void JetBeginTransaction3(JET_SESID sesid, long userTransactionId, BeginTransactionGrbit grbit)
-        {
-            EsentExceptionHelper.Check(LegacyApi.Impl.JetBeginTransaction3(sesid, userTransactionId, grbit));
-        }
 
         ///// <summary>
         ///// Commits the changes made to the state of the database during the current save point
@@ -1729,62 +1652,37 @@ namespace EsentLib
 
         #endregion
 
-        /// <summary>
-        /// Gets extended information about an error.
-        /// </summary>
+        /// <summary>Gets extended information about an error.</summary>
         /// <param name="error">The error code about which to retrieve information.</param>
         /// <param name="errinfo">Information about the specified error code.</param>
-        public static void JetGetErrorInfo(
-            JET_err error,
-            out JET_ERRINFOBASIC errinfo)
+        public static void JetGetErrorInfo(JET_err error, out JET_ERRINFOBASIC errinfo)
         {
             EsentExceptionHelper.Check(LegacyApi.Impl.JetGetErrorInfo(error, out errinfo));
         }
 
-        /// <summary>Resizes a currently open database. Windows 8: Only supports growing a database file.
-        /// Windows 8.1: When <see cref="JET_param.EnableShrinkDatabase"/> is set to
-        /// <see cref="Enums.ShrinkDatabaseGrbit.On"/>, and if the file system supports Sparse
-        /// Files, then space may be freed up in the middle of the file.</summary>
-        /// <remarks>Many APIs return the logical size of the file, not how many bytes it takes up on disk.
-        /// Win32's GetCompressedFileSize returns the correct on-disk size.
-        /// <see cref="IJetDatabase.GetInfo(JET_DbInfo)"/>
-        /// returns the on-disk size when used with <see cref="JET_DbInfo.FilesizeOnDisk"/></remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">The size of the database, in pages, after the call. </param>
-        /// <param name="grbit">Resize options.</param>
-        public static void JetResizeDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages,
-            out int actualPages, ResizeDatabaseGrbit grbit)
-        {
-            EsentExceptionHelper.Check(LegacyApi.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit));
-        }
-
         #region DDL
 
-        /// <summary>
-        /// Creates a temporary table with a single index. A temporary table
-        /// stores and retrieves records just like an ordinary table created
-        /// using JetCreateTableColumnIndex. However, temporary tables are
-        /// much faster than ordinary tables due to their volatile nature.
-        /// They can also be used to very quickly sort and perform duplicate
-        /// removal on record sets when accessed in a purely sequential manner.
-        /// Also see
-        /// <seealso cref="IJetSession.OpenTemporaryTable"/>, "Api.JetOpenTempTable2",
-        /// <seealso cref="LegacyApi.JetOpenTempTable3"/>.
-        /// <seealso cref="LegacyApi.JetOpenTemporaryTable"/>.</summary>
-        /// <remarks>Use <see cref="LegacyApi.JetOpenTemporaryTable"/> for earlier versions of Esent.</remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="temporarytable">
-        /// Description of the temporary table to create on input. After a
-        /// successful call, the structure contains the handle to the temporary
-        /// table and column identifications. Use <see cref="IJetTable.Close"/>
-        /// to free the temporary table when finished.
-        /// </param>
-        public static void JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
-        {
-            EsentExceptionHelper.Check(LegacyApi.Impl.JetOpenTemporaryTable2(sesid, temporarytable));
-        }
+        // OMITTED : workaround method
+        ///// <summary>
+        ///// Creates a temporary table with a single index. A temporary table
+        ///// stores and retrieves records just like an ordinary table created
+        ///// using JetCreateTableColumnIndex. However, temporary tables are
+        ///// much faster than ordinary tables due to their volatile nature.
+        ///// They can also be used to very quickly sort and perform duplicate
+        ///// removal on record sets when accessed in a purely sequential manner.
+        ///// Also see
+        ///// <seealso cref="IJetSession.OpenTemporaryTable"/>.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="temporarytable">
+        ///// Description of the temporary table to create on input. After a
+        ///// successful call, the structure contains the handle to the temporary
+        ///// table and column identifications. Use <see cref="IJetTable.Close"/>
+        ///// to free the temporary table when finished.
+        ///// </param>
+        //public static void JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
+        //{
+        //    EsentExceptionHelper.Check(LegacyApi.Impl.JetOpenTemporaryTable2(sesid, temporarytable));
+        //}
 
         /// <summary>
         /// Creates a table, adds columns, and indices on that table.

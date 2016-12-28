@@ -62,6 +62,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\Flags\ResizeDatabaseGrbit.cs" />
     <Compile Include="Api\Flags\TemporaryTableCreationFlags.cs" />
     <Compile Include="Api\Flags\TransactionFlushKind.cs" />
     <Compile Include="Api\IJetBackupInstance.cs" />
@@ -83,7 +84,7 @@
     <Compile Include="DoubleColumnValue.cs" />
     <Compile Include="DurableCommitCallback.cs" />
     <Compile Include="EnumeratedColumn.cs" />
-    <Compile Include="Enums.cs" />
+    <Compile Include="Api\Flags\ShrinkDatabaseGrbit.cs" />
     <Compile Include="ErrorExceptions.cs" />
     <Compile Include="EsentErrorException.cs" />
     <Compile Include="EsentException.cs" />

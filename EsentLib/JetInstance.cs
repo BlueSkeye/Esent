@@ -311,9 +311,9 @@ namespace EsentLib.Implementation
         /// in the middle of files (done in the units of database extents). This uses Sparse Files,
         /// which is available on NTFS and ReFS (not FAT). The exact method of releasing space is an
         /// implementation detail and is subject to change.</summary>
-        public Enums.ShrinkDatabaseGrbit EnableShrinkDatabase
+        public ShrinkDatabaseGrbit EnableShrinkDatabase
         {
-            get { return (Enums.ShrinkDatabaseGrbit)NativeHelpers.GetInt32Parameter(_instance, JET_param.EnableShrinkDatabase); }
+            get { return (ShrinkDatabaseGrbit)NativeHelpers.GetInt32Parameter(_instance, JET_param.EnableShrinkDatabase); }
             set { NativeHelpers.SetParameter(_instance, JET_param.EnableShrinkDatabase, (int)value); }
         }
 
@@ -1431,31 +1431,10 @@ namespace EsentLib.Implementation
 
             var nativeColumndef = new NATIVE_COLUMNDEF();
             nativeColumndef.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNDEF)));
-            int err;
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    columnName,
-                    ref nativeColumndef,
-                    nativeColumndef.cbStruct,
-                    (uint)JET_ColInfo.Default));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    columnName,
-                    ref nativeColumndef,
-                    nativeColumndef.cbStruct,
-                    (uint)JET_ColInfo.Default));
-            }
-
+            int err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(sesid.Value,
+                tableid.Value, columnName, ref nativeColumndef, nativeColumndef.cbStruct,
+                (uint)JET_ColInfo.Default));
             columndef.SetFromNativeColumndef(nativeColumndef);
-
             return err;
         }
 
@@ -1467,171 +1446,58 @@ namespace EsentLib.Implementation
         /// <param name="columnid">The columnid of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetGetTableColumnInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                JET_COLUMNID columnid,
-                out JET_COLUMNDEF columndef)
+        public int JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            out JET_COLUMNDEF columndef)
         {
             Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             columndef = new JET_COLUMNDEF();
-            int err;
-
-            var nativeColumndef = new NATIVE_COLUMNDEF();
+            NATIVE_COLUMNDEF nativeColumndef = new NATIVE_COLUMNDEF();
             nativeColumndef.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNDEF)));
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    ref columnid.Value,
-                    ref nativeColumndef,
-                    nativeColumndef.cbStruct,
-                    (uint)JET_ColInfo.ByColid));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    ref columnid.Value,
-                    ref nativeColumndef,
-                    nativeColumndef.cbStruct,
-                    (uint)JET_ColInfo.ByColid));
-            }
-
+            int err = Tracing.TraceResult(
+                NativeMethods.JetGetTableColumnInfoW(sesid.Value, tableid.Value, ref columnid.Value,
+                    ref nativeColumndef, nativeColumndef.cbStruct, (uint)JET_ColInfo.ByColid));
             columndef.SetFromNativeColumndef(nativeColumndef);
-
             return err;
         }
 
-        /// <summary>
-        /// Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and name.
-        /// </summary>
+        /// <summary>Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and name.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columnbase">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetGetTableColumnInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string columnName,
-                out JET_COLUMNBASE columnbase)
+        public int JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid, string columnName,
+            out JET_COLUMNBASE columnbase)
         {
             Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             Helpers.CheckNotNull(columnName, "columnName");
-
-            int err;
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
-                nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
-
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    columnName,
-                    ref nativeColumnbase,
-                    nativeColumnbase.cbStruct,
+            var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
+            nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
+            int err = Tracing.TraceResult(
+                NativeMethods.JetGetTableColumnInfoW(sesid.Value, tableid.Value, columnName,
+                    ref nativeColumnbase, nativeColumnbase.cbStruct,
                     (uint)JET_ColInfo.Base));
-
-                columnbase = new JET_COLUMNBASE(nativeColumnbase);
-            }
-            else
-            {
-                var nativeColumnbase = new NATIVE_COLUMNBASE();
-                nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE)));
-
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    columnName,
-                    ref nativeColumnbase,
-                    nativeColumnbase.cbStruct,
-                    (uint)JET_ColInfo.Base));
-
-                columnbase = new JET_COLUMNBASE(nativeColumnbase);
-            }
-
+            columnbase = new JET_COLUMNBASE(nativeColumnbase);
             return err;
         }
 
-        /// <summary>
-        /// Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and <see cref="JET_COLUMNID"/>.
-        /// </summary>
+        /// <summary>Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and <see cref="JET_COLUMNID"/>.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnid">The columnid of the column.</param>
         /// <param name="columnbase">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_COLUMNID columnid,
+        public int JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
             out JET_COLUMNBASE columnbase)
         {
             Tracing.TraceFunctionCall("JetGetTableColumnInfo");
             _capabilities.CheckSupportsVistaFeatures("JetGetTableColumnInfo");
             var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
             nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
-            int err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(sesid.Value,
-                tableid.Value, ref columnid.Value, ref nativeColumnbase, nativeColumnbase.cbStruct,
-                (uint)JET_ColInfo.BaseByColid));
+            int err = Tracing.TraceResult(
+                NativeMethods.JetGetTableColumnInfoW(sesid.Value, tableid.Value, ref columnid.Value,
+                    ref nativeColumnbase, nativeColumnbase.cbStruct, (uint)JET_ColInfo.BaseByColid));
             columnbase = new JET_COLUMNBASE(nativeColumnbase);
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves information about all columns in the table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table containing the column.</param>
-        /// <param name="ignored">The parameter is ignored.</param>
-        /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
-        /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetTableColumnInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string ignored,
-                ColInfoGrbit grbit,
-                out JET_COLUMNLIST columnlist)
-        {
-            Tracing.TraceFunctionCall("JetGetTableColumnInfo");
-            columnlist = new JET_COLUMNLIST();
-            int err;
-
-            var nativeColumnlist = new NATIVE_COLUMNLIST();
-            nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
-
-            // Technically, this should have worked in Vista. But there was a bug, and
-            // it was fixed after Windows 7.
-            if (_capabilities.SupportsWindows8Features)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    ignored,
-                    ref nativeColumnlist,
-                    nativeColumnlist.cbStruct,
-                    (uint)grbit | (uint)JET_ColInfo.List));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableColumnInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    ignored,
-                    ref nativeColumnlist,
-                    nativeColumnlist.cbStruct,
-                    (uint)grbit | (uint)JET_ColInfo.List));
-            }
-
-            columnlist.SetFromNativeColumnlist(nativeColumnlist);
-
             return err;
         }
 
@@ -4538,21 +4404,6 @@ namespace EsentLib.Implementation
         // --------- //
         // WINDOWS 8 //
         // --------- //
-        #region Transactions
-        /// <summary>Causes a session to enter a transaction or create a new save point in
-        /// an existing transaction.</summary>
-        /// <param name="sesid">The session to begin the transaction for.</param>
-        /// <param name="userTransactionId">An optional identifier supplied by the user for identifying the transaction.</param>
-        /// <param name="grbit">Transaction options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetBeginTransaction3(JET_SESID sesid, long userTransactionId,
-            BeginTransactionGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetBeginTransaction3");
-            return Tracing.TraceResult(NativeMethods.JetBeginTransaction3(sesid.Value,
-                userTransactionId, unchecked((uint)grbit)));
-        }
-        #endregion
 
         /// <summary>Gets extended information about an error.</summary>
         /// <param name="error">The error code about which to retrieve information.</param>
@@ -4574,68 +4425,48 @@ namespace EsentLib.Implementation
             return err;
         }
 
-        /// <summary>Resizes a currently open database.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to grow.</param>
-        /// <param name="desiredPages">The desired size of the database, in pages.</param>
-        /// <param name="actualPages">The size of the database, in pages, after the call. </param>
-        /// <param name="grbit">Resize options.</param>
-        /// <returns>An error code.</returns>
-        public int JetResizeDatabase(JET_SESID sesid, JET_DBID dbid, int desiredPages,
-            out int actualPages, ResizeDatabaseGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetResizeDatabase");
-            this._Capabilities.CheckSupportsWindows8Features("JetResizeDatabase");
-            Helpers.CheckNotNegative(desiredPages, "desiredPages");
+        // OMITTED : workaround method.
+        ///// <summary>Creates a temporary table with a single index. A temporary table stores and
+        ///// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
+        ///// However, temporary tables are much faster than ordinary tables due to their volatile
+        ///// nature. They can also be used to very quickly sort and perform duplicate removal on
+        ///// record sets when accessed in a purely sequential manner.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="temporarytable">Description of the temporary table to create on input.
+        ///// After a successful call, the structure contains the handle to the temporary table and
+        ///// column identifications.</param>
+        ///// <returns>An error code.</returns>
+        //public int JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
+        //{
+        //    Tracing.TraceFunctionCall("JetOpenTemporaryTable2");
+        //    this._Capabilities.CheckSupportsWindows8Features("JetOpenTemporaryTable2");
+        //    Helpers.CheckNotNull(temporarytable, "temporarytable");
 
-            uint actualPagesNative = 0;
-            int err = Tracing.TraceResult(NativeMethods.JetResizeDatabase(sesid.Value, dbid.Value,
-                checked((uint)desiredPages), out actualPagesNative, (uint)grbit));
-            actualPages = checked((int)actualPagesNative);
-            return err;
-        }
+        //    NATIVE_OPENTEMPORARYTABLE2 nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable2();
+        //    var nativecolumnids = new uint[nativetemporarytable.ccolumn];
+        //    NATIVE_COLUMNDEF[] nativecolumndefs = temporarytable.prgcolumndef.GetNativecolumndefs();
+        //    unsafe {
+        //        using (var gchandlecollection = new GCHandleCollection()) {
+        //            // Pin memory
+        //            nativetemporarytable.prgcolumndef = (NATIVE_COLUMNDEF*)gchandlecollection.Add(nativecolumndefs);
+        //            nativetemporarytable.rgcolumnid = (uint*)gchandlecollection.Add(nativecolumnids);
+        //            if (null != temporarytable.pidxunicode) {
+        //                NATIVE_UNICODEINDEX2 unicode = temporarytable.pidxunicode.GetNativeUnicodeIndex2();
+        //                unicode.szLocaleName = gchandlecollection.Add(
+        //                    Util.ConvertToNullTerminatedUnicodeByteArray(
+        //                        temporarytable.pidxunicode.GetEffectiveLocaleName()));
+        //                nativetemporarytable.pidxunicode = (NATIVE_UNICODEINDEX2*)gchandlecollection.Add(unicode);
+        //            }
 
-        /// <summary>Creates a temporary table with a single index. A temporary table stores and
-        /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.
-        /// However, temporary tables are much faster than ordinary tables due to their volatile
-        /// nature. They can also be used to very quickly sort and perform duplicate removal on
-        /// record sets when accessed in a purely sequential manner.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="temporarytable">Description of the temporary table to create on input.
-        /// After a successful call, the structure contains the handle to the temporary table and
-        /// column identifications.</param>
-        /// <returns>An error code.</returns>
-        public int JetOpenTemporaryTable2(JET_SESID sesid, JET_OPENTEMPORARYTABLE temporarytable)
-        {
-            Tracing.TraceFunctionCall("JetOpenTemporaryTable2");
-            this._Capabilities.CheckSupportsWindows8Features("JetOpenTemporaryTable2");
-            Helpers.CheckNotNull(temporarytable, "temporarytable");
-
-            NATIVE_OPENTEMPORARYTABLE2 nativetemporarytable = temporarytable.GetNativeOpenTemporaryTable2();
-            var nativecolumnids = new uint[nativetemporarytable.ccolumn];
-            NATIVE_COLUMNDEF[] nativecolumndefs = temporarytable.prgcolumndef.GetNativecolumndefs();
-            unsafe {
-                using (var gchandlecollection = new GCHandleCollection()) {
-                    // Pin memory
-                    nativetemporarytable.prgcolumndef = (NATIVE_COLUMNDEF*)gchandlecollection.Add(nativecolumndefs);
-                    nativetemporarytable.rgcolumnid = (uint*)gchandlecollection.Add(nativecolumnids);
-                    if (null != temporarytable.pidxunicode) {
-                        NATIVE_UNICODEINDEX2 unicode = temporarytable.pidxunicode.GetNativeUnicodeIndex2();
-                        unicode.szLocaleName = gchandlecollection.Add(
-                            Util.ConvertToNullTerminatedUnicodeByteArray(
-                                temporarytable.pidxunicode.GetEffectiveLocaleName()));
-                        nativetemporarytable.pidxunicode = (NATIVE_UNICODEINDEX2*)gchandlecollection.Add(unicode);
-                    }
-
-                    // Call the interop method
-                    int err = Tracing.TraceResult(NativeMethods.JetOpenTemporaryTable2(sesid.Value, ref nativetemporarytable));
-                    // Convert the return values
-                    temporarytable.prgcolumndef.SetColumnids(temporarytable.prgcolumnid, nativecolumnids);
-                    temporarytable.tableid = new JET_TABLEID { Value = nativetemporarytable.tableid };
-                    return err;
-                }
-            }
-        }
+        //            // Call the interop method
+        //            int err = Tracing.TraceResult(NativeMethods.JetOpenTemporaryTable2(sesid.Value, ref nativetemporarytable));
+        //            // Convert the return values
+        //            temporarytable.prgcolumndef.SetColumnids(temporarytable.prgcolumnid, nativecolumnids);
+        //            temporarytable.tableid = new JET_TABLEID { Value = nativetemporarytable.tableid };
+        //            return err;
+        //        }
+        //    }
+        //}
 
         /// <summary>Creates a table, adds columns, and indices on that table.</summary>
         /// <param name="sesid">The session to use.</param>

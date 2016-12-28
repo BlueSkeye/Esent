@@ -64,9 +64,7 @@ namespace EsentLib.Jet
         /// </summary>
         public uint cColumns;
 
-        /// <summary>
-        /// Array of indices to create, pointer to <see cref="NATIVE_INDEXCREATE3"/>.
-        /// </summary>
+        /// <summary>Array of indices to create, pointer to see cref="NATIVE_INDEXCREATE3".</summary>
         public IntPtr rgindexcreate;
 
         /// <summary>

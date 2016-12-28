@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 
 using EsentLib.Api;
+using EsentLib.Api.Flags;
 using EsentLib.Implementation;
 using EsentLib.Jet;
 
@@ -307,20 +308,6 @@ namespace EsentLib
         /// <summary>The engine can mark the database headers as appropriate (for example, a full
         /// backup completed), even though the call to truncate was not completed.</summary>
         TruncateDone = 0x100,
-    }
-
-    /// <summary>Options for <see cref="JetSession.BeginTransaction"/>.</summary>
-    [Flags]
-    public enum BeginTransactionGrbit
-    {
-        /// <summary>Default options.</summary>
-        None = 0,
-
-        /// <summary>The transaction will not modify the database. If an update is attempted,
-        /// that operation will fail with <see cref="JET_err.TransReadOnly"/>. This option is
-        /// ignored unless it is requested when the given session is not already in a transaction.
-        /// </summary>
-        ReadOnly = 0x1,
     }
 
     /// <summary>Options for <see cref="IJetTransaction.Commit()"/>, for
@@ -1425,28 +1412,20 @@ namespace EsentLib
     [Flags]
     public enum ColInfoGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0x0,
 
-        /// <summary>
-        /// For lists (example: <see cref="JET_ColInfo.List"/>), only return
-        /// non-derived columns (if the table is derived from a template).
-        /// </summary>
+        /// <summary>For lists (example: <see cref="JET_ColInfo.List"/>), only return non-derived
+        /// columns (if the table is derived from a template).</summary>
         /// <remarks>This value is 0x80000000.</remarks>
         NonDerivedColumnsOnly = int.MinValue,
 
-        /// <summary>
-        /// For lists (example: <see cref="JET_ColInfo.List"/>), only return
-        /// the column name and columnid of each column.
-        /// </summary>
+        /// <summary>For lists (example: <see cref="JET_ColInfo.List"/>), only return the
+        /// column name and columnid of each column.</summary>
         MinimalInfo = 0x40000000,
 
-        /// <summary>
-        /// For lists (example: <see cref="JET_ColInfo.List"/>), sort
-        /// returned column list by columnid (the default is to sort list by column name).
-        /// </summary>
+        /// <summary>For lists (example: <see cref="JET_ColInfo.List"/>), sort returned
+        /// column list by columnid (the default is to sort list by column name).</summary>
         SortByColumnid = 0x20000000,
     }
 
@@ -1645,26 +1624,6 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>Options for <see cref="LegacyApi.JetResizeDatabase"/>.</summary>
-    [Flags]
-    public enum ResizeDatabaseGrbit
-    {
-        /// <summary>No option.</summary>
-        None = 0,
-
-        /// <summary>Only grow the database. If the resize call would shrink the database, do nothing.</summary>
-        OnlyGrow = 0x1,
-
-        // ----------- //
-        // WINDOWS 8.1 //
-        // ----------- //
-        /// <summary>Only shrink the database to the desired size, but keeping an 
-        /// empty extent at the end. If the resize call would grow the database, do nothing.
-        /// In order to use this functionality, <see cref="EsentLib.Implementation.JetInstance.EnableShrinkDatabase"/>
-        /// must be set to <see cref="Enums.ShrinkDatabaseGrbit.On"/>. Otherwise, an exception may
-        /// be thrown.</summary>
-        OnlyShrink = 0x2,
-    }
 
     /// <summary>Options passed to log flush callback.</summary>
     [Flags]

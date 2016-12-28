@@ -25,14 +25,10 @@ namespace EsentLib.Jet
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     internal struct NATIVE_UNICODEINDEX
     {
-        /// <summary>
-        /// The LCID to be used when normalizing unicode data.
-        /// </summary>
+        /// <summary>The LCID to be used when normalizing unicode data.</summary>
         public uint lcid;
 
-        /// <summary>
-        /// The flags for LCMapString.
-        /// </summary>
+        /// <summary>The flags for LCMapString.</summary>
         public uint dwMapFlags;
     }
 

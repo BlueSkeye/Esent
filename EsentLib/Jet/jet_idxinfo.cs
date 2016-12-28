@@ -66,11 +66,10 @@ namespace EsentLib.Jet
         /// <remarks>Not currently implemented in this layer.</remarks>
         CreateIndex = 11,
 
-        /// <summary>
-        /// Introduced in Windows 7. Returns a JET_INDEXCREATE2 structure (similar to
-        /// <see cref="JET_INDEXCREATE"/> structure, but it contains a
-        /// <see cref="JET_SPACEHINTS"/> member called pSpacehints). This structure is
-        /// suitable for use by see cref="Api.JetCreateIndex2".</summary>
+        /// <summary>Introduced in Windows 7. Returns a JET_INDEXCREATE2 structure (similar to
+        /// <see cref="JET_INDEXCREATE"/> structure, but it contains a <see cref="JET_SPACEHINTS"/>
+        /// member called pSpacehints). This structure is suitable for use by
+        /// see cref="Api.JetCreateIndex2".</summary>
         /// <remarks>Not currently implemented in this layer.</remarks>
         CreateIndex2 = 12,
 

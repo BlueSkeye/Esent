@@ -519,28 +519,23 @@ namespace EsentLib.Jet
             public int err;
         }
 
-        /// <summary>
-        /// The native version of the JET_INDEXCREATE2 structure. Introduced in Windows 7,
-        /// this includes a <see cref="JET_SPACEHINTS"/> member.
+        /// <summary>The native version of the JET_INDEXCREATE2 structure. Introduced in
+        /// Windows 7, this includes a <see cref="JET_SPACEHINTS"/> member.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
-                         "SA1305:FieldNamesMustNotUseHungarianNotation",
-                         Justification = "This should match the unmanaged API, which isn't capitalized.")]
+            "SA1305:FieldNamesMustNotUseHungarianNotation",
+            Justification = "This should match the unmanaged API, which isn't capitalized.")]
         [SuppressMessage(
             "Microsoft.StyleCop.CSharp.NamingRules",
             "SA1307:AccessibleFieldsMustBeginWithUpperCaseLetter",
             Justification = "This should match the unmanaged API, which isn't capitalized.")]
         internal struct NATIVE_INDEXCREATE2
         {
-            /// <summary>
-            /// Nested NATIVE_INDEXCREATE1 structure.
-            /// </summary>
+            /// <summary>Nested NATIVE_INDEXCREATE1 structure.</summary>
             public NATIVE_INDEXCREATE1 indexcreate1;
 
-            /// <summary>
-            /// A <see cref="NATIVE_SPACEHINTS"/> pointer.
-            /// </summary>
+            /// <summary>A <see cref="NATIVE_SPACEHINTS"/> pointer.</summary>
             public IntPtr pSpaceHints;
         }
 
