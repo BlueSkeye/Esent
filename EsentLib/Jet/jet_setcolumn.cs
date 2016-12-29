@@ -8,12 +8,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace EsentLib.Jet
 {
-    /// <summary>
-    /// The native version of the <see cref="JET_SETCOLUMN"/> structure.
-    /// </summary>
+    /// <summary>The native version of the <see cref="JET_SETCOLUMN"/> structure.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -25,39 +24,25 @@ namespace EsentLib.Jet
     [CLSCompliant(false)]
     public struct NATIVE_SETCOLUMN
     {
-        /// <summary>
-        /// Columnid to set.0
-        /// </summary>
+        /// <summary>Columnid to set.0</summary>
         public uint columnid;
 
-        /// <summary>
-        /// Data to set.
-        /// </summary>
+        /// <summary>Data to set.</summary>
         public IntPtr pvData;
 
-        /// <summary>
-        /// Size of data to set.
-        /// </summary>
+        /// <summary>Size of data to set.</summary>
         public uint cbData;
 
-        /// <summary>
-        /// SetColumns options.
-        /// </summary>
+        /// <summary>SetColumns options.</summary>
         public uint grbit;
 
-        /// <summary>
-        /// Long-value offset to set.
-        /// </summary>
+        /// <summary>Long-value offset to set.</summary>
         public uint ibLongValue;
 
-        /// <summary>
-        /// Itag sequence to set.
-        /// </summary>
+        /// <summary>Itag sequence to set.</summary>
         public uint itagSequence;
 
-        /// <summary>
-        /// Returns the error from setting the column.
-        /// </summary>
+        /// <summary>Returns the error from setting the column.</summary>
         public uint err;
     }
 
@@ -128,9 +113,32 @@ namespace EsentLib.Jet
                 CultureInfo.InvariantCulture,
                 "JET_SETCOLUMN(0x{0:x},{1},ibLongValue={2},itagSequence={3})",
                 this.columnid.Value,
-                Util.DumpBytes(this.pvData, this.ibData, this.cbData),
+                DumpBytes(this.pvData, this.ibData, this.cbData),
                 this.ibLongValue,
                 this.itagSequence);
+        }
+
+        // CONSIDER : move 
+        /// <summary>Return a string containing (some of) the bytes.</summary>
+        /// <param name="data">The data to dump.</param>
+        /// <param name="offset">The starting offset.</param>
+        /// <param name="count">The count.</param>
+        /// <returns>A string version of the data.</returns>
+        private static string DumpBytes(byte[] data, int offset, int count)
+        {
+            if (null == data) { return "<null>"; }
+            if (0 == count) { return string.Empty; }
+            if (offset < 0 || count < 0 || offset >= data.Length || offset + count > data.Length) {
+                return "<invalid>";
+            }
+            const int MaxBytesToPrint = 8;
+            StringBuilder sb = new StringBuilder();
+            sb.Append(BitConverter.ToString(data, offset, Math.Min(count, MaxBytesToPrint)));
+            if (count > MaxBytesToPrint) {
+                // The output was truncated
+                sb.AppendFormat(CultureInfo.InvariantCulture, "... ({0} bytes)", count);
+            }
+            return sb.ToString();
         }
 
         /// <summary>

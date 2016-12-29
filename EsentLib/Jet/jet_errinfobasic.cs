@@ -147,7 +147,24 @@ namespace EsentLib.Jet
                 && this.errcat == other.errcat
                 && this.lSourceLine == other.lSourceLine
                 && this.rgszSourceFile == other.rgszSourceFile
-                && Util.ArrayStructEquals(this.rgCategoricalHierarchy, other.rgCategoricalHierarchy, this.rgCategoricalHierarchy == null ? 0 : this.rgCategoricalHierarchy.Length);
+                && ArrayStructEquals(this.rgCategoricalHierarchy, other.rgCategoricalHierarchy, this.rgCategoricalHierarchy == null ? 0 : this.rgCategoricalHierarchy.Length);
+        }
+
+        /// <summary>Compares items in two arrays using Equals. If both arrays are null, there
+        /// are considered equal.</summary>
+        /// <typeparam name="T">A value type.</typeparam>
+        /// <param name="left">First array to compare.</param>
+        /// <param name="right">Second array to compare.</param>
+        /// <param name="length">The number of entries to compare.</param>
+        /// <returns>Whether the two arrays are equal.</returns>
+        public static bool ArrayStructEquals<T>(T[] left, T[] right, int length)
+            where T : struct
+        {
+            if (null == left || null == right) { return ReferenceEquals(left, right); }
+            for (int i = 0; i < length; ++i) { if (!left[i].Equals(right[i])) { return false; } }
+            // All the individual members are equal, all of the elements of the arrays are
+            // equal, so they must be equal!
+            return true;
         }
 
         /// <summary>Gets the native (interop) version of this object.</summary>
