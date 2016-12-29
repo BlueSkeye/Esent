@@ -229,7 +229,7 @@
     <Compile Include="UInt64ColumnValue.cs" />
     <Compile Include="Update.cs" />
     <Compile Include="Util.cs" />
-    <Compile Include="Win32NativeMethods.cs" />
+    <Compile Include="Parking\Win32NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

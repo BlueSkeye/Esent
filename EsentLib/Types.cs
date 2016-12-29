@@ -731,10 +731,10 @@ namespace EsentLib
 
             // ESENT requires that the buffer be aligned on a page allocation boundary.
             // VirtualAlloc is the API used to do that, so we use P/Invoke to call it.
-            IntPtr alignedBuffer = Win32.NativeMethods.VirtualAlloc(IntPtr.Zero, (UIntPtr)bufferSize,
-                (uint)(Win32.AllocationType.MEM_COMMIT | Win32.AllocationType.MEM_RESERVE),
-                (uint)Win32.MemoryProtection.PAGE_READWRITE);
-            Win32.NativeMethods.ThrowExceptionOnNull(alignedBuffer, "VirtualAlloc");
+            IntPtr alignedBuffer = VirtualAlloc(IntPtr.Zero, (UIntPtr)bufferSize,
+                (uint)(AllocationType.MEM_COMMIT | AllocationType.MEM_RESERVE),
+                (uint)MemoryProtection.PAGE_READWRITE);
+            ThrowExceptionOnNull(alignedBuffer, "VirtualAlloc");
             try {
                 uint nativeBytesRead = 0;
                 int returnCode = NativeMethods.JetReadFileInstance(_owner.Id, _nativeHandle, alignedBuffer,
@@ -747,10 +747,27 @@ namespace EsentLib
                 return bytesRead;
             }
             finally {
-                Win32.NativeMethods.ThrowExceptionOnFailure(
-                    Win32.NativeMethods.VirtualFree(alignedBuffer, UIntPtr.Zero, (uint)Win32.FreeType.MEM_RELEASE),
-                    "VirtualFree");
+                ThrowExceptionOnFailure(VirtualFree(alignedBuffer, UIntPtr.Zero,
+                    (uint)FreeType.MEM_RELEASE), "VirtualFree");
             }
+        }
+
+        /// <summary>Throw an exception if the success code is not true.</summary>
+        /// <param name="success">The success code.</param>
+        /// <param name="message">The message for the exception.</param>
+        private static void ThrowExceptionOnFailure(bool success, string message)
+        {
+            if (success) { return; }
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), message);
+        }
+
+        /// <summary>Throw an exception if the given pointer is null (IntPtr.Zero).</summary>
+        /// <param name="ptr">The pointer to check.</param>
+        /// <param name="message">The message for the exception.</param>
+        private static void ThrowExceptionOnNull(IntPtr ptr, string message)
+        {
+            if (IntPtr.Zero != ptr) { return; }
+            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), message);
         }
 
         /// <summary>Generate a string representation of the structure.</summary>
@@ -777,6 +794,40 @@ namespace EsentLib
         /// <summary>The native value.</summary>
         internal IntPtr _nativeHandle;
         private IJetInstance _owner;
+
+        /// <summary>The name of the DLL that holds the Core Memory API set.</summary>
+        private const string WinCoreMemoryDll = "kernel32.dll";
+
+        [DllImport(WinCoreMemoryDll, SetLastError = true)]
+        private static extern IntPtr VirtualAlloc(IntPtr plAddress, UIntPtr dwSize, uint flAllocationType, uint flProtect);
+
+        [DllImport(WinCoreMemoryDll, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool VirtualFree(IntPtr lpAddress, UIntPtr dwSize, uint dwFreeType);
+
+        /// <summary>Allocation type options for <see cref="VirtualAlloc"/>.</summary>
+        [Flags]
+        internal enum AllocationType : uint
+        {
+            /// <summary>Commit the memory.</summary>
+            MEM_COMMIT = 0x1000,
+            /// <summary>Reserve the memory.</summary>
+            MEM_RESERVE = 0x2000,
+        }
+
+        /// <summary>Memory protection options for <see cref="VirtualAlloc"/>.</summary>
+        internal enum MemoryProtection : uint
+        {
+            /// <summary>Read/write access to the pages.</summary>
+            PAGE_READWRITE = 0x04,
+        }
+
+        /// <summary>Options for <see cref="VirtualFree"/>.</summary>
+        internal enum FreeType : uint
+        {
+            /// <summary>Release the memory. The pages will be in the free state.</summary>
+            MEM_RELEASE = 0x8000,
+        }
     }
 
     /// <summary>
@@ -1018,6 +1069,6 @@ namespace EsentLib
                    && this.IndexId1 == other.IndexId1
                    && this.IndexId2 == other.IndexId2
                    && this.IndexId3 == other.IndexId3;
-        }        
+        }
     }
 }
