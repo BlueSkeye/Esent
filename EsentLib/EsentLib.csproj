@@ -219,7 +219,7 @@
     <Compile Include="SetColumnHelpers.cs" />
     <Compile Include="StringCache.cs" />
     <Compile Include="StringColumnValue.cs" />
-    <Compile Include="Table.cs" />
+    <Compile Include="Parking\Table.cs" />
     <Compile Include="Parking\TableEnumerator.cs" />
     <Compile Include="Tracing.cs" />
     <Compile Include="JetTransaction.cs" />

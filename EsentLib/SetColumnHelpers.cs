@@ -23,10 +23,8 @@ namespace EsentLib
     /// </summary>
     public static partial class LegacyApi
     {
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted
+        /// or toupdate the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
@@ -38,45 +36,26 @@ namespace EsentLib
             SetColumn(sesid, tableid, columnid, data, encoding, SetColumnGrbit.None);
         }
 
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted
+        /// or to update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
         /// <param name="encoding">The encoding used to convert the string.</param>
         /// <param name="grbit">SetColumn options.</param>
-        public static void SetColumn(
-            JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, string data, Encoding encoding, SetColumnGrbit grbit)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            string data, Encoding encoding, SetColumnGrbit grbit)
         {
             CheckEncodingIsValid(encoding);
-
-            if (null == data)
-            {
-                JetSetColumn(sesid, tableid, columnid, null, 0, grbit, null);
-            }
-            else if (0 == data.Length)
-            {
-                JetSetColumn(sesid, tableid, columnid, null, 0, grbit | SetColumnGrbit.ZeroLength, null);
-            }
-            else if (Encoding.Unicode == encoding)
-            {
+            if (null == data) { JetSetColumn(sesid, tableid, columnid, null, 0, grbit, null); }
+            else if (0 == data.Length) { JetSetColumn(sesid, tableid, columnid, null, 0, grbit | SetColumnGrbit.ZeroLength, null); }
+            else if (Encoding.Unicode == encoding) {
                 // Optimization for setting Unicode strings.
-                unsafe
-                {
-                    fixed (char* buffer = data)
-                    {
-                        InternalApi.JetSetColumn(
-                            sesid,
-                            tableid,
-                            columnid,
-                            new IntPtr(buffer),
-                            checked(data.Length * sizeof(char)),
-                            grbit,
-                            null);
-                    }
+                unsafe {
+                    fixed (char* buffer = data) {
+                        InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(buffer),
+                            checked(data.Length * sizeof(char)), grbit, null); }
                 }
             }
             else if (encoding.GetMaxByteCount(data.Length) <= Caches.ColumnCache.BufferSize)
@@ -85,29 +64,19 @@ namespace EsentLib
                 // more memory allocations.
                 byte[] buffer = null;
 
-                try
-                {
+                try {
                     buffer = Caches.ColumnCache.Allocate();
-                    unsafe
-                    {
+                    unsafe {
                         fixed (char* chars = data)
-                        fixed (byte* bytes = buffer)
-                        {
+                        fixed (byte* bytes = buffer) {
                             int dataSize = encoding.GetBytes(chars, data.Length, bytes, buffer.Length);
                             InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(bytes), dataSize, grbit, null);
                         }                    
                     }
                 }
-                finally
-                {
-                    if (buffer != null)
-                    {
-                        Caches.ColumnCache.Free(ref buffer);
-                    }
-                }
+                finally { if (buffer != null) { Caches.ColumnCache.Free(ref buffer); } }
             }
-            else
-            {
+            else {
                 byte[] bytes = encoding.GetBytes(data);
                 JetSetColumn(sesid, tableid, columnid, bytes, bytes.Length, grbit, null);
             }
