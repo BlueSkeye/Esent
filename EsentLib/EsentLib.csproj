@@ -73,7 +73,6 @@
     <Compile Include="ByteColumnValue.cs" />
     <Compile Include="BytesColumnValue.cs" />
     <Compile Include="Caches.cs" />
-    <Compile Include="CallbackDataConverter.cs" />
     <Compile Include="CallbackWrappers.cs" />
     <Compile Include="ColumnInfo.cs" />
     <Compile Include="ColumnStream.cs" />
@@ -82,7 +81,7 @@
     <Compile Include="Conversions.cs" />
     <Compile Include="DateTimeColumnValue.cs" />
     <Compile Include="DoubleColumnValue.cs" />
-    <Compile Include="DurableCommitCallback.cs" />
+    <Compile Include="MERGEABLE\DurableCommitCallback.cs" />
     <Compile Include="EnumeratedColumn.cs" />
     <Compile Include="Api\Flags\ShrinkDatabaseGrbit.cs" />
     <Compile Include="ErrorExceptions.cs" />
@@ -216,12 +215,12 @@
     <Compile Include="ObsoleteApi.cs" />
     <Compile Include="OnlineMaintenanceHelpers.cs" />
     <Compile Include="RetrieveColumnHelpers.cs" />
-    <Compile Include="Session.cs" />
+    <Compile Include="MERGEABLE\Session.cs" />
     <Compile Include="SetColumnHelpers.cs" />
     <Compile Include="StringCache.cs" />
     <Compile Include="StringColumnValue.cs" />
     <Compile Include="Table.cs" />
-    <Compile Include="TableEnumerator.cs" />
+    <Compile Include="Parking\TableEnumerator.cs" />
     <Compile Include="Tracing.cs" />
     <Compile Include="JetTransaction.cs" />
     <Compile Include="Types.cs" />
@@ -237,6 +236,7 @@
     <Content Include="Documentation\MSInitialDesignGoals.txt" />
     <Content Include="Documentation\OurDesignGoals.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

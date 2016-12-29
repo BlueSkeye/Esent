@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace EsentLib.Jet
@@ -100,7 +101,7 @@ namespace EsentLib.Jet
                 JET_SESID sesid = new JET_SESID { Value = nativeSesid };
                 JET_SNP snp = (JET_SNP)nativeSnp;
                 JET_SNT snt = (JET_SNT)nativeSnt;
-                object data = CallbackDataConverter.GetManagedData(nativeData, snp, snt);
+                object data = GetManagedData(nativeData, snp, snt);
                 return this.wrappedCallback(sesid, snp, snt, data);
             }
             catch (ThreadAbortException) {
@@ -119,6 +120,21 @@ namespace EsentLib.Jet
             }
             // What happens if the thread is aborted here, outside of the CER?
             // We probably throw the exception through ESENT, which isn't good.
+        }
+
+        // CONSIDER : This as public static, hence externally invokable.
+        /// <summary>Get the managed data object from the unmanaged data.</summary>
+        /// <param name="nativeData">The native data.</param>
+        /// <param name="snp">The SNP (used to determine the type of object).</param>
+        /// <param name="snt">The SNT (used to determine the type of object).</param>
+        /// <returns>The managed data object.</returns>
+        private static object GetManagedData(IntPtr nativeData, JET_SNP snp, JET_SNT snt)
+        {
+            if ((IntPtr.Zero == nativeData) || (JET_SNT.Progress == snt)) { return null; }
+            NATIVE_SNPROG native = (NATIVE_SNPROG)Marshal.PtrToStructure(nativeData, typeof(NATIVE_SNPROG));
+            JET_SNPROG managed = new JET_SNPROG();
+            managed.SetFromNative(native);
+            return managed;
         }
 
         /// <summary>API call tracing.</summary>

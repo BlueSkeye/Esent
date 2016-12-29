@@ -19,9 +19,7 @@ namespace EsentLib
     /// </summary>
     internal abstract class IndexInfoEnumerator : TableEnumerator<IndexInfo>
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="IndexInfoEnumerator"/> class.
-        /// </summary>
+        /// <summary>Initializes a new instance</summary>
         /// <param name="sesid">
         /// The session to use.
         /// </param>

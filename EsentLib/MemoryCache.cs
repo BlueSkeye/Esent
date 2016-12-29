@@ -4,12 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
+using System.Threading;
+
 namespace EsentLib
 {
-    using System;
-    using System.Diagnostics;
-    using System.Threading;
-
     /// <summary>
     /// Cache allocated chunks of memory that are needed for very short periods
     /// of time. The memory is not zeroed on allocation.
@@ -51,26 +51,17 @@ namespace EsentLib
         /// </summary>
         public int BufferSize
         {
-            get
-            {
-                return this.bufferSize;
-            }
+            get { return this.bufferSize; }
         }
 
-        /// <summary>
-        /// Creates a new array containing a copy of 'length' bytes of data.
-        /// </summary>
+        /// <summary>Creates a new array containing a copy of 'length' bytes of data.</summary>
         /// <param name="data">The data to copy.</param>
         /// <param name="length">The length of data to copy.</param>
         /// <returns>An array containing the first length bytes of data.</returns>
         public static byte[] Duplicate(byte[] data, int length)
         {
             Debug.Assert(data.Length >= length, "length parameter is too long");
-            if (0 == length)
-            {
-                return ZeroLengthArray;
-            }
-
+            if (0 == length) { return ZeroLengthArray; }
             var output = new byte[length];
             Buffer.BlockCopy(data, 0, output, 0, length);
             return output;
