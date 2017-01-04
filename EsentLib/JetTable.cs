@@ -351,6 +351,238 @@ namespace EsentLib.Implementation
         //    return result;
         //}
 
+        /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(byte[] data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            if (null == data) { MakeKey(null, 0, grbit); }
+            else if (0 == data.Length) {
+                MakeKey(data, data.Length, grbit | MakeKeyGrbit.KeyDataZeroLength);
+            }
+            else { MakeKey(data, data.Length, grbit); }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(string data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            MakeKey(data, Encoding.Unicode, grbit);
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="encoding">The encoding used to convert the string.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(string data, Encoding encoding, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            Helpers.CheckEncodingIsValid(encoding);
+            if (null == data) { MakeKey(null, 0, grbit); }
+            else if (0 == data.Length) {
+                MakeKey(null, 0, grbit | MakeKeyGrbit.KeyDataZeroLength);
+            }
+            else if (Encoding.Unicode == encoding)
+            {
+                // Optimization for Unicode strings
+                unsafe {
+                    fixed (char* buffer = data) {
+                        MakeKey(new IntPtr(buffer), checked(data.Length * sizeof(char)), grbit);
+                    }
+                }
+            }
+            else {
+                // Convert the string using a cached column buffer. The column buffer is far larger
+                // than the maximum key size, so any data truncation here won't matter.
+                byte[] buffer = null;
+                try {
+                    buffer = MemoryCache.ColumnCache.Allocate();
+                    int dataSize;
+                    unsafe {
+                        fixed (char* chars = data)
+                        fixed (byte* bytes = buffer) {
+                            dataSize = encoding.GetBytes(chars, data.Length, bytes, buffer.Length);
+                        }
+                    }
+                    MakeKey(buffer, dataSize, grbit);
+                }
+                finally { if (buffer != null) { MemoryCache.ColumnCache.Free(ref buffer); } }
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(bool data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            byte b = data ? (byte)0xff : (byte)0x0;
+            MakeKey(b, grbit);
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(byte data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(byte);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(short data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(short);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(int data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(int);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(long data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(long);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(Guid data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = 16 /* sizeof(Guid) */;
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(DateTime data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            MakeKey(data.ToOADate(), grbit);
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(float data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(float);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(double data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(double);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        // [CLSCompliant(false)]
+        public void MakeKey(ushort data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(ushort);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        // [CLSCompliant(false)]
+        public void MakeKey(uint data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(uint);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        // [CLSCompliant(false)]
+        public void MakeKey(ulong data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            unsafe {
+                const int DataSize = sizeof(ulong);
+                var pointer = new IntPtr(&data);
+                MakeKey(pointer, DataSize, grbit);
+            }
+        }
+
+        /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="dataSize">Size of the data.</param>
+        /// <param name="grbit">Key options.</param>
+        public void MakeKey(byte[] data, int dataSize, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            if (((null == data) && (0 != dataSize))
+                || ((null != data) && (dataSize > data.Length)))
+            {
+                throw new ArgumentOutOfRangeException(string.Format(
+                    "dataSize {0} cannot be greater than the length of the data", dataSize));
+            }
+            unsafe { fixed (byte* pointer = data) { MakeKey(data, dataSize, grbit); } }
+        }
+
+        /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.</summary>
+        /// <param name="pointer">Column data for the current key column of the current index.</param>
+        /// <param name="dataSize">Size of the data.</param>
+        /// <param name="grbit">Key options.</param>
+        private void MakeKey(IntPtr pointer, int dataSize, MakeKeyGrbit grbit = MakeKeyGrbit.None)
+        {
+            Tracing.TraceFunctionCall("MakeKey");
+            Helpers.CheckNotNegative(dataSize, "dataSize");
+            int returnCode = NativeMethods.JetMakeKey(_owner.Session.Id, this._id.Value,
+                pointer, checked((uint)dataSize), unchecked((uint)grbit));
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+        }
+
         /// <summary>Navigate through an index. The cursor can be positioned at the start or
         /// end of the index and moved backwards and forwards by a specified number of index
         /// entries.</summary>
@@ -358,7 +590,7 @@ namespace EsentLib.Implementation
         /// <param name="numRows">An offset which indicates how far to move the cursor.</param>
         /// <param name="grbit">Move options.</param>
         /// <returns>An error if the call fails.</returns>
-        public int Move(JET_SESID sesid, int numRows, MoveGrbit grbit)
+        public int Move(JET_SESID sesid, int numRows, MoveGrbit grbit = MoveGrbit.None)
         {
             Tracing.TraceFunctionCall("Move");
             int returnCode = NativeMethods.JetMove(sesid.Value, this._id.Value, numRows,

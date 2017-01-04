@@ -51,6 +51,22 @@ namespace EsentLib
             }
         }
 
+        /// <summary>Verifies that the given encoding is valid for setting/retrieving data.
+        /// Only the ASCII and Unicode encodings are allowed. An <see cref="ArgumentOutOfRangeException"/>
+        /// is thrown if the encoding isn't valid.</summary>
+        /// <param name="encoding">The encoding to check.</param>
+        internal static void CheckEncodingIsValid(Encoding encoding)
+        {
+            const int AsciiCodePage = 20127;    // from MSDN
+            const int UnicodeCodePage = 1200;   // from MSDN
+            int codePage = encoding.CodePage;
+            if ((AsciiCodePage != codePage) && (UnicodeCodePage != codePage)) {
+                throw new ArgumentOutOfRangeException(string.Format(
+                    "encoding {0} Invalid Encoding type. Only ASCII and Unicode encodings are allowed",
+                    codePage));
+            }
+        }
+
         /// <summary>Make sure the given integer isn't negative. If it is then throw an
         /// ArgumentOutOfRangeException.</summary>
         /// <param name="i">The integer to check.</param>

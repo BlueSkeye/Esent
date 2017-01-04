@@ -2515,25 +2515,6 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>
-        /// Constructs search keys that may then be used by <see cref="IJetInstance.JetSeek"/> and <see cref="IJetInstance.JetSetIndexRange"/>.
-        /// </summary>
-        /// <remarks>
-        /// The MakeKey functions provide datatype-specific make key functionality.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to create the key on.</param>
-        /// <param name="data">Column data for the current key column of the current index.</param>
-        /// <param name="dataSize">Size of the data.</param>
-        /// <param name="grbit">Key options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetMakeKey(JET_SESID sesid, JET_TABLEID tableid, IntPtr data, int dataSize, MakeKeyGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetMakeKey");
-            Helpers.CheckNotNegative(dataSize, "dataSize");
-            return Tracing.TraceResult(NativeMethods.JetMakeKey(sesid.Value, tableid.Value, data, checked((uint)dataSize), unchecked((uint)grbit)));
-        }
-
-        /// <summary>
         /// Efficiently positions a cursor to an index entry that matches the search
         /// criteria specified by the search key in that cursor and the specified
         /// inequality. A search key must have been previously constructed using

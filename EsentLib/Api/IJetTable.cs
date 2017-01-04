@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 using EsentLib.Jet;
 
@@ -93,6 +94,95 @@ namespace EsentLib.Api
         /// <returns>An error if the call fails.</returns>
         bool IsWriteConflictExpected(IJetSession session);
 
+        /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(byte[] data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(string data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="encoding">The encoding used to convert the string.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(string data, Encoding encoding, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.
+        /// </summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(bool data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(byte data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange.</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(short data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(int data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(long data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(Guid data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(DateTime data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(float data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(double data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        // [CLSCompliant(false)]
+        void MakeKey(ushort data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        // [CLSCompliant(false)]
+        void MakeKey(uint data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs a search key that may then be used by JetSeek and JetSetIndexRange</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="grbit">Key options.</param>
+        // [CLSCompliant(false)]
+        void MakeKey(ulong data, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
+        /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.</summary>
+        /// <param name="data">Column data for the current key column of the current index.</param>
+        /// <param name="dataSize">Size of the data.</param>
+        /// <param name="grbit">Key options.</param>
+        void MakeKey(byte[] data, int dataSize, MakeKeyGrbit grbit = MakeKeyGrbit.None);
+
         /// <summary>Navigate through an index. The cursor can be positioned at the start or
         /// end of the index and moved backwards and forwards by a specified number of index
         /// entries.</summary>
@@ -100,7 +190,7 @@ namespace EsentLib.Api
         /// <param name="numRows">An offset which indicates how far to move the cursor.</param>
         /// <param name="grbit">Move options.</param>
         /// <returns>An error if the call fails.</returns>
-        int Move(JET_SESID sesid, int numRows, MoveGrbit grbit);
+        int Move(JET_SESID sesid, int numRows, MoveGrbit grbit = MoveGrbit.None);
 
         /// <summary>Prepare a cursor for update.</summary>
         /// <param name="session">The session which is starting the update.</param>

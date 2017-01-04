@@ -52,20 +52,6 @@ namespace EsentLib
             }
         }
 
-        /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.
-        /// </summary>
-        /// <remarks>This is an internal (unsafe) version that takes an IntPtr.</remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to create the key on.</param>
-        /// <param name="data">Column data for the current key column of the current index.</param>
-        /// <param name="dataSize">Size of the data.</param>
-        /// <param name="grbit">Key options.</param>
-        internal static void JetMakeKey(JET_SESID sesid, JET_TABLEID tableid, IntPtr data,
-            int dataSize, MakeKeyGrbit grbit)
-        {
-            EsentExceptionHelper.Check(EsentLib.LegacyApi.Impl.JetMakeKey(sesid, tableid, data, dataSize, grbit));
-        }
-
         /// <summary>The JetSetColumn function modifies a single column value in a modified
         /// record to be inserted or to update the current record. It can overwrite an
         /// existing value, add a new value to a sequence of values in a multi-valued column,

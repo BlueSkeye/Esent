@@ -458,43 +458,10 @@ namespace EsentLib
             //EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, (int)numRows, grbit));
         }
 
-        /// <summary>
-        /// Constructs search keys that may then be used by <see cref="JetSeek"/> and <see cref="JetSetIndexRange"/>.
-        /// </summary>
-        /// <remarks>
-        /// The MakeKey functions provide datatype-specific make key functionality.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to create the key on.</param>
-        /// <param name="data">Column data for the current key column of the current index.</param>
-        /// <param name="dataSize">Size of the data.</param>
-        /// <param name="grbit">Key options.</param>
-        public static void JetMakeKey(JET_SESID sesid, JET_TABLEID tableid, byte[] data, int dataSize, MakeKeyGrbit grbit)
-        {
-            if ((null == data && 0 != dataSize) || (null != data && dataSize > data.Length))
-            {
-                throw new ArgumentOutOfRangeException(
-                    "dataSize",
-                    dataSize,
-                    "cannot be greater than the length of the data");
-            }
-
-            unsafe
-            {
-                fixed (byte* pointer = data)
-                {
-                    InternalApi.JetMakeKey(sesid, tableid, new IntPtr(pointer), dataSize, grbit);
-                }
-            }
-        }
-
         // Also see <seealso cref="TrySeek"/>.
-        /// <summary>
-        /// Efficiently positions a cursor to an index entry that matches the search
-        /// criteria specified by the search key in that cursor and the specified
-        /// inequality. A search key must have been previously constructed using 
-        /// <see cref="JetMakeKey(JET_SESID,JET_TABLEID,byte[],int,MakeKeyGrbit)"/>.
-        /// </summary>
+        /// <summary>Efficiently positions a cursor to an index entry that matches the search
+        /// criteria specified by the search key in that cursor and the specified inequality.
+        /// A search key must have been previously constructed using IJetTable.MakeKey.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to position.</param>
         /// <param name="grbit">Seek options.</param>
@@ -511,8 +478,7 @@ namespace EsentLib
         /// from the current index entry and ending at the index entry that matches the
         /// search criteria specified by the search key in that cursor and the specified
         /// bound criteria. A search key must have been previously constructed using
-        /// <see cref="JetMakeKey(JET_SESID,JET_TABLEID,byte[],int,MakeKeyGrbit)"/>.
-        /// </summary>
+        /// IJetTable.MakeKey.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to set the index range on.</param>
         /// <param name="grbit">Index range options.</param>

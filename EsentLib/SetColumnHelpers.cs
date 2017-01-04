@@ -46,7 +46,7 @@ namespace EsentLib
         public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
             string data, Encoding encoding, SetColumnGrbit grbit)
         {
-            CheckEncodingIsValid(encoding);
+            Helpers.CheckEncodingIsValid(encoding);
             if (null == data) {
                 JetSetColumn(sesid, tableid, columnid, null, 0, grbit, null);
                 return;
@@ -403,33 +403,6 @@ namespace EsentLib
                 NATIVE_SETCOLUMN* nativeSetcolumns = stackalloc NATIVE_SETCOLUMN[values.Length];
                 EsentExceptionHelper.Check(values[0].SetColumns(sesid, tableid, values, nativeSetcolumns, 0));
             }
-        }
-
-        /// <summary>
-        /// Verifies that the given encoding is valid for setting/retrieving data. Only
-        /// the ASCII and Unicode encodings are allowed. An <see cref="ArgumentOutOfRangeException"/>
-        /// is thrown if the encoding isn't valid.
-        /// </summary>
-        /// <param name="encoding">The encoding to check.</param>
-        private static void CheckEncodingIsValid(Encoding encoding)
-        {
-#if MANAGEDESENT_ON_CORECLR
-            string webName = encoding.WebName;
-            if (webName != "utf-8" && webName != "utf-16")
-            {
-                throw new ArgumentOutOfRangeException(
-                    "encoding", webName, "Invalid Encoding type. Only Unicode (utf-8 and utf-16) encodings are allowed.");
-            }
-#else
-            const int AsciiCodePage = 20127;    // from MSDN
-            const int UnicodeCodePage = 1200;   // from MSDN
-            int codePage = encoding.CodePage;
-            if ((AsciiCodePage != codePage) && (UnicodeCodePage != codePage))
-            {
-                throw new ArgumentOutOfRangeException(
-                    "encoding", codePage, "Invalid Encoding type. Only ASCII and Unicode encodings are allowed");
-            }
-#endif
         }
     }
 }
