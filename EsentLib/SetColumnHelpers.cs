@@ -13,14 +13,13 @@ using System.Runtime.Serialization.Formatters.Binary;
 #endif
 using System.Text;
 
+using EsentLib.Api.Data;
 using EsentLib.Jet;
 
 namespace EsentLib
 {
-    /// <summary>
-    /// Helper methods for the ESENT API. These do data conversion for
-    /// setting columns.
-    /// </summary>
+    /// <summary>Helper methods for the ESENT API. These do data conversion for setting
+    /// columns.</summary>
     public static partial class LegacyApi
     {
         /// <summary>Modifies a single column value in a modified record to be inserted
@@ -30,14 +29,14 @@ namespace EsentLib
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
         /// <param name="encoding">The encoding used to convert the string.</param>
-        public static void SetColumn(
-            JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, string data, Encoding encoding)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            string data, Encoding encoding)
         {
             SetColumn(sesid, tableid, columnid, data, encoding, SetColumnGrbit.None);
         }
 
-        /// <summary>Modifies a single column value in a modified record to be inserted
-        /// or to update the current record.</summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted or to
+        /// update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
@@ -48,138 +47,134 @@ namespace EsentLib
             string data, Encoding encoding, SetColumnGrbit grbit)
         {
             CheckEncodingIsValid(encoding);
-            if (null == data) { JetSetColumn(sesid, tableid, columnid, null, 0, grbit, null); }
-            else if (0 == data.Length) { JetSetColumn(sesid, tableid, columnid, null, 0, grbit | SetColumnGrbit.ZeroLength, null); }
-            else if (Encoding.Unicode == encoding) {
+            if (null == data) {
+                JetSetColumn(sesid, tableid, columnid, null, 0, grbit, null);
+                return;
+            }
+            if (0 == data.Length) {
+                JetSetColumn(sesid, tableid, columnid, null, 0, grbit | SetColumnGrbit.ZeroLength, null);
+                return;
+            }
+            if (Encoding.Unicode == encoding) {
                 // Optimization for setting Unicode strings.
                 unsafe {
                     fixed (char* buffer = data) {
                         InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(buffer),
                             checked(data.Length * sizeof(char)), grbit, null); }
                 }
+                return;
             }
-            else if (encoding.GetMaxByteCount(data.Length) <= Caches.ColumnCache.BufferSize)
-            {
+            if (encoding.GetMaxByteCount(data.Length) <= MemoryCache.ColumnCache.BufferSize) {
                 // The encoding output will fix in a cached buffer. Get one to avoid 
                 // more memory allocations.
                 byte[] buffer = null;
 
                 try {
-                    buffer = Caches.ColumnCache.Allocate();
+                    buffer = MemoryCache.ColumnCache.Allocate();
                     unsafe {
-                        fixed (char* chars = data)
-                        fixed (byte* bytes = buffer) {
-                            int dataSize = encoding.GetBytes(chars, data.Length, bytes, buffer.Length);
-                            InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(bytes), dataSize, grbit, null);
-                        }                    
+                        fixed (char* chars = data) {
+                            fixed (byte* bytes = buffer) {
+                                int dataSize = encoding.GetBytes(chars, data.Length, bytes, buffer.Length);
+                                InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(bytes),
+                                    dataSize, grbit, null);
+                            }
+                        }
                     }
                 }
-                finally { if (buffer != null) { Caches.ColumnCache.Free(ref buffer); } }
+                finally { if (buffer != null) { MemoryCache.ColumnCache.Free(ref buffer); } }
+                return;
             }
-            else {
-                byte[] bytes = encoding.GetBytes(data);
-                JetSetColumn(sesid, tableid, columnid, bytes, bytes.Length, grbit, null);
-            }
+            byte[] encodedBytes = encoding.GetBytes(data);
+            JetSetColumn(sesid, tableid, columnid, encodedBytes, encodedBytes.Length, grbit, null);
+            return;
         }
 
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted or to
+        /// update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
-        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, byte[] data)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            byte[] data)
         {
             SetColumn(sesid, tableid, columnid, data, SetColumnGrbit.None);
         }
 
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted or to
+        /// update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
         /// <param name="grbit">SetColumn options.</param>
-        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, byte[] data, SetColumnGrbit grbit)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            byte[] data, SetColumnGrbit grbit)
         {
-            if ((null != data) && (0 == data.Length))
-            {
+            if ((null != data) && (0 == data.Length)) {
                 grbit |= SetColumnGrbit.ZeroLength;
             }
-
             int dataLength = (null == data) ? 0 : data.Length;
             JetSetColumn(sesid, tableid, columnid, data, dataLength, grbit, null);
         }
 
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted or to
+        /// update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
-        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, bool data)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            bool data)
         {
-            byte b = data ? (byte)0xff : (byte)0x0;
-            SetColumn(sesid, tableid, columnid, b);
+            SetColumn(sesid, tableid, columnid, data ? (byte)0xff : (byte)0x0);
         }
 
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted or to
+        /// update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
-        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, byte data)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            byte data)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(byte);
-                var pointer = new IntPtr(&data);
-                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(&data), DataSize,
+                    SetColumnGrbit.None, null);
             }
         }
 
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted or to
+        /// update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
-        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, short data)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            short data)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(short);
-                var pointer = new IntPtr(&data);
-                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(&data), DataSize,
+                    SetColumnGrbit.None, null);
             }
         }
 
-        /// <summary>
-        /// Modifies a single column value in a modified record to be inserted or to
-        /// update the current record.
-        /// </summary>
+        /// <summary>Modifies a single column value in a modified record to be inserted or to
+        /// update the current record.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to update. An update should be prepared.</param>
         /// <param name="columnid">The columnid to set.</param>
         /// <param name="data">The data to set.</param>
-        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, int data)
+        public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+            int data)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(int);
-                var pointer = new IntPtr(&data);
-                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(&data), DataSize,
+                    SetColumnGrbit.None, null);
             }
         }
 
@@ -193,11 +188,10 @@ namespace EsentLib
         /// <param name="data">The data to set.</param>
         public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, long data)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(long);
-                var pointer = new IntPtr(&data);
-                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(&data), DataSize,
+                    SetColumnGrbit.None, null);
             }
         }
 
@@ -211,11 +205,10 @@ namespace EsentLib
         /// <param name="data">The data to set.</param>
         public static void SetColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, Guid data)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = 16; // sizeof(Guid) isn't a compile-time constant
-                var pointer = new IntPtr(&data);
-                InternalApi.JetSetColumn(sesid, tableid, columnid, pointer, DataSize, SetColumnGrbit.None, null);
+                InternalApi.JetSetColumn(sesid, tableid, columnid, new IntPtr(&data), DataSize,
+                    SetColumnGrbit.None, null);
             }
         }
 

@@ -7,6 +7,8 @@
 using System.Collections.Generic;
 using System.Text;
 
+using EsentLib.Api;
+
 namespace EsentLib
 {
     /// <summary>Static utility methods.</summary>

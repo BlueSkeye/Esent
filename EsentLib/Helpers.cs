@@ -8,6 +8,15 @@ namespace EsentLib
 {
     internal static class Helpers
     {
+        /// <summary>Make sure the retrieved data size is at least as long as the expected size.
+        /// An exception is thrown if the data isn't long enough.</summary>
+        /// <param name="expectedDataSize">The expected data size.</param>
+        /// <param name="actualDataSize">The size of the retrieved data.</param>
+        internal static void CheckDataSize(int expectedDataSize, int actualDataSize)
+        {
+            if (actualDataSize < expectedDataSize) { throw new EsentInvalidColumnException(); }
+        }
+
         /// <summary>Make sure the data and dataSize arguments match.</summary>
         /// <param name="data">The data buffer.</param>
         /// <param name="dataSize">The size of the data.</param>
@@ -62,6 +71,16 @@ namespace EsentLib
                 Tracing.TraceErrorLine(string.Format("CheckNotNull failed for '{0}'", paramName));
                 throw new ArgumentNullException(paramName);
             }
+        }
+
+        /// <summary>Given the size returned by ESENT, get the size to return to the user.</summary>
+        /// <param name="numBytesActual">The size returned by ESENT.</param>
+        /// <returns>The bookmark size to return to the user.</returns>
+        internal static int GetActualSize(uint numBytesActual)
+        {
+            // BUG: debug builds of ESENT can fill numBytesActual with this value in case of failure.
+            const uint CbActualDebugFill = 0xDDDDDDDD;
+            return (CbActualDebugFill == numBytesActual) ? 0 : checked((int)numBytesActual);
         }
     }
 }

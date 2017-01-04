@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -12,6 +13,12 @@ namespace EsentLib.Implementation
     [CLSCompliant(false)]
     public class JetDatabase : IJetDatabase
     {
+        /// <summary></summary>
+        /// <param name="owner">The session that has been used to open or create this
+        /// database. Every operation on the database must be performed inside this session.
+        /// </param>
+        /// <param name="dbid"></param>
+        /// <param name="name">Database name.</param>
         internal JetDatabase(JetSession owner, JET_DBID dbid, string name)
         {
             if (null == owner) { throw new ArgumentNullException("owner"); }
@@ -19,6 +26,11 @@ namespace EsentLib.Implementation
             _dbid = dbid;
             _name = name;
             _owner = owner;
+        }
+
+        internal JetSession Session
+        {
+            get { return _owner; }
         }
 
         /// <summary>Closes a database file that was previously opened with
@@ -105,6 +117,55 @@ namespace EsentLib.Implementation
                 : NativeMethods.JetDetachDatabase2W(_owner.Id, _name, (uint)grbit);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
+        }
+
+        /// <summary>Enumerate the name of the tables in this database, optionally including
+        /// system tables.</summary>
+        /// <param name="includeSystemTables">true if system tables should be included.</param>
+        /// <returns>An enumerable object.</returns>
+        public IEnumerable<string> EnumerateTableNames(bool includeSystemTables = false)
+        {
+            JET_OBJECTLIST tables = GetDatabaseTables();
+            JetTable resultTable = new JetTable(this, tables.tableid);
+            return resultTable.Enumerate<string>(
+                includeSystemTables
+                ? (JetTable.FilterDelegate)delegate() { return true; }
+                : (JetTable.FilterDelegate)delegate () {
+                    // <summary>Determine if the current entry in the table being enumerated should be
+                    // skipped (not returned). Here we are skipping system tables.</summary>
+                    // <returns>True if the current entry should be skipped.</returns>
+                    int flags = (int)resultTable.RetrieveColumnAsInt32(tables.columnidflags);
+                    return (ObjectInfoFlags.System == ((ObjectInfoFlags)flags & ObjectInfoFlags.System));
+                },
+                delegate() {
+                    string name = resultTable.RetrieveColumnAsString(tables.columnidobjectname);
+                    return StringCache.TryToIntern(name);
+                });
+        }
+
+        //internal string RetrieveTableName()
+        //{
+        //    string name = RetrieveColumnAsString(_owner.Session.Handle, this.TableidToEnumerate,
+        //        this.objectlist.columnidobjectname, Encoding.Unicode, RetrieveColumnGrbit.None);
+        //    return StringCache.TryToIntern(name);
+        //}
+
+        /// <summary>Retrieves information about database tables. This is the only kind of
+        /// database objects that are supported for information retrieval by the underlying
+        /// native API.</summary>
+        /// <returns>An object list.</returns>
+        public JET_OBJECTLIST GetDatabaseTables()
+        {
+            Tracing.TraceFunctionCall("GetDatabaseTables");
+            JET_OBJECTLIST result = new JET_OBJECTLIST();
+            NATIVE_OBJECTLIST nativeObjectlist = NATIVE_OBJECTLIST.Create();
+            int returnCode = NativeMethods.JetGetObjectInfoW(_owner.Id, _dbid.Value,
+                (uint)JET_objtyp.Table, null, null, ref nativeObjectlist, nativeObjectlist.cbStruct,
+                (uint)JET_ObjInfo.ListNoStats);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            result.SetFromNativeObjectlist(nativeObjectlist);
+            return result;
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>
@@ -244,15 +305,13 @@ namespace EsentLib.Implementation
         /// <param name="grbit">Table open options.</param>
         /// <returns>An ESENT warning.</returns>
         [CLSCompliant(false)]
-        public IJetTable OpenTable(string tablename, byte[] parameters,
-            OpenTableGrbit grbit)
+        public IJetTable OpenTable(string tablename, byte[] parameters, OpenTableGrbit grbit)
         {
             Tracing.TraceFunctionCall("OpenTable");
             JET_TABLEID tableid = JET_TABLEID.Nil;
             Helpers.CheckNotNull(tablename, "tablename");
-            int returnCode = NativeMethods.JetOpenTable(_owner.Id, this._dbid.Value,
-                tablename, parameters, checked((uint)parameters.Length),
-                (uint)grbit, out tableid.Value);
+            int returnCode = NativeMethods.JetOpenTable(_owner.Id, this._dbid.Value, tablename,
+                parameters, checked((uint)parameters.Length), (uint)grbit, out tableid.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return new JetTable(this, tableid);
@@ -266,26 +325,23 @@ namespace EsentLib.Implementation
         /// takes up on disk. Win32's GetCompressedFileSize returns the correct on-disk size.
         /// <see cref="IJetDatabase.GetInfo(JET_DbInfo)"/> returns the on-disk size when
         /// used with <see cref="JET_DbInfo.FilesizeOnDisk"/></remarks>
-        /// <param name="session">The session to use.</param>
         /// <param name="desiredPages">The desired size of the database, in pages.</param>
         /// <param name="grbit">Resize options.</param>
-        public int Resize(IJetSession session, int desiredPages,
-            ResizeDatabaseGrbit grbit = ResizeDatabaseGrbit.None)
+        public int Resize(int desiredPages, ResizeDatabaseGrbit grbit = ResizeDatabaseGrbit.None)
         {
             // LegacyApi.Impl.JetResizeDatabase(sesid, dbid, desiredPages, out actualPages, grbit)
             Tracing.TraceFunctionCall("Resize");
-            Helpers.CheckNotNull(session, "session");
             Helpers.CheckNotNegative(desiredPages, "desiredPages");
             uint actualPagesNative = 0;
             int returnCode;
             if (ResizeDatabaseGrbit.None != grbit) {
                 this._owner.Capabilities.CheckSupportsWindows8Features("Resize");
-                returnCode = NativeMethods.JetResizeDatabase(session.Id, this._dbid.Value,
+                returnCode = NativeMethods.JetResizeDatabase(_owner.Id, this._dbid.Value,
                     checked((uint)desiredPages), out actualPagesNative, (uint)grbit);
             }
             else {
                 Helpers.CheckNotNull(_name, "database");
-                returnCode = NativeMethods.JetSetDatabaseSizeW(session.Id, _name,
+                returnCode = NativeMethods.JetSetDatabaseSizeW(_owner.Id, _name,
                     checked((uint)desiredPages), out actualPagesNative);
             }
             Tracing.TraceResult(returnCode);

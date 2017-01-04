@@ -1720,69 +1720,18 @@ namespace EsentLib.Implementation
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
-        /// <param name="objectlist">Filled in with information about the objects in the database.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, out JET_OBJECTLIST objectlist)
-        {
-            Tracing.TraceFunctionCall("JetGetObjectInfo");
-            objectlist = new JET_OBJECTLIST();
-
-            var nativeObjectlist = new NATIVE_OBJECTLIST();
-            nativeObjectlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_OBJECTLIST)));
-            int err;
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetObjectInfoW(
-                    sesid.Value,
-                    dbid.Value,
-                    (uint)JET_objtyp.Table,
-                    null,
-                    null,
-                    ref nativeObjectlist,
-                    nativeObjectlist.cbStruct,
-                    (uint)JET_ObjInfo.ListNoStats));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetObjectInfo(
-                    sesid.Value,
-                    dbid.Value,
-                    (uint)JET_objtyp.Table,
-                    null,
-                    null,
-                    ref nativeObjectlist,
-                    nativeObjectlist.cbStruct,
-                    (uint)JET_ObjInfo.ListNoStats));
-            }
-
-            objectlist.SetFromNativeObjectlist(nativeObjectlist);
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves information about database objects.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to use.</param>
         /// <param name="objtyp">The type of the object.</param>
         /// <param name="objectName">The object name about which to retrieve information.</param>
         /// <param name="objectinfo">Filled in with information about the objects in the database.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetGetObjectInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_objtyp objtyp,
-            string objectName,
-            out JET_OBJECTINFO objectinfo)
+        public int JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, JET_objtyp objtyp,
+            string objectName, out JET_OBJECTINFO objectinfo)
         {
             Tracing.TraceFunctionCall("JetGetObjectInfo");
             objectinfo = new JET_OBJECTINFO();
-
             var nativeObjectinfo = new NATIVE_OBJECTINFO();
             nativeObjectinfo.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_OBJECTINFO)));
             int err;
-
             if (_capabilities.SupportsVistaFeatures)
             {
                 err = Tracing.TraceResult(NativeMethods.JetGetObjectInfoW(
@@ -1813,33 +1762,6 @@ namespace EsentLib.Implementation
         }
 
         #endregion
-
-        /// <summary>
-        /// JetGetCurrentIndex function determines the name of the current
-        /// index of a given cursor. This name is also used to later re-select
-        /// that index as the current index using <see cref="JetSetCurrentIndex"/>. It can
-        /// also be used to discover the properties of that index using
-        /// JetGetTableIndexInfo.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to get the index name for.</param>
-        /// <param name="indexName">Returns the name of the index.</param>
-        /// <param name="maxNameLength">
-        /// The maximum length of the index name. Index names are no more than
-        /// Api.MaxNameLength characters.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, out string indexName, int maxNameLength)
-        {
-            Tracing.TraceFunctionCall("JetGetCurrentIndex");
-            Helpers.CheckNotNegative(maxNameLength, "maxNameLength");
-
-            var name = new StringBuilder(maxNameLength);
-            int err = Tracing.TraceResult(NativeMethods.JetGetCurrentIndex(sesid.Value, tableid.Value, name, checked((uint)maxNameLength)));
-            indexName = name.ToString();
-            indexName = StringCache.TryToIntern(indexName);
-            return err;
-        }
 
         #region JetGetTableInfo overloads
 
@@ -2552,27 +2474,6 @@ namespace EsentLib.Implementation
         #region Navigation
 
         /// <summary>
-        /// Positions a cursor to an index entry for the record that is associated with
-        /// the specified bookmark. The bookmark can be used with any index defined over
-        /// a table. The bookmark for a record can be retrieved using <see cref="IJetInstance.JetGetBookmark"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <param name="bookmark">The bookmark used to position the cursor.</param>
-        /// <param name="bookmarkSize">The size of the bookmark.</param>        /// <returns>An error if the call fails.</returns>
-        public int JetGotoBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize)
-        {
-            Tracing.TraceFunctionCall("JetGotoBookmark");
-            Helpers.CheckNotNull(bookmark, "bookmark");
-            Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
-
-            return
-                Tracing.TraceResult(
-                    NativeMethods.JetGotoBookmark(
-                        sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize)));
-        }
-
-        /// <summary>
         /// Positions a cursor to an index entry that is associated with the
         /// specified secondary index bookmark. The secondary index bookmark
         /// must be used with the same index over the same table from which it
@@ -2648,30 +2549,11 @@ namespace EsentLib.Implementation
             return Tracing.TraceResult(NativeMethods.JetSeek(sesid.Value, tableid.Value, unchecked((uint)grbit)));
         }
 
-        /// <summary>
-        /// Navigate through an index. The cursor can be positioned at the start or
-        /// end of the index and moved backwards and forwards by a specified number
-        /// of index entries.
-        /// </summary>
-        /// <param name="sesid">The session to use for the call.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <param name="numRows">An offset which indicates how far to move the cursor.</param>
-        /// <param name="grbit">Move options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetMove(JET_SESID sesid, JET_TABLEID tableid, int numRows, MoveGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetMove");
-            return Tracing.TraceResult(NativeMethods.JetMove(sesid.Value, tableid.Value, numRows, unchecked((uint)grbit)));
-        }
-
-        /// <summary>
-        /// Temporarily limits the set of index entries that the cursor can walk using
-        /// <see cref="IJetInstance.JetMove"/> to those starting
-        /// from the current index entry and ending at the index entry that matches the
-        /// search criteria specified by the search key in that cursor and the specified
-        /// bound criteria. A search key must have been previously constructed using
-        /// JetMakeKey.
-        /// </summary>
+        /// <summary>Temporarily limits the set of index entries that the cursor can walk
+        /// using <see cref="IJetTable.Move"/> to those starting from the current index entry
+        /// and ending at the index entry that matches the search criteria specified by the
+        /// search key in that cursor and the specified bound criteria. A search key must
+        /// have been previously constructed using JetMakeKey.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to set the index range on.</param>
         /// <param name="grbit">Index range options.</param>
@@ -2734,111 +2616,6 @@ namespace EsentLib.Implementation
             recordlist = new JET_RECORDLIST();
             recordlist.SetFromNativeRecordlist(nativeRecordlist);
             return err;
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetSetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
-        {
-            Tracing.TraceFunctionCall("JetSetCurrentIndex");
-
-            // A null index name is valid here -- it will set the table to the primary index
-            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex(sesid.Value, tableid.Value, index));
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetSetCurrentIndex2(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetSetCurrentIndex2");
-
-            // A null index name is valid here -- it will set the table to the primary index
-            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex2(sesid.Value, tableid.Value, index, (uint)grbit));
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <param name="itagSequence">
-        /// Sequence number of the multi-valued column value which will be used
-        /// to position the cursor on the new index. This parameter is only used
-        /// in conjunction with <see cref="SetCurrentIndexGrbit.NoMove"/>. When
-        /// this parameter is not present or is set to zero, its value is presumed
-        /// to be 1.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetSetCurrentIndex3(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit, int itagSequence)
-        {
-            Tracing.TraceFunctionCall("JetSetCurrentIndex3");
-
-            // A null index name is valid here -- it will set the table to the primary index
-            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex3(sesid.Value, tableid.Value, index, (uint)grbit, checked((uint)itagSequence)));
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="indexid">
-        /// The id of the index to select. This id can be obtained using JetGetIndexInfo
-        /// or JetGetTableIndexInfo with the <see cref="JET_IdxInfo.IndexId"/> option.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <param name="itagSequence">
-        /// Sequence number of the multi-valued column value which will be used
-        /// to position the cursor on the new index. This parameter is only used
-        /// in conjunction with <see cref="SetCurrentIndexGrbit.NoMove"/>. When
-        /// this parameter is not present or is set to zero, its value is presumed
-        /// to be 1.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetSetCurrentIndex4(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string index,
-            JET_INDEXID indexid,
-            SetCurrentIndexGrbit grbit,
-            int itagSequence)
-        {
-            Tracing.TraceFunctionCall("JetSetCurrentIndex4");
-
-            // A null index name is valid here -- it will set the table to the primary index
-            return Tracing.TraceResult(NativeMethods.JetSetCurrentIndex4(sesid.Value, tableid.Value, index, ref indexid, (uint)grbit, checked((uint)itagSequence)));
         }
 
         /// <summary>
@@ -3000,7 +2777,7 @@ namespace EsentLib.Implementation
         /// <summary>
         /// Retrieves the bookmark for the record that is associated with the index entry
         /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="IJetInstance.JetGotoBookmark"/>.
+        /// reposition that cursor back to the same record using <see cref="ICursor.GotoBookmark"/>.
         /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
         /// bytes.
         /// </summary>
@@ -3100,71 +2877,6 @@ namespace EsentLib.Implementation
             int err = Tracing.TraceResult(NativeMethods.JetRetrieveKey(sesid.Value, tableid.Value, data, checked((uint)dataSize), out bytesActual, unchecked((uint)grbit)));
 
             actualDataSize = GetActualSize(bytesActual);
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves a single column value from the current record. The record is that
-        /// record associated with the index entry at the current position of the cursor.
-        /// Alternatively, this function can retrieve a column from a record being created
-        /// in the cursor copy buffer. This function can also retrieve column data from an
-        /// index entry that references the current record. In addition to retrieving the
-        /// actual column value, JetRetrieveColumn can also be used to retrieve the size
-        /// of a column, before retrieving the column data itself so that application
-        /// buffers can be sized appropriately.
-        /// </summary>
-        /// <remarks>
-        /// The RetrieveColumnAs functions provide datatype-specific retrieval functions.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to retrieve the column from.</param>
-        /// <param name="columnid">The columnid to retrieve.</param>
-        /// <param name="data">The data buffer to be retrieved into.</param>
-        /// <param name="dataSize">The size of the data buffer.</param>
-        /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
-        /// <param name="grbit">Retrieve column options.</param>
-        /// <param name="retinfo">
-        /// If pretinfo is give as NULL then the function behaves as though an itagSequence
-        /// of 1 and an ibLongValue of 0 (zero) were given. This causes column retrieval to
-        /// retrieve the first value of a multi-valued column, and to retrieve long data at
-        /// offset 0 (zero).
-        /// </param>
-        /// <returns>An error or warning.</returns>
-        public int JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, IntPtr data, int dataSize, out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
-        {
-            Tracing.TraceFunctionCall("JetRetrieveColumn");
-            Helpers.CheckNotNegative(dataSize, "dataSize");
-
-            int err;
-            uint bytesActual = 0;
-            if (null != retinfo)
-            {
-                NATIVE_RETINFO nativeRetinfo = retinfo.GetNativeRetinfo();
-                err = Tracing.TraceResult(NativeMethods.JetRetrieveColumn(
-                        sesid.Value,
-                        tableid.Value,
-                        columnid.Value,
-                        data,
-                        checked((uint)dataSize),
-                        out bytesActual,
-                        unchecked((uint)grbit),
-                        ref nativeRetinfo));
-                retinfo.SetFromNativeRetinfo(nativeRetinfo);
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetRetrieveColumn(
-                        sesid.Value,
-                        tableid.Value,
-                        columnid.Value,
-                        data,
-                        checked((uint)dataSize),
-                        out bytesActual,
-                        unchecked((uint)grbit),
-                        IntPtr.Zero));
-            }
-
-            actualDataSize = checked((int)bytesActual);
             return err;
         }
 
@@ -3452,80 +3164,6 @@ namespace EsentLib.Implementation
         {
             Tracing.TraceFunctionCall("JetDelete");
             return Tracing.TraceResult(NativeMethods.JetDelete(sesid.Value, tableid.Value));
-        }
-
-        /// <summary>
-        /// Prepare a cursor for update.
-        /// </summary>
-        /// <param name="sesid">The session which is starting the update.</param>
-        /// <param name="tableid">The cursor to start the update for.</param>
-        /// <param name="prep">The type of update to prepare.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetPrepareUpdate(JET_SESID sesid, JET_TABLEID tableid, JET_prep prep)
-        {
-            Tracing.TraceFunctionCall("JetPrepareUpdate");
-            return Tracing.TraceResult(NativeMethods.JetPrepareUpdate(sesid.Value, tableid.Value, unchecked((uint)prep)));
-        }
-
-        /// <summary>
-        /// The JetUpdate function performs an update operation including inserting a new row into
-        /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="IJetInstance.JetDelete"/>.
-        /// </summary>
-        /// <param name="sesid">The session which started the update.</param>
-        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
-        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
-        /// <param name="bookmarkSize">The size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <remarks>
-        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="IJetInstance.JetPrepareUpdate"/> and then by calling
-        /// JetSetColumn
-        /// one or more times to set the record state. Finally, JetUpdate
-        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
-        /// </remarks>
-        /// <returns>An error if the call fails.</returns>
-        public int JetUpdate(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
-        {
-            Tracing.TraceFunctionCall("JetUpdate");
-            Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
-
-            uint bytesActual;
-            int err = Tracing.TraceResult(NativeMethods.JetUpdate(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual));
-            actualBookmarkSize = GetActualSize(bytesActual);
-
-            return err;
-        }
-
-        /// <summary>
-        /// The JetUpdate2 function performs an update operation including inserting a new row into
-        /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="JetDelete"/>.
-        /// </summary>
-        /// <param name="sesid">The session which started the update.</param>
-        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
-        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
-        /// <param name="bookmarkSize">The size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <param name="grbit">Update options.</param>
-        /// <remarks>
-        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="JetPrepareUpdate"/> and then by calling
-        /// JetSetColumn one or more times to set the record state. Finally, JetUpdate
-        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
-        /// </remarks>
-        /// <returns>An error if the call fails.</returns>
-        public int JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize,
-            UpdateGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetUpdate2");
-            Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
-            this._Capabilities.CheckSupportsServer2003Features("JetUpdate2");
-            uint bytesActual;
-            int err = Tracing.TraceResult(NativeMethods.JetUpdate2(sesid.Value, tableid.Value, bookmark, checked((uint)bookmarkSize), out bytesActual, (uint)grbit));
-            actualBookmarkSize = GetActualSize(bytesActual);
-
-            return err;
         }
 
         /// <summary>
@@ -4656,9 +4294,7 @@ namespace EsentLib.Implementation
             }
         }
 
-        /// <summary>
-        /// Set an array of simple filters for <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>
-        /// </summary>
+        /// <summary>Set an array of simple filters for <see cref="IJetTable.Move"/></summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>
         /// <param name="filters">Simple record filters.</param>

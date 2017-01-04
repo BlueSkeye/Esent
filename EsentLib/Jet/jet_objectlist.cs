@@ -11,9 +11,7 @@ using System.Runtime.InteropServices;
 
 namespace EsentLib.Jet
 {
-    /// <summary>
-    /// The native version of the JET_OBJECTLIST structure.
-    /// </summary>
+    /// <summary>The native version of the JET_OBJECTLIST structure.</summary>
     [StructLayout(LayoutKind.Sequential)]
     [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules",
         "SA1305:FieldNamesMustNotUseHungarianNotation",
@@ -24,153 +22,96 @@ namespace EsentLib.Jet
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     internal struct NATIVE_OBJECTLIST
     {
-        /// <summary>
-        /// Size of the structure.
-        /// </summary>
+        internal static NATIVE_OBJECTLIST Create()
+        {
+            return new NATIVE_OBJECTLIST() {
+                cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_OBJECTLIST)))
+            };
+        }
+        
+        /// <summary>Size of the structure.</summary>
         public uint cbStruct;
-
-        /// <summary>
-        /// Tableid of the temporary table.
-        /// </summary>
+        /// <summary>Tableid of the temporary table.</summary>
         public IntPtr tableid;
-
-        /// <summary>
-        /// Number of records in the temporary table.
-        /// </summary>
+        /// <summary>Number of records in the temporary table.</summary>
         public uint cRecord;
-
-        /// <summary>
-        /// The id of column containing the name of the container type.
-        /// </summary>
+        /// <summary>The id of column containing the name of the container type.</summary>
         public uint columnidcontainername;
-
-        /// <summary>
-        /// The id of the column containing the name of the object.
-        /// </summary>
+        /// <summary>The id of the column containing the name of the object.</summary>
         public uint columnidobjectname;
-
-        /// <summary>
-        /// The id of the column containing the type of the object.
-        /// </summary>
+        /// <summary>The id of the column containing the type of the object.</summary>
         public uint columnidobjtyp;
-
-        /// <summary>
-        /// Obsolete. Do not use.
-        /// </summary>
+        /// <summary>Obsolete. Do not use.</summary>
         [Obsolete("Unused member")]
         public uint columniddtCreate;
-
-        /// <summary>
-        /// Obsolete. Do not use.
-        /// </summary>
+        /// <summary>Obsolete. Do not use.</summary>
         [Obsolete("Unused member")]
         public uint columniddtUpdate;
-
-        /// <summary>
-        /// The id of the column containing object grbits.
-        /// </summary>
+        /// <summary>The id of the column containing object grbits.</summary>
         public uint columnidgrbit;
-
-        /// <summary>
-        /// The id of the column containing object flags.
-        /// </summary>
+        /// <summary>The id of the column containing object flags.</summary>
         public uint columnidflags;
-
-        /// <summary>
-        /// The id of the column containing the number of records in the table.
-        /// </summary>
+        /// <summary>The id of the column containing the number of records in the table.</summary>
         public uint columnidcRecord;
-
-        /// <summary>
-        /// The id of the column containing the number of pages the object uses.
-        /// </summary>
+        /// <summary>The id of the column containing the number of pages the object uses.</summary>
         public uint columnidcPage;
     }
 
-    /// <summary>
-    /// Information about a temporary table containing information
-    /// about all tables for a given database.
-    /// </summary>
+    /// <summary>Information about a temporary table containing information about all tables
+    /// for a given database.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     public class JET_OBJECTLIST
     {
-        /// <summary>
-        /// Gets tableid of the temporary table. This should be closed
-        /// when the table is no longer needed.
-        /// </summary>
+        /// <summary>Gets tableid of the temporary table. This should be closed when the
+        /// table is no longer needed.</summary>
         public JET_TABLEID tableid { get; internal set; }
 
-        /// <summary>
-        /// Gets the number of records in the temporary table.
-        /// </summary>
+        /// <summary>Gets the number of records in the temporary table.</summary>
         public int cRecord { get; internal set; }
 
-        /// <summary>
-        /// Gets the columnid of the column in the temporary table which
-        /// stores the name of the table.
-        /// </summary>
+        /// <summary>Gets the columnid of the column in the temporary table which stores the
+        /// name of the table.</summary>
         public JET_COLUMNID columnidobjectname { get; internal set; }
 
-        /// <summary>
-        /// Gets the columnid of the column in the temporary table which
-        /// stores the type of the table.
-        /// </summary>
+        /// <summary>Gets the columnid of the column in the temporary table which stores the
+        /// type of the table.</summary>
         public JET_COLUMNID columnidobjtyp { get; internal set; }
 
-        /// <summary>
-        /// Gets the columnid of the column in the temporary table which
-        /// stores the grbits used when the table was created.
-        /// </summary>
+        /// <summary>Gets the columnid of the column in the temporary table which stores the
+        /// grbits used when the table was created.</summary>
         public JET_COLUMNID columnidgrbit { get; internal set; }
 
-        /// <summary>
-        /// Gets the columnid of the column in the temporary table which
-        /// stores the table flags (e.g. the system table flag).
-        /// </summary>
+        /// <summary>Gets the columnid of the column in the temporary table which stores the
+        /// table flags (e.g. the system table flag).</summary>
         public JET_COLUMNID columnidflags { get; internal set; }
 
-        /// <summary>
-        /// Gets the columnid of the column in the temporary table which
-        /// stores the number of records in the table.
-        /// </summary>
+        /// <summary>Gets the columnid of the column in the temporary table which stores the
+        /// number of records in the table.</summary>
         public JET_COLUMNID columnidcRecord { get; internal set; }
 
-        /// <summary>
-        /// Gets the columnid of the column in the temporary table whic
-        /// stores the name of the container.
-        /// </summary>
+        /// <summary>Gets the columnid of the column in the temporary table whic stores the
+        /// name of the container.</summary>
         public JET_COLUMNID columnidcontainername { get; internal set; }
 
-        /// <summary>
-        /// Gets the columnid of the column in the temporary table which
-        /// stores the number of pages used by the table.
-        /// </summary>
+        /// <summary>Gets the columnid of the column in the temporary table which stores the
+        /// number of pages used by the table.</summary>
         public JET_COLUMNID columnidcPage { get; internal set; }
 
-        /// <summary>
-        /// Returns a <see cref="T:System.String"/> that represents the current <see cref="JET_OBJECTLIST"/>.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="T:System.String"/> that represents the current <see cref="JET_OBJECTLIST"/>.
-        /// </returns>
+        /// <summary>Returns a <see cref="T:System.String"/> that represents the current
+        /// <see cref="JET_OBJECTLIST"/>.</summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current
+        /// <see cref="JET_OBJECTLIST"/>.</returns>
         public override string ToString()
         {
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "JET_OBJECTLIST(0x{0:x},{1} records)",
-                this.tableid,
-                this.cRecord);
+            return string.Format(CultureInfo.InvariantCulture, "JET_OBJECTLIST(0x{0:x},{1} records)",
+                this.tableid, this.cRecord);
         }
 
-        /// <summary>
-        /// Sets the fields of the object from a native JET_OBJECTLIST struct.
-        /// </summary>
-        /// <param name="value">
-        /// The native objectlist to set the values from.
-        /// </param>
+        /// <summary>Sets the fields of the object from a native JET_OBJECTLIST struct.</summary>
+        /// <param name="value">The native objectlist to set the values from.</param>
         internal void SetFromNativeObjectlist(NATIVE_OBJECTLIST value)
         {
             this.tableid = new JET_TABLEID { Value = value.tableid };

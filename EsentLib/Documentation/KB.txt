@@ -1,0 +1,2 @@
+﻿ESE Handles
+https://msdn.microsoft.com/en-us/library/gg269349(v=exchg.10).aspx

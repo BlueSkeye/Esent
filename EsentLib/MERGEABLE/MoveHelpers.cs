@@ -68,42 +68,6 @@ namespace EsentLib
         }
 
         /// <summary>
-        /// Try to move to the first record in the table. If the table is empty this
-        /// returns false, if a different error is encountered an exception is thrown.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <returns>True if the move was successful.</returns>
-        public static bool TryMoveFirst(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            return TryMove(sesid, tableid, JET_Move.First, MoveGrbit.None);
-        }
-
-        /// <summary>
-        /// Try to move to the last record in the table. If the table is empty this
-        /// returns false, if a different error is encountered an exception is thrown.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <returns>True if the move was successful.</returns>
-        public static bool TryMoveLast(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            return TryMove(sesid, tableid, JET_Move.Last, MoveGrbit.None);
-        }
-
-        /// <summary>
-        /// Try to move to the next record in the table. If there is not a next record
-        /// this returns false, if a different error is encountered an exception is thrown.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <returns>True if the move was successful.</returns>
-        public static bool TryMoveNext(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            return TryMove(sesid, tableid, JET_Move.Next, MoveGrbit.None);
-        }
-
-        /// <summary>
         /// Try to move to the previous record in the table. If there is not a previous record
         /// this returns false, if a different error is encountered an exception is thrown.
         /// </summary>

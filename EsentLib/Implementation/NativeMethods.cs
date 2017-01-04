@@ -545,26 +545,27 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetObjectInfo(IntPtr sesid, uint dbid, uint objtyp,
-            string szContainerName, string szObjectName, [In] [Out] ref NATIVE_OBJECTLIST objectlist,
+            string szContainerName, string szObjectName, [In, Out] ref NATIVE_OBJECTLIST objectlist,
             uint cbMax, uint InfoLevel);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetObjectInfoW(IntPtr sesid, uint dbid, uint objtyp,
-            string szContainerName, string szObjectName, [In] [Out] ref NATIVE_OBJECTLIST objectlist,
+            string szContainerName, string szObjectName, [In, Out] ref NATIVE_OBJECTLIST objectlist,
             uint cbMax, uint InfoLevel);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
         public static extern int JetGetObjectInfo(IntPtr sesid, uint dbid, uint objtyp,
-            string szContainerName, string szObjectName, [In] [Out] ref NATIVE_OBJECTINFO objectinfo,
+            string szContainerName, string szObjectName, [In, Out] ref NATIVE_OBJECTINFO objectinfo,
             uint cbMax, uint InfoLevel);
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetObjectInfoW(IntPtr sesid, uint dbid, uint objtyp,
-            string szContainerName, string szObjectName, [In] [Out] ref NATIVE_OBJECTINFO objectinfo,
+            string szContainerName, string szObjectName, [In, Out] ref NATIVE_OBJECTINFO objectinfo,
             uint cbMax, uint InfoLevel);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetGetCurrentIndex(IntPtr sesid, IntPtr tableid, [Out] StringBuilder szIndexName, uint cchIndexName);
+        public static extern int JetGetCurrentIndex(IntPtr sesid, IntPtr tableid,
+            [Out] StringBuilder szIndexName, uint cchIndexName);
 
         #region JetGetTableInfo overloads
 
@@ -697,7 +698,8 @@ namespace EsentLib.Implementation
         #region Navigation
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetGotoBookmark(IntPtr sesid, IntPtr tableid, [In] byte[] pvBookmark, uint cbBookmark);
+        public static extern int JetGotoBookmark(IntPtr sesid, IntPtr tableid, [In] byte[] pvBookmark,
+            uint cbBookmark);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGotoSecondaryIndexBookmark(IntPtr sesid, IntPtr tableid,
@@ -725,13 +727,16 @@ namespace EsentLib.Implementation
         public static extern int JetSetCurrentIndex(IntPtr sesid, IntPtr tableid, string szIndexName);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetSetCurrentIndex2(IntPtr sesid, IntPtr tableid, string szIndexName, uint grbit);
+        public static extern int JetSetCurrentIndex2(IntPtr sesid, IntPtr tableid, string szIndexName,
+            uint grbit);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetSetCurrentIndex3(IntPtr sesid, IntPtr tableid, string szIndexName, uint grbit, uint itagSequence);
+        public static extern int JetSetCurrentIndex3(IntPtr sesid, IntPtr tableid, string szIndexName,
+            uint grbit, uint itagSequence);
 
         [DllImport(Constants.EsentDll, CharSet = EsentCharSet, ExactSpelling = true)]
-        public static extern int JetSetCurrentIndex4(IntPtr sesid, IntPtr tableid, string szIndexName, [In] ref JET_INDEXID indexid, uint grbit, uint itagSequence);
+        public static extern int JetSetCurrentIndex4(IntPtr sesid, IntPtr tableid, string szIndexName,
+            [In] ref JET_INDEXID indexid, uint grbit, uint itagSequence);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetIndexRecordCount(IntPtr sesid, IntPtr tableid, out uint crec, uint crecMax);
@@ -804,10 +809,12 @@ namespace EsentLib.Implementation
         public static extern int JetPrepareUpdate(IntPtr sesid, IntPtr tableid, uint prep);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetUpdate(IntPtr sesid, IntPtr tableid, [Out] byte[] pvBookmark, uint cbBookmark, out uint cbActual);
+        public static extern int JetUpdate(IntPtr sesid, IntPtr tableid, [Out] byte[] pvBookmark,
+            uint cbBookmark, out uint cbActual);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetUpdate2(IntPtr sesid, IntPtr tableid, [Out] byte[] pvBookmark, uint cbBookmark, out uint cbActual, uint grbit);
+        public static extern int JetUpdate2(IntPtr sesid, IntPtr tableid, [Out] byte[] pvBookmark,
+            uint cbBookmark, out uint cbActual, uint grbit);
 
         // This has IntPtr and NATIVE_SETINFO versions because the parameter can be null
         [DllImport(Constants.EsentDll, ExactSpelling = true)]

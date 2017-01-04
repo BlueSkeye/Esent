@@ -153,70 +153,22 @@ namespace EsentLib
 
         #endregion
 
-        #region JetGetObjectInfo overloads
-
-        /// <summary>
-        /// Retrieves information about database objects.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to use.</param>
-        /// <param name="objectlist">Filled in with information about the objects in the database.</param>
-        public static void JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, out JET_OBJECTLIST objectlist)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetObjectInfo(sesid, dbid, out objectlist));
-        }
-
-        /// <summary>
-        /// Retrieves information about database objects.
-        /// </summary>
+        /// <summary>Retrieves information about database objects.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
         /// <param name="objtyp">The type of the object.</param>
         /// <param name="objectName">The object name about which to retrieve information.</param>
         /// <param name="objectinfo">Filled in with information about the objects in the database.</param>
-        public static void JetGetObjectInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_objtyp objtyp,
-            string objectName,
-            out JET_OBJECTINFO objectinfo)
+        public static void JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, JET_objtyp objtyp,
+            string objectName, out JET_OBJECTINFO objectinfo)
         {
             EsentExceptionHelper.Check(Impl.JetGetObjectInfo(sesid, dbid, objtyp, objectName, out objectinfo));
         }
 
-        #endregion
-
-        /// <summary>
-        /// Determines the name of the current index of a given cursor.
-        /// </summary>
-        /// <remarks>
-        /// This name is also used to later re-select that index as the current index using
-        /// <see cref="JetSetCurrentIndex"/>.  It can also be used to discover the properties of that index using
-        /// JetGetTableIndexInfo.
-        /// 
-        /// The returned name of the index will be an empty string if the current index is the clustered index and no
-        /// primary index was explicitly defined.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to get the index name for.</param>
-        /// <param name="indexName">Returns the name of the index.</param>
-        /// <param name="maxNameLength">
-        /// The maximum length of the index name. Index names are no more than 
-        /// <see cref="Constants.NameMost"/> characters.
-        /// </param>
-        public static void JetGetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, out string indexName, int maxNameLength)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetCurrentIndex(sesid, tableid, out indexName, maxNameLength));
-        }
-
         #region JetGetTableInfo overloads
 
-        /// <summary>
-        /// Retrieves various pieces of information about a table in a database.
-        /// </summary>
-        /// <remarks>
-        /// This overload is used with <see cref="JET_TblInfo.Default"/>.
-        /// </remarks>
+        /// <summary>Retrieves various pieces of information about a table in a database.</summary>
+        /// <remarks>This overload is used with <see cref="JET_TblInfo.Default"/>.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve information about.</param>
         /// <param name="result">Retrieved information.</param>
@@ -226,13 +178,9 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves various pieces of information about a table in a database.
-        /// </summary>
-        /// <remarks>
-        /// This overload is used with <see cref="JET_TblInfo.Name"/> and
-        /// <see cref="JET_TblInfo.TemplateTableName"/>.
-        /// </remarks>
+        /// <summary>Retrieves various pieces of information about a table in a database.</summary>
+        /// <remarks>This overload is used with <see cref="JET_TblInfo.Name"/> and
+        /// <see cref="JET_TblInfo.TemplateTableName"/>.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve information about.</param>
         /// <param name="result">Retrieved information.</param>
@@ -242,12 +190,8 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves various pieces of information about a table in a database.
-        /// </summary>
-        /// <remarks>
-        /// This overload is used with <see cref="JET_TblInfo.Dbid"/>.
-        /// </remarks>
+        /// <summary>Retrieves various pieces of information about a table in a database.</summary>
+        /// <remarks>This overload is used with <see cref="JET_TblInfo.Dbid"/>.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve information about.</param>
         /// <param name="result">Retrieved information.</param>
@@ -257,13 +201,9 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves various pieces of information about a table in a database.
-        /// </summary>
-        /// <remarks>
-        /// This overload is used with <see cref="JET_TblInfo.SpaceUsage"/> and
-        /// <see cref="JET_TblInfo.SpaceAlloc"/>.
-        /// </remarks>
+        /// <summary>Retrieves various pieces of information about a table in a database.</summary>
+        /// <remarks>This overload is used with <see cref="JET_TblInfo.SpaceUsage"/> and
+        /// <see cref="JET_TblInfo.SpaceAlloc"/>.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve information about.</param>
         /// <param name="result">Retrieved information.</param>
@@ -273,13 +213,9 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetGetTableInfo(sesid, tableid, result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves various pieces of information about a table in a database.
-        /// </summary>
-        /// <remarks>
-        /// This overload is used with <see cref="JET_TblInfo.SpaceOwned"/> and
-        /// <see cref="JET_TblInfo.SpaceAvailable"/>.
-        /// </remarks>
+        /// <summary>Retrieves various pieces of information about a table in a database.</summary>
+        /// <remarks>This overload is used with <see cref="JET_TblInfo.SpaceOwned"/> and
+        /// <see cref="JET_TblInfo.SpaceAvailable"/>.</remarks>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve information about.</param>
         /// <param name="result">Retrieved information.</param>
@@ -293,9 +229,7 @@ namespace EsentLib
 
         #region JetGetIndexInfo overloads
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
         /// <param name="tablename">The name of the table to retrieve index information about.</param>
@@ -303,93 +237,60 @@ namespace EsentLib
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
         [CLSCompliant(false)]
-        public static void JetGetIndexInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string indexname,
-                out ushort result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetIndexInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string indexname, out ushort result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
         /// <param name="tablename">The name of the table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index to retrieve information about.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetIndexInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string indexname,
-                out int result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetIndexInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string indexname, out int result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
         /// <param name="tablename">The name of the table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index to retrieve information about.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetIndexInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string indexname,
-                out JET_INDEXID result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetIndexInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string indexname, out JET_INDEXID result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
         /// <param name="tablename">The name of the table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index to retrieve information about.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetIndexInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string indexname,
-                out JET_INDEXLIST result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetIndexInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string indexname, out JET_INDEXLIST result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
         /// <param name="tablename">The name of the table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index to retrieve information about.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetIndexInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string indexname,
-                out string result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetIndexInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string indexname, out string result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetIndexInfo(sesid, dbid, tablename, indexname, out result, infoLevel));
         }
@@ -398,102 +299,70 @@ namespace EsentLib
 
         #region JetGetTableIndexInfo overloads
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
         [CLSCompliant(false)]
-        public static void JetGetTableIndexInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string indexname,
-                out ushort result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetTableIndexInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string indexname, out ushort result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetTableIndexInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string indexname,
-                out int result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetTableIndexInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string indexname, out int result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetTableIndexInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string indexname,
-                out JET_INDEXID result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetTableIndexInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string indexname, out JET_INDEXID result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetTableIndexInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string indexname,
-                out JET_INDEXLIST result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetTableIndexInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string indexname, out JET_INDEXLIST result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
+        /// <summary>Retrieves information about indexes on a table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to retrieve index information about.</param>
         /// <param name="indexname">The name of the index.</param>
         /// <param name="result">Filled in with information about indexes on the table.</param>
         /// <param name="infoLevel">The type of information to retrieve.</param>
-        public static void JetGetTableIndexInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string indexname,
-                out string result,
-                JET_IdxInfo infoLevel)
+        public static void JetGetTableIndexInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string indexname, out string result, JET_IdxInfo infoLevel)
         {
             EsentExceptionHelper.Check(Impl.JetGetTableIndexInfo(sesid, tableid, indexname, out result, infoLevel));
         }
 
         #endregion
 
-        /// <summary>
-        /// Changes the name of an existing table.
-        /// </summary>
+        /// <summary>Changes the name of an existing table.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database containing the table.</param>
         /// <param name="tableName">The name of the table.</param>
@@ -503,22 +372,19 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetRenameTable(sesid, dbid, tableName, newTableName));
         }
 
-        /// <summary>
-        /// Changes the name of an existing column.
-        /// </summary>
+        /// <summary>Changes the name of an existing column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="name">The name of the column.</param>
         /// <param name="newName">The new name of the column.</param>
         /// <param name="grbit">Column rename options.</param>
-        public static void JetRenameColumn(JET_SESID sesid, JET_TABLEID tableid, string name, string newName, RenameColumnGrbit grbit)
+        public static void JetRenameColumn(JET_SESID sesid, JET_TABLEID tableid, string name,
+            string newName, RenameColumnGrbit grbit)
         {
             EsentExceptionHelper.Check(Impl.JetRenameColumn(sesid, tableid, name, newName, grbit));
         }
 
-        /// <summary>
-        /// Changes the default value of an existing column.
-        /// </summary>
+        /// <summary>Changes the default value of an existing column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database containing the column.</param>
         /// <param name="tableName">The name of the table containing the column.</param>
@@ -526,37 +392,22 @@ namespace EsentLib
         /// <param name="data">The new default value.</param>
         /// <param name="dataSize">Size of the new default value.</param>
         /// <param name="grbit">Column default value options.</param>
-        public static void JetSetColumnDefaultValue(
-            JET_SESID sesid, JET_DBID dbid, string tableName, string columnName, byte[] data, int dataSize, SetColumnDefaultValueGrbit grbit)
+        public static void JetSetColumnDefaultValue(JET_SESID sesid, JET_DBID dbid, string tableName,
+            string columnName, byte[] data, int dataSize, SetColumnDefaultValueGrbit grbit)
         {
-            EsentExceptionHelper.Check(Impl.JetSetColumnDefaultValue(sesid, dbid, tableName, columnName, data, dataSize, grbit));
+            EsentExceptionHelper.Check(Impl.JetSetColumnDefaultValue(sesid, dbid, tableName,
+                columnName, data, dataSize, grbit));
         }
 
         #endregion
 
         #region Navigation
 
-        /// <summary>
-        /// Positions a cursor to an index entry for the record that is associated with
-        /// the specified bookmark. The bookmark can be used with any index defined over
-        /// a table. The bookmark for a record can be retrieved using <see cref="JetGetBookmark"/>. 
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <param name="bookmark">The bookmark used to position the cursor.</param>
-        /// <param name="bookmarkSize">The size of the bookmark.</param>
-        public static void JetGotoBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize)
-        {
-            EsentExceptionHelper.Check(Impl.JetGotoBookmark(sesid, tableid, bookmark, bookmarkSize));
-        }
-
-        /// <summary>
-        /// Positions a cursor to an index entry that is associated with the
-        /// specified secondary index bookmark. The secondary index bookmark
-        /// must be used with the same index over the same table from which it
-        /// was originally retrieved. The secondary index bookmark for an index
-        /// entry can be retrieved using <see cref="JetGotoSecondaryIndexBookmark"/>.
-        /// </summary>
+        /// <summary>Positions a cursor to an index entry that is associated with the specified
+        /// secondary index bookmark. The secondary index bookmark must be used with the same
+        /// index over the same table from which it was originally retrieved. The secondary
+        /// index bookmark for an index entry can be retrieved using
+        /// <see cref="JetGotoSecondaryIndexBookmark"/>.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table cursor to position.</param>
         /// <param name="secondaryKey">The buffer that contains the secondary key.</param>
@@ -564,13 +415,8 @@ namespace EsentLib
         /// <param name="primaryKey">The buffer that contains the primary key.</param>
         /// <param name="primaryKeySize">The size of the primary key.</param>
         /// <param name="grbit">Options for positioning the bookmark.</param>
-        public static void JetGotoSecondaryIndexBookmark(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            byte[] secondaryKey,
-            int secondaryKeySize,
-            byte[] primaryKey,
-            int primaryKeySize,
+        public static void JetGotoSecondaryIndexBookmark(JET_SESID sesid, JET_TABLEID tableid,
+            byte[] secondaryKey, int secondaryKeySize, byte[] primaryKey, int primaryKeySize,
             GotoSecondaryIndexBookmarkGrbit grbit)
         {
             EsentExceptionHelper.Check(
@@ -591,7 +437,8 @@ namespace EsentLib
         /// <param name="grbit">Move options.</param>
         public static void JetMove(JET_SESID sesid, JET_TABLEID tableid, int numRows, MoveGrbit grbit)
         {
-            EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, numRows, grbit));
+            throw new NotImplementedException();
+            // EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, numRows, grbit));
         }
 
         // <seealso cref="TryMoveFirst"/>, <seealso cref="TryMoveLast"/>,
@@ -607,7 +454,8 @@ namespace EsentLib
         /// <param name="grbit">Move options.</param>
         public static void JetMove(JET_SESID sesid, JET_TABLEID tableid, JET_Move numRows, MoveGrbit grbit)
         {
-            EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, (int)numRows, grbit));
+            throw new NotImplementedException();
+            //EsentExceptionHelper.Check(Impl.JetMove(sesid, tableid, (int)numRows, grbit));
         }
 
         /// <summary>
@@ -692,103 +540,10 @@ namespace EsentLib
         /// Returns information about the temporary table containing the intersection results.
         /// </param>
         /// <param name="grbit">Intersection options.</param>
-        public static void JetIntersectIndexes(
-            JET_SESID sesid,
-            JET_INDEXRANGE[] ranges,
-            int numRanges,
-            out JET_RECORDLIST recordlist,
-            IntersectIndexesGrbit grbit)
+        public static void JetIntersectIndexes(JET_SESID sesid, JET_INDEXRANGE[] ranges,
+            int numRanges, out JET_RECORDLIST recordlist, IntersectIndexesGrbit grbit)
         {
             EsentExceptionHelper.Check(Impl.JetIntersectIndexes(sesid, ranges, numRanges, out recordlist, grbit));
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        public static void JetSetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, string index)
-        {
-            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex(sesid, tableid, index));
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        public static void JetSetCurrentIndex2(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit)
-        {
-            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex2(sesid, tableid, index, grbit));
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <param name="itagSequence">
-        /// Sequence number of the multi-valued column value which will be used
-        /// to position the cursor on the new index. This parameter is only used
-        /// in conjunction with <see cref="SetCurrentIndexGrbit.NoMove"/>. When
-        /// this parameter is not present or is set to zero, its value is presumed
-        /// to be 1.
-        /// </param>
-        public static void JetSetCurrentIndex3(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit, int itagSequence)
-        {
-            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex3(sesid, tableid, index, grbit, itagSequence));
-        }
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="indexid">
-        /// The id of the index to select. This id can be obtained using JetGetIndexInfo
-        /// or JetGetTableIndexInfo with the <see cref="JET_IdxInfo.IndexId"/> option.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <param name="itagSequence">
-        /// Sequence number of the multi-valued column value which will be used
-        /// to position the cursor on the new index. This parameter is only used
-        /// in conjunction with <see cref="SetCurrentIndexGrbit.NoMove"/>. When
-        /// this parameter is not present or is set to zero, its value is presumed
-        /// to be 1.
-        /// </param>
-        public static void JetSetCurrentIndex4(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string index,
-            JET_INDEXID indexid,
-            SetCurrentIndexGrbit grbit,
-            int itagSequence)
-        {
-            EsentExceptionHelper.Check(Impl.JetSetCurrentIndex4(sesid, tableid, index, indexid, grbit, itagSequence));
         }
 
         /// <summary>
@@ -879,7 +634,7 @@ namespace EsentLib
         /// <summary>
         /// Retrieves the bookmark for the record that is associated with the index entry
         /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="JetGotoBookmark"/>. 
+        /// reposition that cursor back to the same record using <see cref="ICursor.GotoBookmark"/>. 
         /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
         /// bytes.
         /// Also see <seealso cref="GetBookmark"/>.
@@ -911,27 +666,14 @@ namespace EsentLib
         /// <param name="primaryKeySize">Size of the primary key buffer.</param>
         /// <param name="actualPrimaryKeySize">Returns the size of the primary key.</param>
         /// <param name="grbit">Options for the call.</param>
-        public static void JetGetSecondaryIndexBookmark(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            byte[] secondaryKey,
-            int secondaryKeySize,
-            out int actualSecondaryKeySize,
-            byte[] primaryKey,
-            int primaryKeySize,
-            out int actualPrimaryKeySize,
+        public static void JetGetSecondaryIndexBookmark(JET_SESID sesid, JET_TABLEID tableid,
+            byte[] secondaryKey, int secondaryKeySize, out int actualSecondaryKeySize,
+            byte[] primaryKey, int primaryKeySize, out int actualPrimaryKeySize,
             GetSecondaryIndexBookmarkGrbit grbit)
         {
             EsentExceptionHelper.Check(
-                Impl.JetGetSecondaryIndexBookmark(
-                    sesid,
-                    tableid,
-                    secondaryKey,
-                    secondaryKeySize,
-                    out actualSecondaryKeySize,
-                    primaryKey,
-                    primaryKeySize,
-                    out actualPrimaryKeySize,
+                Impl.JetGetSecondaryIndexBookmark(sesid, tableid, secondaryKey, secondaryKeySize,
+                    out actualSecondaryKeySize, primaryKey, primaryKeySize, out actualPrimaryKeySize,
                     grbit));
         }
 
@@ -950,80 +692,34 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetRetrieveKey(sesid, tableid, data, dataSize, out actualDataSize, grbit));
         }
 
-        /// <summary>Retrieves a single column value from the current record. The record
-        /// is that record associated with the index entry at the current position of the
-        /// cursor. Alternatively, this function can retrieve a column from a record being
-        /// created in the cursor copy buffer. This function can also retrieve column data
-        /// from an index entry that references the current record. In addition to retrieving
-        /// the actual column value, JetRetrieveColumn can also be used to retrieve the
-        /// size of a column, before retrieving the column data itself so that application
-        /// buffers can be sized appropriately.</summary>
-        /// <remarks>The RetrieveColumnAs functions provide datatype-specific retrieval
-        /// functions.</remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to retrieve the column from.</param>
-        /// <param name="columnid">The columnid to retrieve.</param>
-        /// <param name="data">The data buffer to be retrieved into.</param>
-        /// <param name="dataSize">The size of the data buffer.</param>
-        /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
-        /// <param name="grbit">Retrieve column options.</param>
-        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves
-        /// as though an itagSequence of 1 and an ibLongValue of 0 (zero) were given.
-        /// This causes column retrieval to retrieve the first value of a multi-valued
-        /// column, and to retrieve long data at offset 0 (zero).</param>
-        /// <returns>An ESENT warning code.</returns>
-        public static JET_wrn JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid,
-            JET_COLUMNID columnid, byte[] data, int dataSize, out int actualDataSize,
-            RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
-        {
-            return InternalApi.JetRetrieveColumn(sesid, tableid, columnid, data, dataSize,
-                0, out actualDataSize, grbit, retinfo);
-        }
-
-        /// <summary>
-        /// Retrieves multiple column values from the current record in a
-        /// single operation. An array of JET_RETRIEVECOLUMN structures is
-        /// used to describe the set of column values to be retrieved, and
-        /// to describe output buffers for each column value to be retrieved.
-        /// </summary>
+        /// <summary>Retrieves multiple column values from the current record in a single
+        /// operation. An array of JET_RETRIEVECOLUMN structures is used to describe the set
+        /// of column values to be retrieved, and to describe output buffers for each column
+        /// value to be retrieved.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the data from.</param>
-        /// <param name="retrievecolumns">
-        /// An array of one or more <see cref="JET_RETRIEVECOLUMN"/> objects
-        /// describing the data to be retrieved.
-        /// </param>
-        /// <param name="numColumns">
-        /// The number of entries in the columns array.
-        /// </param>
-        /// <returns>
-        /// If any column retrieved is truncated due to an insufficient
-        /// length buffer, then the API will return
-        /// <see cref="JET_wrn.BufferTruncated"/>. However other errors
-        /// JET_wrnColumnNull are returned only in the error field of
-        /// the <see cref="JET_RETRIEVECOLUMN"/> object.
-        /// </returns>
-        public static JET_wrn JetRetrieveColumns(JET_SESID sesid, JET_TABLEID tableid, JET_RETRIEVECOLUMN[] retrievecolumns, int numColumns)
+        /// <param name="retrievecolumns">An array of one or more <see cref="JET_RETRIEVECOLUMN"/>
+        /// objects describing the data to be retrieved.</param>
+        /// <param name="numColumns">The number of entries in the columns array.</param>
+        /// <returns>If any column retrieved is truncated due to an insufficient length buffer,
+        /// then the API will return <see cref="JET_wrn.BufferTruncated"/>. However other errors
+        /// JET_wrnColumnNull are returned only in the error field of the
+        /// <see cref="JET_RETRIEVECOLUMN"/> object.</returns>
+        public static JET_wrn JetRetrieveColumns(JET_SESID sesid, JET_TABLEID tableid,
+            JET_RETRIEVECOLUMN[] retrievecolumns, int numColumns)
         {
-            if (null == retrievecolumns)
-            {
+            if (null == retrievecolumns) {
                 throw new ArgumentNullException("retrievecolumns");
             }
-
-            if (numColumns < 0 || numColumns > retrievecolumns.Length)
-            {
+            if (numColumns < 0 || numColumns > retrievecolumns.Length) {
                 throw new ArgumentOutOfRangeException("numColumns", numColumns, "cannot be negative or greater than retrievecolumns.Length");
             }
-
-            unsafe
-            {
+            unsafe {
                 NATIVE_RETRIEVECOLUMN* nativeretrievecolumns = stackalloc NATIVE_RETRIEVECOLUMN[numColumns];
-
                 int err = LegacyApi.PinColumnsAndRetrieve(sesid, tableid, nativeretrievecolumns, retrievecolumns, numColumns, 0);
-                for (int i = 0; i < numColumns; ++i)
-                {
+                for (int i = 0; i < numColumns; ++i) {
                     retrievecolumns[i].UpdateFromNativeRetrievecolumn(ref nativeretrievecolumns[i]);
                 }
-
                 return EsentExceptionHelper.Check(err);
             }
         }
@@ -1128,59 +824,6 @@ namespace EsentLib
         public static void JetDelete(JET_SESID sesid, JET_TABLEID tableid)
         {
             EsentExceptionHelper.Check(Impl.JetDelete(sesid, tableid));
-        }
-
-        /// <summary>
-        /// Prepare a cursor for update.
-        /// </summary>
-        /// <param name="sesid">The session which is starting the update.</param>
-        /// <param name="tableid">The cursor to start the update for.</param>
-        /// <param name="prep">The type of update to prepare.</param>
-        public static void JetPrepareUpdate(JET_SESID sesid, JET_TABLEID tableid, JET_prep prep)
-        {
-            EsentExceptionHelper.Check(Impl.JetPrepareUpdate(sesid, tableid, prep));
-        }
-
-        /// <summary>
-        /// The JetUpdate function performs an update operation including inserting a new row into
-        /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="JetDelete"/>.
-        /// </summary>
-        /// <param name="sesid">The session which started the update.</param>
-        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
-        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
-        /// <param name="bookmarkSize">The size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <remarks>
-        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="JetPrepareUpdate"/> and then by calling
-        /// <see cref="JetSetColumn(JET_SESID,JET_TABLEID,JET_COLUMNID,byte[],int,SetColumnGrbit,JET_SETINFO)"/>
-        /// one or more times to set the record state. Finally, <see cref="JetUpdate(JET_SESID,JET_TABLEID,byte[],int,out int)"/>
-        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
-        /// </remarks>
-        public static void JetUpdate(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
-        {
-            EsentExceptionHelper.Check(Impl.JetUpdate(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize));
-        }
-
-        /// <summary>
-        /// The JetUpdate function performs an update operation including inserting a new row into
-        /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="JetDelete"/>.
-        /// </summary>
-        /// <param name="sesid">The session which started the update.</param>
-        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
-        /// <remarks>
-        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="JetPrepareUpdate"/> and then by calling
-        /// <see cref="JetSetColumn(JET_SESID,JET_TABLEID,JET_COLUMNID,byte[],int,SetColumnGrbit,JET_SETINFO)"/>
-        /// one or more times to set the record state. Finally, <see cref="JetUpdate(JET_SESID,JET_TABLEID,byte[],int,out int)"/>
-        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
-        /// </remarks>
-        public static void JetUpdate(JET_SESID sesid, JET_TABLEID tableid)
-        {
-            int ignored;
-            EsentExceptionHelper.Check(Impl.JetUpdate(sesid, tableid, null, 0, out ignored));
         }
 
         /// <summary>
@@ -1516,32 +1159,6 @@ namespace EsentLib
             EsentExceptionHelper.Check(Impl.JetDupCursor(sesid, tableid, out newTableid, grbit));
         }
 
-        // ------------ //
-        // WINDOWS 2003 //
-        // ------------ //
-        /// <summary>
-        /// The JetUpdate function performs an update operation including inserting a new row into
-        /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="LegacyApi.JetDelete"/>.
-        /// </summary>
-        /// <param name="sesid">The session which started the update.</param>
-        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
-        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
-        /// <param name="bookmarkSize">The size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <param name="grbit">Update options.</param>
-        /// <remarks>
-        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="LegacyApi.JetPrepareUpdate"/> and then by calling
-        /// <see cref="LegacyApi.JetSetColumn(JET_SESID,JET_TABLEID,JET_COLUMNID,byte[],int,SetColumnGrbit,JET_SETINFO)"/>
-        /// one or more times to set the record state. Finally, <see cref="JetUpdate2"/>
-        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
-        /// </remarks>
-        public static void JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize, UpdateGrbit grbit)
-        {
-            EsentExceptionHelper.Check(LegacyApi.Impl.JetUpdate2(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize, grbit));
-        }
-
         // ----- //
         // VISTA //
         // ----- //
@@ -1564,11 +1181,8 @@ namespace EsentLib
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="columnid">The columnid of the column.</param>
         /// <param name="columnbase">Filled in with information about the column.</param>
-        public static void JetGetTableColumnInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_COLUMNID columnid,
-            out JET_COLUMNBASE columnbase)
+        public static void JetGetTableColumnInfo(JET_SESID sesid, JET_TABLEID tableid,
+            JET_COLUMNID columnid, out JET_COLUMNBASE columnbase)
         {
             EsentExceptionHelper.Check(LegacyApi.Impl.JetGetTableColumnInfo(sesid, tableid, columnid, out columnbase));
         }
@@ -1692,75 +1306,16 @@ namespace EsentLib
         /// <param name="dbid">The database to which to add the new table.</param>
         /// <param name="tablecreate">Object describing the table to create.</param>
         /// seealso cref="Api.JetCreateTableColumnIndex3"
-        public static void JetCreateTableColumnIndex4(
-            JET_SESID sesid,
-            JET_DBID dbid,
+        public static void JetCreateTableColumnIndex4(JET_SESID sesid, JET_DBID dbid,
             JET_TABLECREATE tablecreate)
         {
             EsentExceptionHelper.Check(LegacyApi.Impl.JetCreateTableColumnIndex4(sesid, dbid, tablecreate));
         }
         #endregion
 
-        #region Session Parameters
-
-        ///// <summary>Gets a parameter on the provided session state, used for the lifetime of this
-        ///// session or until reset.</summary>
-        ///// <param name="sesid">The session to set the parameter on.</param>
-        ///// <param name="sesparamid">The ID of the session parameter to set, see
-        ///// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
-        ///// <param name="value">A 32-bit integer to retrieve.</param>
-        //public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
-        //    out int value)
-        //{
-        //    EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, out value));
-        //}
-
-        ///// <summary>
-        ///// Gets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        ///// </summary>
-        ///// <param name="sesid">The session to set the parameter on.</param>
-        ///// <param name="sesparamid">The ID of the session parameter to set, see
-        ///// <see cref="JET_sesparam"/> and <see cref="EsentLib.Jet.JET_sesparam"/>.</param>
-        ///// <param name="data">A byte array to retrieve.</param>
-        ///// <param name="length">AThe length of the data array.</param>
-        ///// <param name="actualDataSize">The actual size of the data field.</param>
-        //public static void JetGetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
-        //    byte[] data, int length, out int actualDataSize)
-        //{
-        //    EsentExceptionHelper.Check(Api.Impl.JetGetSessionParameter(sesid, sesparamid, data, length, out actualDataSize));
-        //}
-
-        ///// <summary>Sets a parameter on the provided session state, used for the lifetime of this session or until reset.</summary>
-        ///// <param name="sesid">The session to set the parameter on.</param>
-        ///// <param name="sesparamid">The ID of the session parameter to set.</param>
-        ///// <param name="value">A 32-bit integer to set.</param>
-        //public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid, int value)
-        //{
-        //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, value));
-        //}
-
-        ///// <summary>
-        ///// Sets a parameter on the provided session state, used for the lifetime of this session or until reset.
-        ///// </summary>
-        ///// <param name="sesid">The session to set the parameter on.</param>
-        ///// <param name="sesparamid">The ID of the session parameter to set.</param>
-        ///// <param name="data">Data to set in this session parameter.</param>
-        ///// <param name="dataSize">Size of the data provided.</param>
-        //public static void JetSetSessionParameter(JET_SESID sesid, JET_sesparam sesparamid,
-        //    byte[] data, int dataSize)
-        //{
-        //    EsentExceptionHelper.Check(Api.Impl.JetSetSessionParameter(sesid, sesparamid, data, dataSize));
-        //}
-
-        #endregion
-
         #region Misc
-
-        /// <summary>
-        /// If the records with the specified key ranges are not in the buffer
-        /// cache, then start asynchronous reads to bring the records into the
-        /// database buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified key ranges are not in the buffer cache,
+        /// then start asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
         /// <param name="indexRanges">The key ranges to preread.</param>
@@ -1770,25 +1325,16 @@ namespace EsentLib
         /// <param name="columnsPreread">List of column ids for long value columns to preread.</param>
         /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
         /// <returns><c>true</c> if some preread done, <c>false</c> otherwise.</returns>
-        public static bool JetTryPrereadIndexRanges(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_INDEX_RANGE[] indexRanges,
-            int rangeIndex,
-            int rangeCount,
-            out int rangesPreread,
-            JET_COLUMNID[] columnsPreread,
-            PrereadIndexRangesGrbit grbit)
+        public static bool JetTryPrereadIndexRanges(JET_SESID sesid, JET_TABLEID tableid,
+            JET_INDEX_RANGE[] indexRanges, int rangeIndex, int rangeCount, out int rangesPreread,
+            JET_COLUMNID[] columnsPreread, PrereadIndexRangesGrbit grbit)
         {
             JET_err err = (JET_err)LegacyApi.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit);
             return err >= JET_err.Success;
         }
 
-        /// <summary>
-        /// If the records with the specified key ranges are not in the buffer
-        /// cache, then start asynchronous reads to bring the records into the
-        /// database buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified key ranges are not in the buffer cache,
+        /// then start asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
         /// <param name="indexRanges">The key ranges to preread.</param>
@@ -1797,24 +1343,15 @@ namespace EsentLib
         /// <param name="rangesPreread">Returns the number of keys actually preread.</param>
         /// <param name="columnsPreread">List of column ids for long value columns to preread.</param>
         /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
-        public static void JetPrereadIndexRanges(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            JET_INDEX_RANGE[] indexRanges,
-            int rangeIndex,
-            int rangeCount,
-            out int rangesPreread,
-            JET_COLUMNID[] columnsPreread,
-            PrereadIndexRangesGrbit grbit)
+        public static void JetPrereadIndexRanges(JET_SESID sesid, JET_TABLEID tableid,
+            JET_INDEX_RANGE[] indexRanges, int rangeIndex, int rangeCount, out int rangesPreread,
+            JET_COLUMNID[] columnsPreread, PrereadIndexRangesGrbit grbit)
         {
             EsentExceptionHelper.Check(LegacyApi.Impl.JetPrereadIndexRanges(sesid, tableid, indexRanges, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
         }
 
-        /// <summary>
-        /// If the records with the specified key ranges are not in the
-        /// buffer cache then start asynchronous reads to bring the records
-        /// into the database buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified key ranges are not in the buffer cache
+        /// then start asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
         /// <param name="keysStart">The start of key ranges to preread.</param>
@@ -1826,25 +1363,14 @@ namespace EsentLib
         /// <param name="rangesPreread">Returns the number of keys actually preread.</param>
         /// <param name="columnsPreread">List of column ids for long value columns to preread.</param>
         /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
-        public static void PrereadKeyRanges(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            byte[][] keysStart,
-            int[] keyStartLengths,
-            byte[][] keysEnd,
-            int[] keyEndLengths,
-            int rangeIndex,
-            int rangeCount,
-            out int rangesPreread,
-            JET_COLUMNID[] columnsPreread,
-            PrereadIndexRangesGrbit grbit)
+        public static void PrereadKeyRanges(JET_SESID sesid, JET_TABLEID tableid, byte[][] keysStart,
+            int[] keyStartLengths, byte[][] keysEnd, int[] keyEndLengths, int rangeIndex,
+            int rangeCount, out int rangesPreread, JET_COLUMNID[] columnsPreread, PrereadIndexRangesGrbit grbit)
         {
             EsentExceptionHelper.Check(LegacyApi.Impl.JetPrereadKeyRanges(sesid, tableid, keysStart, keyStartLengths, keysEnd, keyEndLengths, rangeIndex, rangeCount, out rangesPreread, columnsPreread, grbit));
         }
 
-        /// <summary>
-        /// Set an array of simple filters for <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.
-        /// </summary>
+        /// <summary>Set an array of simple filters for <see cref="LegacyApi.JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/>.</summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>
         /// <param name="filters">Simple record filters.</param>

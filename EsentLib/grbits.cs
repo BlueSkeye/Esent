@@ -959,36 +959,26 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>
-    /// Options for <see cref="LegacyApi.JetSetCurrentIndex2"/> and 
-    /// <see cref="LegacyApi.JetSetCurrentIndex3"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="ICursor.SetCurrentIndex(JET_INDEXID, SetCurrentIndexGrbit, int)"/>
+    /// and <see cref="ICursor.SetCurrentIndex(string, SetCurrentIndexGrbit, int)"/>.</summary>
     [Flags]
     public enum SetCurrentIndexGrbit
     {
-        /// <summary>
-        /// Default options. This is the same as <see cref="MoveFirst"/>.
-        /// </summary>
+        /// <summary>Default options. This is the same as <see cref="MoveFirst"/>.</summary>
         None = 0,
 
-        /// <summary>
-        /// Indicates that the cursor should be positioned on the first entry of
-        /// the specified index. If the current index is being selected then this
-        /// option is ignored.
-        /// </summary>
+        /// <summary>Indicates that the cursor should be positioned on the first entry of
+        /// the specified index. If the current index is being selected then this option is
+        /// ignored.</summary>
         MoveFirst = 0,
 
-        /// <summary>
-        /// Indicates that the cursor should be positioned on the index entry
-        /// of the new index that corresponds to the record associated with the
-        /// index entry at the current position of the cursor on the old index.
-        /// </summary>
+        /// <summary>Indicates that the cursor should be positioned on the index entry of the
+        /// new index that corresponds to the record associated with the index entry at the
+        /// current position of the cursor on the old index.</summary>
         NoMove = 0x2,
     }
 
-    /// <summary>
-    /// Options for <see cref="LegacyApi.JetSetTableSequential"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="LegacyApi.JetSetTableSequential"/>.</summary>
     [Flags]
     public enum SetTableSequentialGrbit
     {
@@ -1509,24 +1499,23 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>Options for <see cref="IJetInstance.JetUpdate2"/>.</summary>
+    /// <summary>Options for <see cref="IJetTable.Update"/>.</summary>
     [Flags]
     public enum UpdateGrbit
     {
         /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>This flag causes the update to return an error if the update would
-        /// not have been possible in the Windows 2000 version of ESE, which
-        /// enforced a smaller maximum number of multi-valued column instances
-        /// in each record than later versions of ESE. This is important only
-        /// for applications that wish to replicate data between applications
-        /// hosted on Windows 2000 and applications hosted on Windows 
-        /// 2003, or later versions of ESE. It should not be necessary for most
-        /// applications.</summary>
+        /// <summary>This flag causes the update to return an error if the update would not
+        /// have been possible in the Windows 2000 version of ESE, which enforced a smaller
+        /// maximum number of multi-valued column instances in each record than later versions
+        /// of ESE. This is important only for applications that wish to replicate data between
+        /// applications hosted on Windows 2000 and applications hosted on Windows  2003, or
+        /// later versions of ESE. It should not be necessary for most applications.</summary>
         [Obsolete("Only needed for legacy replication applications.")]
         CheckESE97Compatibility = 0x1,
     }
+
     /// <summary>Options for <see cref="IJetSnapshot.End"/>.</summary>
     [Flags]
     public enum SnapshotEndGrbit

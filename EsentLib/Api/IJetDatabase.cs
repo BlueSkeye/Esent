@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using EsentLib.Api.Flags;
 using EsentLib.Jet;
@@ -37,6 +38,18 @@ namespace EsentLib.Api
         /// <summary>Deletes a table from a database.</summary>
         /// <param name="table">The name of the table to delete.</param>
         void DeleteTable(string table);
+
+        /// <summary>Enumerate the name of the tables in this database, optionally including
+        /// system tables.</summary>
+        /// <param name="includeSystemTables">true if system tables should be included.</param>
+        /// <returns>An enumerable object.</returns>
+        IEnumerable<string> EnumerateTableNames(bool includeSystemTables = false);
+
+        /// <summary>Retrieves information about database tables. This is the only kind of
+        /// database objects that are supported for information retrieval by the underlying
+        /// native API.</summary>
+        /// <returns>An object list.</returns>
+        JET_OBJECTLIST GetDatabaseTables();
 
         /// <summary>Retrieves certain information about the given database.</summary>
         /// <param name="infoLevel">The specific data to retrieve.</param>
@@ -87,11 +100,9 @@ namespace EsentLib.Api
         /// <remarks>Many APIs return the logical size of the file, not how many bytes it takes up on disk.
         /// Win32's GetCompressedFileSize returns the correct on-disk size. <see cref="GetInfo(JET_DbInfo)"/>
         /// returns the on-disk size when used with <see cref="JET_DbInfo.FilesizeOnDisk"/></remarks>
-        /// <param name="session">Session to use.</param>
         /// <param name="desiredPages">The desired size of the database, in pages.</param>
         /// <param name="grbit">Resize options.</param>
         /// <returns>The size of the database, in pages, after the call.</returns>
-        int Resize(IJetSession session, int desiredPages,
-            ResizeDatabaseGrbit grbit = ResizeDatabaseGrbit.None);
+        int Resize(int desiredPages, ResizeDatabaseGrbit grbit = ResizeDatabaseGrbit.None);
     }
 }

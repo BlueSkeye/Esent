@@ -5,11 +5,10 @@
 //-----------------------------------------------------------------------
 
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Runtime.InteropServices;
-using EsentLib.Implementation;
+
+using EsentLib.Api;
 
 namespace EsentLib.Jet
 {

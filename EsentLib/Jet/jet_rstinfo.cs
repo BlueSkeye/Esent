@@ -9,6 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+using EsentLib.Api;
+
 namespace EsentLib.Jet
 {
     /// <summary>The native version of the JET_RSTINFO structure.</summary>

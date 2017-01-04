@@ -353,44 +353,14 @@ namespace EsentLib.Api
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database to use.</param>
-        /// <param name="objectlist">Filled in with information about the objects in the database.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, out JET_OBJECTLIST objectlist);
-
-        /// <summary>
-        /// Retrieves information about database objects.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database to use.</param>
         /// <param name="objtyp">The type of the object.</param>
         /// <param name="objectName">The object name about which to retrieve information.</param>
         /// <param name="objectinfo">Filled in with information about the objects in the database.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetObjectInfo(
-            JET_SESID sesid,
-            JET_DBID dbid,
-            JET_objtyp objtyp,
-            string objectName,
+        int JetGetObjectInfo(JET_SESID sesid, JET_DBID dbid, JET_objtyp objtyp, string objectName,
             out JET_OBJECTINFO objectinfo);
 
         #endregion
-
-        /// <summary>
-        /// JetGetCurrentIndex function determines the name of the current
-        /// index of a given cursor. This name is also used to later re-select
-        /// that index as the current index using JetSetCurrentIndex. It can
-        /// also be used to discover the properties of that index using
-        /// JetGetTableIndexInfo.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to get the index name for.</param>
-        /// <param name="indexName">Returns the name of the index.</param>
-        /// <param name="maxNameLength">
-        /// The maximum length of the index name. Index names are no more than 
-        /// Api.MaxNameLength characters.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, out string indexName, int maxNameLength);
 
         #region JetGetTableInfo overloads
 
@@ -682,18 +652,6 @@ namespace EsentLib.Api
         #region Navigation
 
         /// <summary>
-        /// Positions a cursor to an index entry for the record that is associated with
-        /// the specified bookmark. The bookmark can be used with any index defined over
-        /// a table. The bookmark for a record can be retrieved using <see cref="JetGetBookmark"/>. 
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <param name="bookmark">The bookmark used to position the cursor.</param>
-        /// <param name="bookmarkSize">The size of the bookmark.</param>        
-        /// <returns>An error if the call fails.</returns>
-        int JetGotoBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize);
-
-        /// <summary>
         /// Positions a cursor to an index entry that is associated with the
         /// specified secondary index bookmark. The secondary index bookmark
         /// must be used with the same index over the same table from which it
@@ -708,26 +666,8 @@ namespace EsentLib.Api
         /// <param name="primaryKeySize">The size of the primary key.</param>
         /// <param name="grbit">Options for positioning the bookmark.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGotoSecondaryIndexBookmark(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            byte[] secondaryKey,
-            int secondaryKeySize,
-            byte[] primaryKey,
-            int primaryKeySize,
-            GotoSecondaryIndexBookmarkGrbit grbit);
-
-        /// <summary>
-        /// Navigate through an index. The cursor can be positioned at the start or
-        /// end of the index and moved backwards and forwards by a specified number
-        /// of index entries.
-        /// </summary>
-        /// <param name="sesid">The session to use for the call.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <param name="numRows">An offset which indicates how far to move the cursor.</param>
-        /// <param name="grbit">Move options.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetMove(JET_SESID sesid, JET_TABLEID tableid, int numRows, MoveGrbit grbit);
+        int JetGotoSecondaryIndexBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] secondaryKey,
+            int secondaryKeySize, byte[] primaryKey, int primaryKeySize, GotoSecondaryIndexBookmarkGrbit grbit);
 
         /// <summary>
         /// Constructs search keys that may then be used by <see cref="JetSeek"/> and <see cref="JetSetIndexRange"/>.
@@ -757,7 +697,7 @@ namespace EsentLib.Api
 
         /// <summary>
         /// Temporarily limits the set of index entries that the cursor can walk using
-        /// <see cref="JetMove(JET_SESID,JET_TABLEID,int,MoveGrbit)"/> to those starting
+        /// <see cref="IJetTable.Move"/> to those starting
         /// from the current index entry and ending at the index entry that matches the
         /// search criteria specified by the search key in that cursor and the specified
         /// bound criteria. A search key must have been previously constructed using
@@ -787,93 +727,8 @@ namespace EsentLib.Api
         /// </param>
         /// <param name="grbit">Intersection options.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetIntersectIndexes(
-            JET_SESID sesid,
-            JET_INDEXRANGE[] ranges,
-            int numRanges,
-            out JET_RECORDLIST recordlist,
-            IntersectIndexesGrbit grbit);
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        int JetSetCurrentIndex(JET_SESID sesid, JET_TABLEID tableid, string index);
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        int JetSetCurrentIndex2(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit);
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <param name="itagSequence">
-        /// Sequence number of the multi-valued column value which will be used
-        /// to position the cursor on the new index. This parameter is only used
-        /// in conjunction with <see cref="SetCurrentIndexGrbit.NoMove"/>. When
-        /// this parameter is not present or is set to zero, its value is presumed
-        /// to be 1.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        int JetSetCurrentIndex3(JET_SESID sesid, JET_TABLEID tableid, string index, SetCurrentIndexGrbit grbit, int itagSequence);
-
-        /// <summary>
-        /// Set the current index of a cursor.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index on.</param>
-        /// <param name="index">
-        /// The name of the index to be selected. If this is null or empty the primary
-        /// index will be selected.
-        /// </param>
-        /// <param name="indexid">
-        /// The id of the index to select. This id can be obtained using JetGetIndexInfo
-        /// or JetGetTableIndexInfo with the <see cref="JET_IdxInfo.IndexId"/> option.
-        /// </param>
-        /// <param name="grbit">
-        /// Set index options.
-        /// </param>
-        /// <param name="itagSequence">
-        /// Sequence number of the multi-valued column value which will be used
-        /// to position the cursor on the new index. This parameter is only used
-        /// in conjunction with <see cref="SetCurrentIndexGrbit.NoMove"/>. When
-        /// this parameter is not present or is set to zero, its value is presumed
-        /// to be 1.
-        /// </param>
-        /// <returns>An error if the call fails.</returns>
-        int JetSetCurrentIndex4(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string index,
-            JET_INDEXID indexid,
-            SetCurrentIndexGrbit grbit,
-            int itagSequence);
+        int JetIntersectIndexes(JET_SESID sesid, JET_INDEXRANGE[] ranges, int numRanges,
+            out JET_RECORDLIST recordlist, IntersectIndexesGrbit grbit);
 
         /// <summary>
         /// Counts the number of entries in the current index from the current position forward.
@@ -972,20 +827,19 @@ namespace EsentLib.Api
 
         #region Data Retrieval
 
-        /// <summary>
-        /// Retrieves the bookmark for the record that is associated with the index entry
-        /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="JetGotoBookmark"/>. 
-        /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
-        /// bytes.
-        /// </summary>
+        /// <summary>Retrieves the bookmark for the record that is associated with the index
+        /// entry at the current position of a cursor. This bookmark can then be used to
+        /// reposition that cursor back to the same record using
+        /// <see cref="ICursor.GotoBookmark"/>. The bookmark will be no longer than
+        /// <see cref="JetEnvironment.BookmarkMost"/> bytes.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the bookmark from.</param>
         /// <param name="bookmark">Buffer to contain the bookmark.</param>
         /// <param name="bookmarkSize">Size of the bookmark buffer.</param>
         /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetGetBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize);
+        int JetGetBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize,
+            out int actualBookmarkSize);
 
         /// <summary>
         /// Retrieves a special bookmark for the secondary index entry at the
@@ -1027,35 +881,6 @@ namespace EsentLib.Api
         /// <param name="grbit">Retrieve key options.</param>
         /// <returns>An error if the call fails.</returns>
         int JetRetrieveKey(JET_SESID sesid, JET_TABLEID tableid, byte[] data, int dataSize, out int actualDataSize, RetrieveKeyGrbit grbit);
-
-        /// <summary>
-        /// Retrieves a single column value from the current record. The record is that
-        /// record associated with the index entry at the current position of the cursor.
-        /// Alternatively, this function can retrieve a column from a record being created
-        /// in the cursor copy buffer. This function can also retrieve column data from an
-        /// index entry that references the current record. In addition to retrieving the
-        /// actual column value, JetRetrieveColumn can also be used to retrieve the size
-        /// of a column, before retrieving the column data itself so that application
-        /// buffers can be sized appropriately.  
-        /// </summary>
-        /// <remarks>
-        /// The RetrieveColumnAs functions provide datatype-specific retrieval functions.
-        /// </remarks>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to retrieve the column from.</param>
-        /// <param name="columnid">The columnid to retrieve.</param>
-        /// <param name="data">The data buffer to be retrieved into.</param>
-        /// <param name="dataSize">The size of the data buffer.</param>
-        /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
-        /// <param name="grbit">Retrieve column options.</param>
-        /// <param name="retinfo">
-        /// If pretinfo is give as NULL then the function behaves as though an itagSequence
-        /// of 1 and an ibLongValue of 0 (zero) were given. This causes column retrieval to
-        /// retrieve the first value of a multi-valued column, and to retrieve long data at
-        /// offset 0 (zero).
-        /// </param>
-        /// <returns>An error or warning.</returns>
-        int JetRetrieveColumn(JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid, IntPtr data, int dataSize, out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo);
 
         /// <summary>The JetRetrieveColumns function retrieves multiple column values from
         /// the current record in a single operation. An array of <see cref="NATIVE_RETRIEVECOLUMN"/>
@@ -1160,55 +985,6 @@ namespace EsentLib.Api
         /// <param name="tableid">The cursor on a database table. The current row will be deleted.</param>
         /// <returns>An error if the call fails.</returns>
         int JetDelete(JET_SESID sesid, JET_TABLEID tableid);
-
-        /// <summary>
-        /// Prepare a cursor for update.
-        /// </summary>
-        /// <param name="sesid">The session which is starting the update.</param>
-        /// <param name="tableid">The cursor to start the update for.</param>
-        /// <param name="prep">The type of update to prepare.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetPrepareUpdate(JET_SESID sesid, JET_TABLEID tableid, JET_prep prep);
-
-        /// <summary>
-        /// The JetUpdate function performs an update operation including inserting a new row into
-        /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="JetDelete"/>.
-        /// </summary>
-        /// <param name="sesid">The session which started the update.</param>
-        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
-        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
-        /// <param name="bookmarkSize">The size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <remarks>
-        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="JetPrepareUpdate"/> and then by calling
-        /// JetSetColumn one or more times to set the record state. Finally, JetUpdate
-        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
-        /// </remarks>
-        /// <returns>An error if the call fails.</returns>
-        int JetUpdate(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize);
-
-        /// <summary>
-        /// The JetUpdate2 function performs an update operation including inserting a new row into
-        /// a table or updating an existing row. Deleting a table row is performed by calling
-        /// <see cref="JetDelete"/>.
-        /// </summary>
-        /// <param name="sesid">The session which started the update.</param>
-        /// <param name="tableid">The cursor to update. An update should be prepared.</param>
-        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
-        /// <param name="bookmarkSize">The size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <param name="grbit">Update options.</param>
-        /// <remarks>
-        /// JetUpdate is the final step in performing an insert or an update. The update is begun by
-        /// calling <see cref="JetPrepareUpdate"/> and then by calling
-        /// JetSetColumn one or more times to set the record state. Finally, JetUpdate
-        /// is called to complete the update operation. Indexes are updated only by JetUpdate or and not during JetSetColumn.
-        /// </remarks>
-        /// <returns>An error if the call fails.</returns>
-        int JetUpdate2(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize,
-            out int actualBookmarkSize, UpdateGrbit grbit);
 
         /// <summary>
         /// The JetSetColumn function modifies a single column value in a modified record to be inserted or to

@@ -10,6 +10,8 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 
+using EsentLib.Api;
+
 namespace EsentLib.Jet
 {
     /// <summary>The native version of the <see cref="JET_SETCOLUMN"/> structure.</summary>

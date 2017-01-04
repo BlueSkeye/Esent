@@ -10,6 +10,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+using EsentLib.Api;
+
 namespace EsentLib.Jet
 {
     /// <summary>
@@ -86,56 +88,36 @@ namespace EsentLib.Jet
     [Serializable]
     public sealed class JET_COLUMNCREATE : IContentEquatable<JET_COLUMNCREATE>, IDeepCloneable<JET_COLUMNCREATE>
     {
-        /// <summary>
-        /// Name of the column.
-        /// </summary>
+        /// <summary>Name of the column.</summary>
         private string name;
 
-        /// <summary>
-        /// The type of the column.
-        /// </summary>
+        /// <summary>The type of the column.</summary>
         private JET_coltyp columnType;
 
-        /// <summary>
-        /// Maximum size of the column.
-        /// </summary>
+        /// <summary>Maximum size of the column.</summary>
         private int maxSize;
 
-        /// <summary>
-        /// Column options.
-        /// </summary>
+        /// <summary>Column options.</summary>
         private ColumndefGrbit options;
 
-        /// <summary>
-        /// Default value (NULL if none).
-        /// </summary>
+        /// <summary>Default value (NULL if none).</summary>
         private byte[] defaultValue;
 
-        /// <summary>
-        /// Size of the default value.
-        /// </summary>
+        /// <summary>Size of the default value.</summary>
         private int defaultValueSize;
 
-        /// <summary>
-        /// The code page. Only valid for text columns.
-        /// </summary>
+        /// <summary>The code page. Only valid for text columns.</summary>
         private JET_CP codePage;
 
-        /// <summary>
-        /// Id of the column. Not serialized because it is an internal
-        /// value and shouldn't be persisted.
-        /// </summary>
+        /// <summary>Id of the column. Not serialized because it is an internal value and shouldn't
+        /// be persisted.</summary>
         [NonSerialized]
         private JET_COLUMNID id;
 
-        /// <summary>
-        /// The returned error code.
-        /// </summary>
+        /// <summary>The returned error code.</summary>
         private JET_err errorCode;
 
-        /// <summary>
-        /// Gets or sets the name of the column to create. 
-        /// </summary>
+        /// <summary>Gets or sets the name of the column to create. </summary>
         public string szColumnName
         {
             [DebuggerStepThrough]
@@ -143,9 +125,7 @@ namespace EsentLib.Jet
             set { this.name = value; }
         }
 
-        /// <summary>
-        /// Gets or sets type of the column.
-        /// </summary>
+        /// <summary>Gets or sets type of the column.</summary>
         public JET_coltyp coltyp
         {
             [DebuggerStepThrough]

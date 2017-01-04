@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
 using EsentLib.Jet;
-using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -33,43 +32,139 @@ namespace EsentLib
     //          |-- EsentStateException
     //          |-- EsentObsoleteException
 
-    /// <summary>
-    /// Base class for Operation exceptions.
-    /// </summary>
-    [SuppressMessage(
-        "Microsoft.StyleCop.CSharp.MaintainabilityRules",
-        "SA1402:FileMayOnlyContainASingleClass",
-        Justification = "Auto-generated code.")]
+    /// <summary>Base class for ESENT exceptions.</summary>
+    [Serializable]
+    public abstract class EsentException : Exception
+    {
+        /// <summary>Initializes a new instance of the EsentException class.</summary>
+        protected EsentException()
+        {
+        }
+
+        /// <summary>Initializes a new instance of the EsentException class with a specified
+        /// error message.</summary>
+        /// <param name="message">The message that describes the error.</param>
+        protected EsentException(string message)
+            : base(message)
+        {
+        }
+
+        /// <summary>Initializes a new instance of the EsentException class. This constructor
+        /// is used to deserialize a serialized exception.</summary>
+        /// <param name="info">The data needed to deserialize the object.</param>
+        /// <param name="context">The deserialization context.</param>
+        protected EsentException(SerializationInfo info, StreamingContext context)
+#if MANAGEDESENT_SUPPORTS_SERIALIZATION
+            : base(info, context)
+#endif
+        {
+        }
+    }
+
+    /// <summary>Exception thrown when a column conversion fails.</summary>
+    [Serializable]
+    public class EsentInvalidColumnException : EsentException
+    {
+        /// <summary>Initializes a new instance of the EsentInvalidColumnException class.</summary>
+        public EsentInvalidColumnException()
+        {
+        }
+
+        /// <summary>Initializes a new instance of the EsentInvalidColumnException class.
+        /// This constructor is used to deserialize a serialized exception.</summary>
+        /// <param name="info">The data needed to deserialize the object.</param>
+        /// <param name="context">The deserialization context.</param>
+        protected EsentInvalidColumnException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+
+        /// <summary>Gets a text message describing the exception.</summary>
+        public override string Message
+        {
+            get { return "Column is not valid for this operation"; }
+        }
+    }
+
+    /// <summary>Base class for ESENT error exceptions.</summary>
+    [Serializable]
+    public class EsentErrorException : EsentException
+    {
+        /// <summary>The error code that was encountered.</summary>
+        private JET_err errorCode;
+
+        /// <summary>Initializes a new instance of the EsentErrorException class.</summary>
+        /// <param name="message">The description of the error.</param>
+        /// <param name="err">The error code of the exception.</param>
+        internal EsentErrorException(string message, JET_err err) : base(message)
+        {
+            this.errorCode = err;
+        }
+
+        /// <summary>Initializes a new instance of the EsentErrorException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
+        /// <param name="info">The data needed to deserialize the object.</param>
+        /// <param name="context">The deserialization context.</param>
+        protected EsentErrorException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+            this.errorCode = (JET_err)info.GetInt32("errorCode");
+        }
+
+        /// <summary>Gets the underlying Esent error for this exception.</summary>
+        public JET_err Error
+        {
+            get { return this.errorCode; }
+        }
+
+#if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
+        /// <summary>When overridden in a derived class, sets the <see cref="T:System.Runtime.Serialization.SerializationInfo" /> with information about the exception.</summary>
+        /// <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown. </param>
+        /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination. </param>
+        /// <exception cref="T:System.ArgumentNullException">The <paramref name="info" /> parameter is a null reference (Nothing in Visual Basic). </exception>
+        /// <filterpriority>2</filterpriority>
+        /// <PermissionSet>
+        ///   <IPermission class="System.Security.Permissions.FileIOPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Read="*AllFiles*" PathDiscovery="*AllFiles*" />
+        ///   <IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="SerializationFormatter" />
+        /// </PermissionSet>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
+            if (null != info)
+            {
+                info.AddValue("errorCode", this.errorCode, typeof(int));
+            }
+        }
+#endif
+    }
+
+    /// <summary>Base class for Operation exceptions.</summary>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.MaintainabilityRules",
+        "SA1402:FileMayOnlyContainASingleClass", Justification = "Auto-generated code.")]
     [Serializable]
     public abstract class EsentOperationException : EsentErrorException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentOperationException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentOperationException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentOperationException(string description, JET_err err) :
-            base(description, err)
+        protected EsentOperationException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentOperationException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentOperationException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentOperationException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentOperationException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
     }
 
-    /// <summary>
-    /// Base class for Data exceptions.
-    /// </summary>
+    /// <summary>Base class for Data exceptions.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.MaintainabilityRules",
         "SA1402:FileMayOnlyContainASingleClass",
@@ -77,33 +172,27 @@ namespace EsentLib
     [Serializable]
     public abstract class EsentDataException : EsentErrorException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentDataException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentDataException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentDataException(string description, JET_err err) :
-            base(description, err)
+        protected EsentDataException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentDataException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentDataException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentDataException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentDataException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
     }
 
-    /// <summary>
-    /// Base class for Api exceptions.
-    /// </summary>
+    /// <summary>Base class for Api exceptions.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.MaintainabilityRules",
         "SA1402:FileMayOnlyContainASingleClass",
@@ -111,33 +200,27 @@ namespace EsentLib
     [Serializable]
     public abstract class EsentApiException : EsentErrorException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentApiException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentApiException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentApiException(string description, JET_err err) :
-            base(description, err)
+        protected EsentApiException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentApiException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentApiException class. This constructor
+        /// is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentApiException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentApiException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
     }
 
-    /// <summary>
-    /// Base class for Fatal exceptions.
-    /// </summary>
+    /// <summary>Base class for Fatal exceptions.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.MaintainabilityRules",
         "SA1402:FileMayOnlyContainASingleClass",
@@ -145,33 +228,27 @@ namespace EsentLib
     [Serializable]
     public abstract class EsentFatalException : EsentOperationException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentFatalException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentFatalException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentFatalException(string description, JET_err err) :
-            base(description, err)
+        protected EsentFatalException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentFatalException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentFatalException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentFatalException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentFatalException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
     }
 
-    /// <summary>
-    /// Base class for IO exceptions.
-    /// </summary>
+    /// <summary>Base class for IO exceptions.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.MaintainabilityRules",
         "SA1402:FileMayOnlyContainASingleClass",
@@ -179,25 +256,21 @@ namespace EsentLib
     [Serializable]
     public abstract class EsentIOException : EsentOperationException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentIOException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentIOException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentIOException(string description, JET_err err) :
-            base(description, err)
+        protected EsentIOException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentIOException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentIOException class. This constructor
+        /// is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentIOException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentIOException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
@@ -213,33 +286,27 @@ namespace EsentLib
     [Serializable]
     public abstract class EsentResourceException : EsentOperationException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentResourceException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentResourceException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentResourceException(string description, JET_err err) :
-            base(description, err)
+        protected EsentResourceException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentResourceException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentResourceException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentResourceException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentResourceException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
     }
 
-    /// <summary>
-    /// Base class for Memory exceptions.
-    /// </summary>
+    /// <summary>Base class for Memory exceptions.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.MaintainabilityRules",
         "SA1402:FileMayOnlyContainASingleClass",
@@ -247,33 +314,27 @@ namespace EsentLib
     [Serializable]
     public abstract class EsentMemoryException : EsentResourceException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentMemoryException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentMemoryException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentMemoryException(string description, JET_err err) :
-            base(description, err)
+        protected EsentMemoryException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentMemoryException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentMemoryException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentMemoryException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentMemoryException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
     }
 
-    /// <summary>
-    /// Base class for Quota exceptions.
-    /// </summary>
+    /// <summary>Base class for Quota exceptions.</summary>
     [SuppressMessage(
         "Microsoft.StyleCop.CSharp.MaintainabilityRules",
         "SA1402:FileMayOnlyContainASingleClass",
@@ -281,25 +342,21 @@ namespace EsentLib
     [Serializable]
     public abstract class EsentQuotaException : EsentResourceException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentQuotaException class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentQuotaException class.</summary>
         /// <param name="description">The description of the error.</param>
         /// <param name="err">The error code of the exception.</param>
-        protected EsentQuotaException(string description, JET_err err) :
-            base(description, err)
+        protected EsentQuotaException(string description, JET_err err)
+            : base(description, err)
         {
         }
 
 #if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentQuotaException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentQuotaException class. This
+        /// constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        protected EsentQuotaException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        protected EsentQuotaException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
@@ -11366,26 +11423,20 @@ namespace EsentLib
     [Serializable]
     public sealed class EsentUpdateNotPreparedException : EsentUsageException
     {
-        /// <summary>
-        /// Initializes a new instance of the EsentUpdateNotPreparedException class.
-        /// </summary>
-        public EsentUpdateNotPreparedException() :
-            base("No call to JetPrepareUpdate", JET_err.UpdateNotPrepared)
+        /// <summary>Initializes a new instance of the EsentUpdateNotPreparedException class.</summary>
+        public EsentUpdateNotPreparedException()
+            : base("No call to JetPrepareUpdate", JET_err.UpdateNotPrepared)
         {
         }
 
-#if !MANAGEDESENT_ON_CORECLR // Serialization does not work in Core CLR.
-        /// <summary>
-        /// Initializes a new instance of the EsentUpdateNotPreparedException class. This constructor
-        /// is used to deserialize a serialized exception.
-        /// </summary>
+        /// <summary>Initializes a new instance of the EsentUpdateNotPreparedException class.
+        /// This constructor is used to deserialize a serialized exception.</summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        private EsentUpdateNotPreparedException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        private EsentUpdateNotPreparedException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
-#endif
     }
 
     /// <summary>
@@ -12976,8 +13027,8 @@ namespace EsentLib
         /// </summary>
         /// <param name="info">The data needed to deserialize the object.</param>
         /// <param name="context">The deserialization context.</param>
-        private EsentFileIOFailException(SerializationInfo info, StreamingContext context) :
-            base(info, context)
+        private EsentFileIOFailException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
         {
         }
 #endif
@@ -13015,9 +13066,7 @@ namespace EsentLib
 #endif
     }
 
-    /// <summary>
-    /// Method to generate an EsentErrorException from an error code.
-    /// </summary>
+    /// <summary>Method to generate an EsentErrorException from an error code.</summary>
     internal static class EsentExceptionHelper
     {
         /// <summary>Throw an exception if the parameter is an ESE error, returns a

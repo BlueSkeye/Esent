@@ -76,26 +76,17 @@ namespace EsentLib
                 byte[] buffer = null;
                 try
                 {
-                    buffer = Caches.ColumnCache.Allocate();
+                    buffer = MemoryCache.ColumnCache.Allocate();
                     int dataSize;
-                    unsafe
-                    {
+                    unsafe {
                         fixed (char* chars = data)
-                        fixed (byte* bytes = buffer)
-                        {
+                        fixed (byte* bytes = buffer) {
                             dataSize = encoding.GetBytes(chars, data.Length, bytes, buffer.Length);
                         }
                     }
-
                     JetMakeKey(sesid, tableid, buffer, dataSize, grbit);
                 }
-                finally
-                {
-                    if (buffer != null)
-                    {
-                        Caches.ColumnCache.Free(ref buffer);
-                    }
-                }
+                finally { if (buffer != null) { MemoryCache.ColumnCache.Free(ref buffer); } }
             }
         }
 

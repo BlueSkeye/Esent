@@ -9,17 +9,18 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using EsentLib.Implementation;
+
+using EsentLib.Api;
 
 namespace EsentLib.Jet
 {
-/// <summary>
-/// Contains the information needed to create a table in an ESE database.
-/// </summary>
-[SuppressMessage(
-"Microsoft.StyleCop.CSharp.NamingRules",
-"SA1300:ElementMustBeginWithUpperCaseLetter",
-Justification = "This should match the unmanaged API, which isn't capitalized.")]
+    /// <summary>
+    /// Contains the information needed to create a table in an ESE database.
+    /// </summary>
+    [SuppressMessage(
+    "Microsoft.StyleCop.CSharp.NamingRules",
+    "SA1300:ElementMustBeginWithUpperCaseLetter",
+    Justification = "This should match the unmanaged API, which isn't capitalized.")]
     [Serializable]
     public partial class JET_TABLECREATE : IContentEquatable<JET_TABLECREATE>, IDeepCloneable<JET_TABLECREATE>
     {

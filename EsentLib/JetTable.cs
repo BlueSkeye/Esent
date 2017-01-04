@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text;
 
 using EsentLib.Api;
 using EsentLib.Jet;
@@ -14,6 +16,11 @@ namespace EsentLib.Implementation
         {
             _owner = owner;
             _id = id;
+        }
+
+        internal IntPtr Id
+        {
+            get { return _id.Value; }
         }
 
         /// <summary>Add a new column to an existing table.</summary>
@@ -127,6 +134,21 @@ namespace EsentLib.Implementation
             finally { handles.Dispose(); }
         }
 
+        /// <summary>Create the nullable return value.</summary>
+        /// <typeparam name="T">The (struct) type to return.</typeparam>
+        /// <param name="data">The data retrieved from the column.</param>
+        /// <param name="dataSize">The size of the data.</param>
+        /// <param name="wrn">The warning code from esent.</param>
+        /// <param name="actualDataSize">The actual size of the data retireved fomr esent.</param>
+        /// <returns>A nullable struct of type T.</returns>
+        private static T? CreateReturnValue<T>(T data, int dataSize, JET_wrn wrn, int actualDataSize)
+            where T : struct
+        {
+            if (JET_wrn.ColumnNull == wrn) { return new T?(); }
+            Helpers.CheckDataSize(dataSize, actualDataSize);
+            return data;
+        }
+
         /// <summary>Deletes a column from a database table.</summary>
         /// <param name="session">Session to use.</param>
         /// <param name="column">The name of the column to be deleted.</param>
@@ -154,6 +176,27 @@ namespace EsentLib.Implementation
             int returnCode = NativeMethods.JetDeleteIndex(session.Id, _id.Value, index);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
+        }
+
+        internal delegate bool FilterDelegate();
+        internal delegate T ItemRetriever<T>();
+
+        internal IEnumerable<T> Enumerate<T>(FilterDelegate filter, ItemRetriever<T> retriever)
+        {
+            //        if (this.moveToFirst) {
+            //            if (!Api.TryMoveFirst(this.Sesid, this.TableidToEnumerate)) {
+            //                this.isAtEnd = true;
+            //                return false;                    
+            //            }
+            //            this.moveToFirst = false;
+            //            needMoveNext = false;
+            //        }
+
+            while (true) {
+                if (!TryMoveNext(_owner.Session.Handle)) { yield break; }
+                if ((null != filter) && filter()) { continue; }
+                yield return retriever();
+            }
         }
 
         /// <summary>Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and name.</summary>
@@ -308,6 +351,530 @@ namespace EsentLib.Implementation
         //    return result;
         //}
 
+        /// <summary>Navigate through an index. The cursor can be positioned at the start or
+        /// end of the index and moved backwards and forwards by a specified number of index
+        /// entries.</summary>
+        /// <param name="sesid">The session to use for the call.</param>
+        /// <param name="numRows">An offset which indicates how far to move the cursor.</param>
+        /// <param name="grbit">Move options.</param>
+        /// <returns>An error if the call fails.</returns>
+        public int Move(JET_SESID sesid, int numRows, MoveGrbit grbit)
+        {
+            Tracing.TraceFunctionCall("Move");
+            int returnCode = NativeMethods.JetMove(sesid.Value, this._id.Value, numRows,
+                unchecked((uint)grbit));
+            return Tracing.TraceResult(returnCode);
+        }
+
+        /// <summary>Prepare a cursor for update.</summary>
+        /// <param name="session">The session which is starting the update.</param>
+        /// <param name="prep">The type of update to prepare.</param>
+        /// <returns>An instance of the ongoing update.</returns>
+        public ICursor PrepareUpdate(IJetSession session, JET_prep prep)
+        {
+            Tracing.TraceFunctionCall("PrepareUpdate");
+            int returnCode = NativeMethods.JetPrepareUpdate(session.Id, this._id.Value,
+                unchecked((uint)prep));
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return new JetCursor(session, this, prep);
+        }
+
+        /// <summary>Retrieves a single column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.
+        /// Alternatively, this function can retrieve a column from a record being created in
+        /// the cursor copy buffer. This function can also retrieve column data from an index
+        /// entry that references the current record. In addition to retrieving the actual
+        /// column value, JetRetrieveColumn can also be used to retrieve the size of a column,
+        /// before retrieving the column data itself so that application buffers can be sized
+        /// appropriately.</summary>
+        /// <remarks>The RetrieveColumnAs functions provide datatype-specific retrieval
+        /// functions.</remarks>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="data">The data buffer to be retrieved into.</param>
+        /// <param name="dataSize">The size of the data buffer.</param>
+        /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
+        /// <param name="grbit">Retrieve column options.</param>
+        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves as
+        /// though an itagSequence of 1 and an ibLongValue of 0 (zero) were given. This causes
+        /// column retrieval to retrieve the first value of a multi-valued column, and to
+        /// retrieve long data at offset 0 (zero).</param>
+        /// <returns>An error or warning.</returns>
+        public JET_wrn RetrieveColumn(JET_COLUMNID columnid, IntPtr data, int dataSize,
+            out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
+        {
+            Tracing.TraceFunctionCall("RetrieveColumn");
+            Helpers.CheckNotNegative(dataSize, "dataSize");
+            int returnCode;
+            uint bytesActual = 0;
+            if (null != retinfo) {
+                NATIVE_RETINFO nativeRetinfo = retinfo.GetNativeRetinfo();
+                returnCode = NativeMethods.JetRetrieveColumn(_owner.Session.Id, this._id.Value,
+                    columnid.Value, data, checked((uint)dataSize), out bytesActual,
+                    unchecked((uint)grbit), ref nativeRetinfo);
+                retinfo.SetFromNativeRetinfo(nativeRetinfo);
+            }
+            else {
+                returnCode = NativeMethods.JetRetrieveColumn(_owner.Session.Id, this._id.Value,
+                    columnid.Value, data, checked((uint)dataSize), out bytesActual,
+                    unchecked((uint)grbit), IntPtr.Zero);
+            }
+            Tracing.TraceResult(returnCode);
+            actualDataSize = checked((int)bytesActual);
+            return EsentExceptionHelper.Check(returnCode);
+        }
+
+        /// <summary>Retrieves a single column value from the current record. The record
+        /// is that record associated with the index entry at the current position of the
+        /// cursor. Alternatively, this function can retrieve a column from a record being
+        /// created in the cursor copy buffer. This function can also retrieve column data
+        /// from an index entry that references the current record. In addition to retrieving
+        /// the actual column value, JetRetrieveColumn can also be used to retrieve the size
+        /// of a column, before retrieving the column data itself so that application buffers
+        /// can be sized appropriately.</summary>
+        /// <remarks>This is an internal method that takes a buffer offset as well as size.</remarks>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="data">The data buffer to be retrieved into.</param>
+        /// <param name="dataOffset">Offset into the data buffer to read data into.</param>
+        /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
+        /// <param name="grbit">Retrieve column options.</param>
+        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves
+        /// as though an itagSequence of 1 and an ibLongValue of 0 (zero) were given.
+        /// This causes column retrieval to retrieve the first value of a multi-valued
+        /// column, and to retrieve long data at offset 0 (zero).</param>
+        /// <returns>An ESENT warning code.</returns>
+        public JET_wrn RetrieveColumn(JET_COLUMNID columnid, byte[] data, int dataOffset,
+            out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
+        {
+            return RetrieveColumn(columnid, data, 0, dataOffset, out actualDataSize,
+                grbit, retinfo);
+        }
+
+        /// <summary>Retrieves a single column value from the current record. The record
+        /// is that record associated with the index entry at the current position of the
+        /// cursor. Alternatively, this function can retrieve a column from a record being
+        /// created in the cursor copy buffer. This function can also retrieve column data
+        /// from an index entry that references the current record. In addition to retrieving
+        /// the actual column value, JetRetrieveColumn can also be used to retrieve the size
+        /// of a column, before retrieving the column data itself so that application buffers
+        /// can be sized appropriately.</summary>
+        /// <remarks>This is an internal method that takes a buffer offset as well as size.</remarks>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="data">The data buffer to be retrieved into.</param>
+        /// <param name="dataSize">The size of the data buffer.</param>
+        /// <param name="dataOffset">Offset into the data buffer to read data into.</param>
+        /// <param name="actualDataSize">Returns the actual size of the data buffer.</param>
+        /// <param name="grbit">Retrieve column options.</param>
+        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves
+        /// as though an itagSequence of 1 and an ibLongValue of 0 (zero) were given.
+        /// This causes column retrieval to retrieve the first value of a multi-valued
+        /// column, and to retrieve long data at offset 0 (zero).</param>
+        /// <returns>An ESENT warning code.</returns>
+        public JET_wrn RetrieveColumn(JET_COLUMNID columnid, byte[] data, int dataSize,
+            int dataOffset, out int actualDataSize, RetrieveColumnGrbit grbit,
+            JET_RETINFO retinfo)
+        {
+            if ((0 > dataOffset)
+                || ((null != data) && (0 != dataSize) && (dataOffset >= data.Length))
+                || ((null == data) && (0 != dataOffset)))
+            {
+                throw new ArgumentOutOfRangeException(
+                    string.Format("dataOffset {0} must be inside the data buffer", dataOffset));
+            }
+            if ((null == data && dataSize > 0) || (null != data && dataSize > data.Length))
+            {
+                throw new ArgumentOutOfRangeException(
+                    string.Format("dataSize {0} cannot be greater than the length of the data", dataSize));
+            }
+            unsafe {
+                fixed (byte* pointer = data) {
+                    return RetrieveColumn(columnid, new IntPtr(pointer + dataOffset),
+                        dataSize, out actualDataSize, grbit, retinfo);
+                }
+            }
+        }
+
+        /// <summary>Retrieves a single column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.
+        /// Alternatively, this function can retrieve a column from a record being created in
+        /// the cursor copy buffer. This function can also retrieve column data from an index
+        /// entry that references the current record. In addition to retrieving the 
+        /// column value, JetRetrieveColumn can also be used to retrieve the size of a column,
+        /// before retrieving the column data itself so that application buffers can be sized
+        /// appropriately.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieve column options.</param>
+        /// <param name="retinfo">If pretinfo is give as NULL then the function behaves as
+        /// though an itagSequence of 1 and an ibLongValue of 0 (zero) were given. This causes
+        /// column retrieval to retrieve the first value of a multi-valued column, and to
+        /// retrieve long data at offset 0 (zero).</param>
+        /// <returns>The data retrieved from the column. Null if the column is null.</returns>
+        public byte[] RetrieveColumn(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None, JET_RETINFO retinfo = null)
+        {
+            // We expect most column values retrieved this way to be small (retrieving a 1GB LV as one
+            // chunk is a bit extreme!). Allocate a cached buffer and use that, allocating a larger one
+            // if needed.
+            byte[] cache = null;
+            byte[] data;
+
+            try {
+                cache = MemoryCache.ColumnCache.Allocate();
+                data = cache;
+                int dataSize;
+                //JET_SESID sesid, JET_TABLEID tableid, JET_COLUMNID columnid,
+                // byte[] data, int dataSize, int dataOffset, out int actualDataSize,
+                // RetrieveColumnGrbit grbit, JET_RETINFO retinfo
+
+                JET_wrn wrn = RetrieveColumn(columnid, data, data.Length, out dataSize,
+                    grbit, retinfo);
+                if (JET_wrn.ColumnNull == wrn) {
+                    // null column
+                    data = null;
+                }
+                else if (JET_wrn.Success == wrn) {
+                    data = MemoryCache.Duplicate(data, dataSize);
+                }
+                else {
+                    // there is more data to retrieve
+                    Debug.Assert(JET_wrn.BufferTruncated == wrn, "Unexpected warning: " + wrn.ToString());
+                    data = new byte[dataSize];
+                    wrn = RetrieveColumn(columnid, data, data.Length, out dataSize, grbit, retinfo);
+                    if (JET_wrn.BufferTruncated == wrn) {
+                        string error = string.Format(CultureInfo.CurrentCulture,
+                            "Column size changed from {0} to {1}. The record was probably updated by another thread.",
+                            data.Length, dataSize);
+                        Trace.TraceError(error);
+                        throw new InvalidOperationException(error);
+                    }
+                }
+            }
+            finally { if (cache != null) { MemoryCache.ColumnCache.Free(ref cache); } }
+            return data;
+        }
+
+        /// <summary>Retrieves a boolean column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a boolean. Null if the column is null.</returns>
+        public bool? RetrieveColumnAsBoolean(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            byte? b = RetrieveColumnAsByte(columnid, grbit);
+            return (b.HasValue) ? (0 != b.Value) :new bool?();
+        }
+
+        /// <summary>Retrieves a byte column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a byte. Null if the column is null.</returns>
+        public byte? RetrieveColumnAsByte(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(byte);
+                byte data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                    grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a datetime column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a datetime. Null if the column is null.</returns>
+        public DateTime? RetrieveColumnAsDateTime(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // Internally DateTime is stored in OLE Automation format
+            double? oadate = RetrieveColumnAsDouble(columnid, grbit);
+            return (oadate.HasValue)
+                ? Conversions.ConvertDoubleToDateTime(oadate.Value)
+                : new DateTime?();
+        }
+
+        /// <summary>Retrieves a double column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a double. Null if the column is null.</returns>
+        public double? RetrieveColumnAsDouble(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(double);
+                double data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                    grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a float column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a float. Null if the column is null.</returns>
+        public float? RetrieveColumnAsFloat(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(float);
+                float data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize,
+                    out actualDataSize, grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves an int16 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a short. Null if the column is null.</returns>
+        public short? RetrieveColumnAsInt16(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(short);
+                short data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize,
+                    out actualDataSize, grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a guid column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a guid. Null if the column is null.</returns>
+        public Guid? RetrieveColumnAsGuid(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = 16;
+                Guid data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize,
+                    out actualDataSize, grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
+        public int? RetrieveColumnAsInt32(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(int);
+                int data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize,
+                    out actualDataSize, grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a single column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a long. Null if the column is null.</returns>
+        public long? RetrieveColumnAsInt64(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) { // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(long);
+                long data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize,
+                    out actualDataSize, grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a string column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a string. Null if the column is null.</returns>
+        public unsafe string RetrieveColumnAsString(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            Debug.Assert((grbit & (RetrieveColumnGrbit)0x00020000) == 0,
+                "UnpublishedGrbits.RetrieveAsRefIfNotInRecord is not supported.");
+            // 512 Unicode characters (1kb on stack)
+            const int BufferSize = 512;
+            char* buffer = stackalloc char[BufferSize];
+            int actualDataSize;
+            JET_wrn wrn = this.RetrieveColumn(columnid, new IntPtr(buffer),
+                BufferSize * sizeof(char), out actualDataSize, grbit, null);
+            if (JET_wrn.ColumnNull == wrn) { return null; }
+            if (JET_wrn.Success == wrn) {
+                ////return StringCache.GetString(buffer, 0, actualDataSize);
+                return new string(buffer, 0, actualDataSize / sizeof(char));
+            }
+            Debug.Assert(JET_wrn.BufferTruncated == wrn, "Unexpected warning code");
+            // Create a fake string of the appropriate size and then fill it in.
+            var s = new string('\0', actualDataSize / sizeof(char));
+            fixed (char* p = s) {
+                int newDataSize;
+                wrn = this.RetrieveColumn(columnid, new IntPtr(p),
+                    actualDataSize, out newDataSize, grbit, null);
+                if (JET_wrn.BufferTruncated != wrn) { return s; }
+                string error = string.Format(CultureInfo.CurrentCulture,
+                    "Column size changed from {0} to {1}. The record was probably updated by another thread.",
+                    actualDataSize, newDataSize);
+                Trace.TraceError(error);
+                throw new InvalidOperationException(error);
+            }
+        }
+
+        /// <summary>Retrieves a uint16 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an UInt16. Null if the column is null.</returns>
+        // [CLSCompliant(false)]
+        public ushort? RetrieveColumnAsUInt16(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) { // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(ushort);
+                ushort data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                    grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a uint32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an UInt32. Null if the column is null.</returns>
+        // [CLSCompliant(false)]
+        public uint? RetrieveColumnAsUInt32(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) { // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(uint);
+                uint data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                    grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a uint64 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an UInt64. Null if the column is null.</returns>
+        // [CLSCompliant(false)]
+        public ulong? RetrieveColumnAsUInt64(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) { // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(ulong);
+                ulong data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                    grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves the size of a single column value from the current record. The
+        /// record is that record associated with the index entry at the current position of
+        /// the cursor. Alternatively, this function can retrieve a column from a record being
+        /// created in the cursor copy buffer. This function can also retrieve column data
+        /// from an index entry that references the current record.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="itagSequence">The sequence number of value in a multi-valued column.
+        /// The array of values is one-based. The first value is sequence 1, not 0. If the
+        /// record column has only one value then 1 should be passed as the itagSequence.</param>
+        /// <param name="grbit">Retrieve column options.</param>
+        /// <returns>The size of the column. 0 if the column is null.</returns>
+        public int? RetrieveColumnSize(JET_COLUMNID columnid, int itagSequence,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) { // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            var retinfo = new JET_RETINFO { itagSequence = itagSequence };
+            int dataSize;
+            JET_wrn wrn = RetrieveColumn(columnid, null, 0, out dataSize,
+                grbit, retinfo);
+            return (JET_wrn.ColumnNull == wrn) ? (int?)null : dataSize;
+        }
+
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
         /// prevent a row from being updated by any other session, read lock. Normally, row write
         /// locks are acquired implicitly as a result of updating rows. Read locks are usually not
@@ -343,6 +910,77 @@ namespace EsentLib.Implementation
             int result = NativeMethods.JetGetLock(session.Id, _id.Value, (uint)flags);
             Tracing.TraceResult(result);
             return (JET_err)result;
+        }
+
+        /// <summary>Try to navigate through an index. If the navigation succeeds this method
+        /// returns true. If there is no record to navigate to this method returns false; an
+        /// exception will be thrown for other errors.</summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <param name="move">The direction to move in.</param>
+        /// <param name="grbit">Move options.</param>
+        /// <returns>True if the move was successful.</returns>
+        public bool TryMove(JET_SESID sesid, JET_Move move, MoveGrbit grbit = MoveGrbit.None)
+        {
+            JET_err err = (JET_err)Move(sesid, (int)move, grbit);
+            if (JET_err.NoCurrentRecord == err) { return false; }
+            EsentExceptionHelper.Check((int)err);
+            Debug.Assert((JET_err.Success <= err), "Exception should have been thrown in case of error");
+            return true;
+        }
+
+        /// <summary>Try to move to the first record in the table. If the table is empty this
+        /// returns false, if a different error is encountered an exception is thrown.</summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <returns>True if the move was successful.</returns>
+        internal bool TryMoveFirst(JET_SESID sesid)
+        {
+            return TryMove(sesid, JET_Move.First);
+        }
+
+        /// <summary>Try to move to the last record in the table. If the table is empty this
+        /// returns false, if a different error is encountered an exception is thrown.</summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <returns>True if the move was successful.</returns>
+        public bool TryMoveLast(JET_SESID sesid)
+        {
+            return TryMove(sesid, JET_Move.Last);
+        }
+
+        /// <summary>Try to move to the next record in the table. If there is not a next
+        /// record this returns false, if a different error is encountered an exception is
+        /// thrown.</summary>
+        /// <param name="sesid">The session to use.</param>
+        /// <returns>True if the move was successful.</returns>
+        public bool TryMoveNext(JET_SESID sesid)
+        {
+            return TryMove(sesid, JET_Move.Next, MoveGrbit.None);
+        }
+
+        /// <summary>The JetUpdate function performs an update operation including inserting
+        /// a new row into a table or updating an existing row. Deleting a table row is performed
+        /// by calling IJetApi.JetDelete</summary>
+        /// <param name="session">The session which started the update.</param>
+        /// <param name="bookmark">Returns the bookmark of the updated record. This can be null.</param>
+        /// <param name="grbit">Update options.</param>
+        /// <returns>Returns the actual size of the bookmark.</returns>
+        /// <remarks>JetUpdate is the final step in performing an insert or an update. The update
+        /// is begun by calling <see cref="IJetTable.PrepareUpdate"/> and then by calling JetSetColumn
+        /// one or more times to set the record state. Finally, JetUpdate is called to complete
+        /// the update operation. Indexes are updated only by JetUpdate or and not during
+        /// JetSetColumn.</remarks>
+        public int Update(IJetSession session, byte[] bookmark, UpdateGrbit grbit = UpdateGrbit.None)
+        {
+            Tracing.TraceFunctionCall("JetUpdate");
+            int bookmarkSize = (null == bookmark) ? 0 : bookmark.Length;
+            Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
+            uint bytesActual;
+            int returnCode = (UpdateGrbit.None == grbit)
+                ? NativeMethods.JetUpdate(session.Id, this._id.Value, bookmark,
+                    checked((uint)bookmarkSize), out bytesActual)
+                : NativeMethods.JetUpdate2(session.Id, this._id.Value, bookmark,
+                    checked((uint)bookmarkSize), out bytesActual, (uint)grbit);
+            EsentExceptionHelper.Check(returnCode);
+            return Helpers.GetActualSize(bytesActual);
         }
 
         private JET_TABLEID _id;

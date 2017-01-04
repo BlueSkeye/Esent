@@ -34,6 +34,11 @@ namespace EsentLib.Implementation
             set { SetParameter(JET_sesparam.CorrelationID, value); }
         }
 
+        internal JET_SESID Handle
+        {
+            get { return _hSession; }
+        }
+        
         /// <summary>Get session identifier.</summary>
         public IntPtr Id
         {
