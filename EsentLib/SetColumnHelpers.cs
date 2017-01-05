@@ -15,6 +15,7 @@ using System.Text;
 
 using EsentLib.Api.Data;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {

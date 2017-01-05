@@ -17,6 +17,7 @@ using System.Text;
 using EsentLib.Api;
 using EsentLib.Api.Data;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -161,31 +162,21 @@ namespace EsentLib
         /// <param name="values">The values to retrieve.</param>
         public static void RetrieveColumns(JET_SESID sesid, JET_TABLEID tableid, params ColumnValue[] values)
         {
-            if (null == values)
-            {
-                throw new ArgumentNullException("values");
-            }
-
-            if (0 == values.Length)
-            {
+            if (null == values) { throw new ArgumentNullException("values"); }
+            if (0 == values.Length) {
                 throw new ArgumentOutOfRangeException("values", values.Length, "must have at least one value");
             }
-
             ColumnValue.RetrieveColumns(sesid, tableid, values);
         }
 
-        /// <summary>
-        /// Efficiently retrieves a set of columns and their values from the
-        /// current record of a cursor or the copy buffer of that cursor.
-        /// </summary>
+        /// <summary>Efficiently retrieves a set of columns and their values from the current
+        /// record of a cursor or the copy buffer of that cursor.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve data from.</param>
         /// <param name="grbit">Enumerate options.</param>
         /// <returns>The discovered columns and their values.</returns>
-        public static IEnumerable<EnumeratedColumn> EnumerateColumns(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            EnumerateColumnsGrbit grbit)
+        public static IEnumerable<EnumeratedColumn> EnumerateColumns(JET_SESID sesid,
+            JET_TABLEID tableid, EnumerateColumnsGrbit grbit)
         {
             IEnumerable<EnumeratedColumn> enumeratedColumns;
             LegacyApi.JetEnumerateColumns(sesid, tableid, grbit, out enumeratedColumns);

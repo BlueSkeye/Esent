@@ -4,13 +4,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-
-using EsentLib.Implementation;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {

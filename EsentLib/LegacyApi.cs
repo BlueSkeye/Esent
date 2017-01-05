@@ -15,6 +15,7 @@ using System.Security.Permissions;
 using EsentLib.Api;
 using EsentLib.Implementation;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -136,7 +137,8 @@ namespace EsentLib
         public static void JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
             string columnName, out JET_COLUMNLIST columnlist)
         {
-            EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnlist));
+            throw new NotImplementedException();
+            // EsentExceptionHelper.Check(Impl.JetGetColumnInfo(sesid, dbid, tablename, columnName, out columnlist));
         }
 
         /// <summary>Retrieves information about a column in a table.</summary>

@@ -1163,139 +1163,89 @@ namespace EsentLib.Jet
         /// </summary>
         DTCCallbackUnexpectedError = -1162,
 
-        /// <summary>
-        /// Database already exists
-        /// </summary>
+        /// <summary>Database already exists</summary>
         DatabaseDuplicate = -1201,
 
-        /// <summary>
-        /// Database in use
-        /// </summary>
+        /// <summary>Database in use</summary>
         DatabaseInUse = -1202,
 
-        /// <summary>
-        /// No such database
-        /// </summary>
+        /// <summary>No such database</summary>
         DatabaseNotFound = -1203,
 
-        /// <summary>
-        /// Invalid database name
-        /// </summary>
+        /// <summary>Invalid database name</summary>
         DatabaseInvalidName = -1204,
 
-        /// <summary>
-        /// Invalid number of pages
-        /// </summary>
+        /// <summary>Invalid number of pages</summary>
         DatabaseInvalidPages = -1205,
 
-        /// <summary>
-        /// Non database file or corrupted db
-        /// </summary>
+        /// <summary>Non database file or corrupted db</summary>
         DatabaseCorrupted = -1206,
 
-        /// <summary>
-        /// Database exclusively locked
-        /// </summary>
+        /// <summary>Database exclusively locked</summary>
         DatabaseLocked = -1207,
 
-        /// <summary>
-        /// Cannot disable versioning for this database
-        /// </summary>
+        /// <summary>Cannot disable versioning for this database</summary>
         CannotDisableVersioning = -1208,
 
-        /// <summary>
-        /// Database engine is incompatible with database
-        /// </summary>
+        /// <summary>Database engine is incompatible with database</summary>
         InvalidDatabaseVersion = -1209,
 
-        /// <summary>
-        /// The database is in an older (200) format
-        /// </summary>
+        /// <summary>The database is in an older (200) format</summary>
         Database200Format = -1210,
 
-        /// <summary>
-        /// The database is in an older (400) format
-        /// </summary>
+        /// <summary>The database is in an older (400) format</summary>
         Database400Format = -1211,
 
-        /// <summary>
-        /// The database is in an older (500) format
-        /// </summary>
+        /// <summary>The database is in an older (500) format</summary>
         Database500Format = -1212,
 
-        /// <summary>
-        /// The database page size does not match the engine
-        /// </summary>
+        /// <summary>The database page size does not match the engine</summary>
         PageSizeMismatch = -1213,
 
-        /// <summary>
-        /// Cannot start any more database instances
-        /// </summary>
+        /// <summary>Cannot start any more database instances</summary>
         TooManyInstances = -1214,
 
-        /// <summary>
-        /// A different database instance is using this database
-        /// </summary>
+        /// <summary>A different database instance is using this database</summary>
         DatabaseSharingViolation = -1215,
 
-        /// <summary>
-        /// An outstanding database attachment has been detected at the start or end of recovery, but database is missing or does not match attachment info
-        /// </summary>
+        /// <summary>An outstanding database attachment has been detected at the start or end of
+        /// recovery, but database is missing or does not match attachment info</summary>
         AttachedDatabaseMismatch = -1216,
 
-        /// <summary>
-        /// Specified path to database file is illegal
-        /// </summary>
+        /// <summary>Specified path to database file is illegal</summary>
         DatabaseInvalidPath = -1217,
 
-        /// <summary>
-        /// A database is being assigned an id already in use
-        /// </summary>
+        /// <summary>A database is being assigned an id already in use</summary>
         DatabaseIdInUse = -1218,
 
-        /// <summary>
-        /// Force Detach allowed only after normal detach errored out
-        /// </summary>
+        /// <summary>Force Detach allowed only after normal detach errored out</summary>
         ForceDetachNotAllowed = -1219,
 
-        /// <summary>
-        /// Corruption detected in catalog
-        /// </summary>
+        /// <summary>Corruption detected in catalog</summary>
         CatalogCorrupted = -1220,
 
-        /// <summary>
-        /// Database is partially attached. Cannot complete attach operation
-        /// </summary>
+        /// <summary>Database is partially attached. Cannot complete attach operation</summary>
         PartiallyAttachedDB = -1221,
 
-        /// <summary>
-        /// Database with same signature in use
-        /// </summary>
+        /// <summary>Database with same signature in use</summary>
         DatabaseSignInUse = -1222,
 
-        /// <summary>
-        /// Corrupted db but repair not allowed
-        /// </summary>
+        /// <summary>Corrupted db but repair not allowed</summary>
         DatabaseCorruptedNoRepair = -1224,
 
-        /// <summary>
-        /// recovery tried to replay a database creation, but the database was originally created with an incompatible (likely older) version of the database engine
-        /// </summary>
+        /// <summary>recovery tried to replay a database creation, but the database was originally
+        /// created with an incompatible (likely older) version of the database engine</summary>
         InvalidCreateDbVersion = -1225,
 
-        /// <summary>
-        /// The database cannot be attached because it is currently being rebuilt as part of an incremental reseed.
-        /// </summary>
+        /// <summary>The database cannot be attached because it is currently being rebuilt as
+        /// part of an incremental reseed.</summary>
         DatabaseIncompleteIncrementalReseed = -1226,
 
-        /// <summary>
-        /// The database is not a valid state to perform an incremental reseed.
-        /// </summary>
+        /// <summary>The database is not a valid state to perform an incremental reseed.</summary>
         DatabaseInvalidIncrementalReseed = -1227,
 
-        /// <summary>
-        /// The incremental reseed being performed on the specified database cannot be completed due to a fatal error.  A full reseed is required to recover this database.
-        /// </summary>
+        /// <summary>The incremental reseed being performed on the specified database cannot be
+        /// completed due to a fatal error.  A full reseed is required to recover this database.</summary>
         DatabaseFailedIncrementalReseed = -1228,
 
         /// <summary>

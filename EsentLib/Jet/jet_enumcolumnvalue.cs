@@ -4,13 +4,15 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.InteropServices;
+
+using EsentLib.Jet.Types;
+
 namespace EsentLib.Jet
 {
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Runtime.InteropServices;
-
     /// <summary>
     /// Native (unmanaged) version of the JET_ENUMCOLUMNVALUE class.
     /// </summary>

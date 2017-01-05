@@ -8,7 +8,7 @@ namespace EsentLib.Api
 {
     /// <summary></summary>
     [CLSCompliant(false)]
-    public interface IJetDatabase
+    public interface IJetDatabase : IDisposable
     {
         /// <summary>Closes a database file that was previously opened with
         /// <see cref="IJetSession.OpenDatabase"/> or created with
@@ -43,7 +43,8 @@ namespace EsentLib.Api
         /// system tables.</summary>
         /// <param name="includeSystemTables">true if system tables should be included.</param>
         /// <returns>An enumerable object.</returns>
-        IEnumerable<string> EnumerateTableNames(bool includeSystemTables = false);
+        /* IEnumerable<string> */
+        IJetTemporaryTable<string> EnumerateTableNames(bool includeSystemTables = false);
 
         /// <summary>Retrieves information about database tables. This is the only kind of
         /// database objects that are supported for information retrieval by the underlying

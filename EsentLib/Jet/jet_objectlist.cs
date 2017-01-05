@@ -9,6 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
+using EsentLib.Api;
+
 namespace EsentLib.Jet
 {
     /// <summary>The native version of the JET_OBJECTLIST structure.</summary>
@@ -100,6 +102,24 @@ namespace EsentLib.Jet
         /// number of pages used by the table.</summary>
         public JET_COLUMNID columnidcPage { get; internal set; }
 
+        /// <summary>Sets the fields of the object from a native JET_OBJECTLIST struct.</summary>
+        /// <param name="owner">The IJetSession instance that has been used to create the
+        /// underlying temporary table.</param>
+        /// <param name="value">The native objectlist to set the values from.</param>
+        internal void SetFromNativeObjectlist(IJetSession owner, NATIVE_OBJECTLIST value)
+        {
+            _owner = owner;
+            this.tableid = new JET_TABLEID { Value = value.tableid };
+            this.cRecord = checked((int)value.cRecord);
+            this.columnidobjectname = new JET_COLUMNID { Value = value.columnidobjectname };
+            this.columnidobjtyp = new JET_COLUMNID { Value = value.columnidobjtyp };
+            this.columnidgrbit = new JET_COLUMNID { Value = value.columnidgrbit };
+            this.columnidflags = new JET_COLUMNID { Value = value.columnidflags };
+            this.columnidcRecord = new JET_COLUMNID { Value = value.columnidcRecord };
+            this.columnidcPage = new JET_COLUMNID { Value = value.columnidcPage };
+            this.columnidcontainername = new JET_COLUMNID { Value = value.columnidcontainername };
+        }
+
         /// <summary>Returns a <see cref="T:System.String"/> that represents the current
         /// <see cref="JET_OBJECTLIST"/>.</summary>
         /// <returns>A <see cref="T:System.String"/> that represents the current
@@ -110,20 +130,6 @@ namespace EsentLib.Jet
                 this.tableid, this.cRecord);
         }
 
-        /// <summary>Sets the fields of the object from a native JET_OBJECTLIST struct.</summary>
-        /// <param name="value">The native objectlist to set the values from.</param>
-        internal void SetFromNativeObjectlist(NATIVE_OBJECTLIST value)
-        {
-            this.tableid = new JET_TABLEID { Value = value.tableid };
-            this.cRecord = checked((int)value.cRecord);
-
-            this.columnidobjectname = new JET_COLUMNID { Value = value.columnidobjectname };
-            this.columnidobjtyp = new JET_COLUMNID { Value = value.columnidobjtyp };
-            this.columnidgrbit = new JET_COLUMNID { Value = value.columnidgrbit };
-            this.columnidflags = new JET_COLUMNID { Value = value.columnidflags };
-            this.columnidcRecord = new JET_COLUMNID { Value = value.columnidcRecord };
-            this.columnidcPage = new JET_COLUMNID { Value = value.columnidcPage };
-            this.columnidcontainername = new JET_COLUMNID { Value = value.columnidcontainername };
-        }
+        private IJetSession _owner;
     }
 }

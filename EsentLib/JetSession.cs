@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using EsentLib.Api;
 using EsentLib.Api.Flags;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib.Implementation
 {
@@ -12,17 +13,33 @@ namespace EsentLib.Implementation
     [CLSCompliant(false)]
     public class JetSession : IDisposable, IJetSession
     {
+        static JetSession()
+        {
+            NullSession = new JetSession(JET_SESID.Nil);
+        }
+
+        /// <summary>This constructor is required for <see cref="NullSession"/> instanciation
+        /// because no owner.</summary>
+        /// <param name="hSession"></param>
+        private JetSession(JET_SESID hSession)
+        {
+            _hSession = hSession;
+        }
+
         internal JetSession(JetInstance owner, JET_SESID hSession)
+            : this(hSession)
         {
             if (null == owner) { throw new ArgumentNullException("owner"); }
-            _hSession = hSession;
             _owner = owner;
         }
 
         #region PROPERTIES
         internal JetCapabilities Capabilities
         {
-            get { return _owner._Capabilities; }
+            get {
+                AssertNotNullSession();
+                return _owner._Capabilities;
+            }
         }
 
         /// <summary>A 32-bit integer ID that is logged in traces and can be used by clients to
@@ -65,7 +82,16 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>Get the instance owning this session.</summary>
-        public IJetInstance Owner { get; private set; }
+        public IJetInstance Owner
+        {
+            get
+            {
+                if (object.ReferenceEquals(this, NullSession)) {
+                    throw new InvalidOperationException("NullSession has no owner.");
+                }
+                return _owner;
+            }
+        }
 
         /// <summary>Gets the current number of nested levels of transactions begun. A value
         /// of zero indicates that the session is not currently in a transaction. This
@@ -77,13 +103,21 @@ namespace EsentLib.Implementation
         }
         #endregion
 
+        private void AssertNotNullSession()
+        {
+            if (object.ReferenceEquals(this, NullSession)) {
+                throw new InvalidOperationException(
+                    "Operation not available on NullSession instance.");
+            }
+        }
+
         /// <summary>Attaches a database file for use with a database instance. In order to
         /// use the database, it will need to be subsequently opened with
         /// <see cref="IJetSession.OpenDatabase"/>.</summary>
         /// <param name="database">The database to attach.</param>
         /// <param name="grbit">Attach options.</param>
-        /// <param name="maxPages">The maximum size, in database pages, of the database.
-        /// Passing 0 means there is no enforced maximum.</param>
+        /// <param name="maxPages">The maximum size, in database pages, of the database. Passing
+        /// 0 means there is no enforced maximum.</param>
         /// <returns>An error or warning.</returns>
         [CLSCompliant(false)]
         public void AttachDatabase(string database, AttachDatabaseGrbit grbit, uint maxPages = 0)
@@ -118,6 +152,7 @@ namespace EsentLib.Implementation
 
         private void Close(EndSessionGrbit grbit, bool throwOnError)
         {
+            AssertNotNullSession();
             Tracing.TraceFunctionCall("Close");
             int returnCode = NativeMethods.JetEndSession(Id, (uint)grbit);
             Tracing.TraceResult(returnCode);
@@ -166,6 +201,7 @@ namespace EsentLib.Implementation
         [CLSCompliant(false)]
         public IJetSession Duplicate()
         {
+            AssertNotNullSession();
             Tracing.TraceFunctionCall("Duplicate");
             JET_SESID newSesid = JET_SESID.Nil;
             int returnCode = NativeMethods.JetDupSession(Id, out newSesid.Value);
@@ -267,18 +303,18 @@ namespace EsentLib.Implementation
         /// for use with a database session. This function can be called multiple times for the same
         /// database.</summary>
         /// <param name="database">The database to open.</param>
-        /// <param name="connect">Reserved for future use.</param>
         /// <param name="grbit">Open database options.</param>
         /// <returns>A database instance.</returns>
         [CLSCompliant(false)]
-        public IJetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit)
+        public IJetDatabase OpenDatabase(string database, OpenDatabaseGrbit grbit = OpenDatabaseGrbit.None)
         {
             Tracing.TraceFunctionCall("OpenDatabase");
             Helpers.CheckNotNull(database, "database");
             JET_DBID dbid = JET_DBID.Nil;
-            int returnCode = NativeMethods.JetOpenDatabaseW(Id, database, connect, out dbid.Value,
+            int returnCode = NativeMethods.JetOpenDatabaseW(Id, database, null, out dbid.Value,
                 (uint)grbit);
             Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
             return new JetDatabase(this, dbid, database);
         }
 
@@ -295,6 +331,7 @@ namespace EsentLib.Implementation
         ///// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
         //public IJetTable OpenTemporaryTable(JET_OPENTEMPORARYTABLE temporarytable)
         //{
+        //    AssertNotNullSession();
         //    Tracing.TraceFunctionCall("OpenTemporaryTable");
         //    Helpers.CheckNotNull(temporarytable, "temporarytable");
         //    _owner._Capabilities.CheckSupportsWindows8Features("OpenTemporaryTable");
@@ -437,7 +474,7 @@ namespace EsentLib.Implementation
             return string.Format(CultureInfo.InvariantCulture, "Session (0x{0:x})", Id);
         }
 
-        internal static readonly JetSession NullSession = new JetSession(null, JET_SESID.Nil);
+        internal static readonly JetSession NullSession;
         private JET_SESID _hSession;
         private JetInstance _owner;
     }

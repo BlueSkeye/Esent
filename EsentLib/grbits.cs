@@ -8,14 +8,13 @@ using System;
 using System.Collections.Generic;
 
 using EsentLib.Api;
-using EsentLib.Api.Flags;
 using EsentLib.Implementation;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
-    /// <summary>Options for
-    /// <see cref="EsentLib.Implementation.JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
+    /// <summary>Options for <see cref="JetInstance.Create(string,string,CreateInstanceGrbit)"/>.</summary>
     [Flags]
     public enum CreateInstanceGrbit
     {
@@ -23,7 +22,7 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>Options for <see cref="EsentLib.Implementation.JetInstance.Initialize"/>.</summary>
+    /// <summary>Options for <see cref="JetInstance.Initialize"/>.</summary>
     [Flags]
     public enum InitGrbit
     {
@@ -636,76 +635,57 @@ namespace EsentLib
         /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        /// When enumerating column values, all columns for which we are retrieving
-        /// all values and that have only one non-NULL column value may be returned
-        /// in a compressed format. The status for such columns will be set to
-        /// <see cref="JET_wrn.ColumnSingleValue"/> and the size of the column value
-        /// and the memory containing the column value will be returned directly in
-        /// the <see cref="JET_ENUMCOLUMN"/> structure. It is not guaranteed that
-        /// all eligible columns are compressed in this manner. See
-        /// <see cref="JET_ENUMCOLUMN"/> for more information.
-        /// </summary>
+        /// <summary>When enumerating column values, all columns for which we are retrieving
+        /// all values and that have only one non-NULL column value may be returned in a
+        /// compressed format. The status for such columns will be set to
+        /// <see cref="JET_wrn.ColumnSingleValue"/> and the size of the column value and the
+        /// memory containing the column value will be returned directly in the
+        /// <see cref="JET_ENUMCOLUMN"/> structure. It is not guaranteed that all eligible
+        /// columns are compressed in this manner. See <see cref="JET_ENUMCOLUMN"/> for more
+        /// information.</summary>
         EnumerateCompressOutput = 0x00080000,
 
-        /// <summary>
-        /// This option indicates that the modified column values of the record
-        /// should be enumerated rather than the original column values. If a
-        /// column value has not been modified, the original column value is
-        /// enumerated. In this way, a column value that has not yet been inserted
-        /// or updated may be enumerated when inserting or updating a record.
-        /// </summary>
-        /// <remarks>
-        /// This option is identical to <see cref="RetrieveColumnGrbit.RetrieveCopy"/>.
-        /// </remarks>
+        /// <summary>This option indicates that the modified column values of the record
+        /// should be enumerated rather than the original column values. If a column value
+        /// has not been modified, the original column value is enumerated. In this way, a
+        /// column value that has not yet been inserted or updated may be enumerated when
+        /// inserting or updating a record.</summary>
+        /// <remarks>This option is identical to <see cref="RetrieveColumnGrbit.RetrieveCopy"/>.</remarks>
         EnumerateCopy = 0x1,
 
-        /// <summary>
-        /// If a given column is not present in the record then no column value
-        /// will be returned. Ordinarily, the default value for the column,
-        /// if any, would be returned in this case. It is guaranteed that if the
-        /// column is set to a value different than the default value then that
-        /// different value will be returned (that is, if a column with a
-        /// default value is explicitly set to NULL then a NULL will be returned
-        /// as the value for that column). Even if this option is requested, it
-        /// is still possible to see a column value that happens to be equal to
-        /// the default value. No effort is made to remove column values that
-        /// match their default values.
+        /// <summary>If a given column is not present in the record then no column value will
+        /// be returned. Ordinarily, the default value for the column, if any, would be
+        /// returned in this case. It is guaranteed that if the column is set to a value
+        /// different than the default value then that different value will be returned
+        /// (that is, if a column with a default value is explicitly set to NULL then a NULL
+        /// will be returned as the value for that column). Even if this option is requested,
+        /// it is still possible to see a column value that happens to be equal to the default
+        /// value. No effort is made to remove column values that match their default values.
         /// It is important to remember that this option affects the output of
         /// <see cref="LegacyApi.JetEnumerateColumns(JET_SESID, JET_TABLEID, EnumerateColumnsGrbit, out IEnumerable&lt;EnumeratedColumn&gt;)"/>
         /// and its associated overloads when used with 
         /// <see cref="EnumerateColumnsGrbit.EnumeratePresenceOnly"/> or
-        /// <see cref="EnumerateColumnsGrbit.EnumerateTaggedOnly"/>.
-        /// </summary>
+        /// <see cref="EnumerateColumnsGrbit.EnumerateTaggedOnly"/>.</summary>
         EnumerateIgnoreDefault = 0x20,
 
-        /// <summary>
-        /// If a non-NULL value exists for the requested column or column value
-        /// then the associated data is not returned. Instead, the associated
-        /// status for that column or column value will be set to
-        /// <see cref="JET_wrn.ColumnPresent"/>. If the column or column value
-        /// is NULL then <see cref="JET_wrn.ColumnNull"/> will be returned as usual.
-        /// </summary>
+        /// <summary>If a non-NULL value exists for the requested column or column value then
+        /// the associated data is not returned. Instead, the associated status for that
+        /// column or column value will be set to <see cref="JET_wrn.ColumnPresent"/>. If the
+        /// column or column value is NULL then <see cref="JET_wrn.ColumnNull"/> will be
+        /// returned as usual.</summary>
         EnumeratePresenceOnly = 0x00020000,
 
-        /// <summary>
-        /// When enumerating all column values in the record (for example,that is
-        /// when numColumnids is zero), only tagged column values will be returned.
-        /// This option is not allowed when enumerating a specific array of column IDs.
-        /// </summary>
+        /// <summary>When enumerating all column values in the record (for example,that is when
+        /// numColumnids is zero), only tagged column values will be returned. This option is
+        /// not allowed when enumerating a specific array of column IDs.</summary>
         EnumerateTaggedOnly = 0x00040000,
 
-        /// <summary>
-        /// If a given column is not present in the record and it has a user
-        /// defined default value then no column value will be returned.
-        /// This option will prevent the callback that computes the user defined
-        /// default value for the column from being called when enumerating
-        /// the values for that column.
-        /// </summary>
-        /// <remarks>
-        /// This option is only available for Windows Server 2003 SP1 and later
-        /// operating systems.
-        /// </remarks>
+        /// <summary>If a given column is not present in the record and it has a user defined
+        /// default value then no column value will be returned. This option will prevent the
+        /// callback that computes the user defined default value for the column from being
+        /// called when enumerating the values for that column.</summary>
+        /// <remarks>This option is only available for Windows Server 2003 SP1 and later
+        /// operating systems.</remarks>
         EnumerateIgnoreUserDefinedDefault = 0x00100000,
 
         // --------- //
@@ -714,11 +694,10 @@ namespace EsentLib
         /// <summary>When enumerating column values only retrieve data that is present in the
         /// record. This means that BLOB columns will not always be retrieved.</summary>
         EnumerateInRecordOnly = 0x00200000,
-
     }
 
-/// <summary>Options for <see cref="LegacyApi.JetGetRecordSize"/>.</summary>
-[Flags]
+    /// <summary>Options for <see cref="LegacyApi.JetGetRecordSize"/>.</summary>
+    [Flags]
     public enum GetRecordSizeGrbit
     {
         /// <summary>Default options.</summary>

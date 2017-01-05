@@ -12,6 +12,7 @@ using System.Globalization;
 using System.IO;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {

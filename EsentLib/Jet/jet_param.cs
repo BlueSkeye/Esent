@@ -6,12 +6,12 @@
 
 using System;
 
+using EsentLib.Api;
+
 namespace EsentLib.Jet
 {
     /// <summary>ESENT system parameters.
-    /// <para>
-    /// <see cref="EsentLib.Implementation.JetInstance.SetSystemParameter(JET_SESID,JET_param,IntPtr,string)"/>,
-    /// </para>
+    /// <see cref="IJetInstance.SetSystemParameter(JET_param,IntPtr,string)"/>,
     /// </summary>
     public enum JET_param
     {
@@ -33,108 +33,86 @@ namespace EsentLib.Jet
         /// folder.</summary>
         LogFilePath = 2,
 
-        /// <summary>
-        /// This parameter sets the three letter prefix used for many of the files used by
-        /// the database engine. For example, the checkpoint file is called EDB.CHK by
-        /// default because EDB is the default base name.
-        /// </summary>
+        /// <summary>This parameter sets the three letter prefix used for many of the files
+        /// used by the database engine. For example, the checkpoint file is called EDB.CHK
+        /// by default because EDB is the default base name.</summary>
         BaseName = 3,
 
-        /// <summary>
-        /// This parameter supplies an application specific string that will be added to
-        /// any event log messages that are emitted by the database engine. This allows
+        /// <summary>This parameter supplies an application specific string that will be added
+        /// to any event log messages that are emitted by the database engine. This allows
         /// easy correlation of event log messages with the source application. By default
-        /// the host application executable name will be used.
-        /// </summary>
+        /// the host application executable name will be used.</summary>
         EventSource = 4,
 
-        /// <summary>
-        /// This parameter reserves the requested number of session resources for use by an
-        /// instance. A session resource directly corresponds to a JET_SESID data type.
-        /// This setting will affect how many sessions can be used at the same time.
-        /// </summary>
+        /// <summary>This parameter reserves the requested number of session resources for
+        /// use by an instance. A session resource directly corresponds to a JET_SESID data
+        /// type. This setting will affect how many sessions can be used at the same time.</summary>
         MaxSessions = 5,
 
-        /// <summary>
-        /// This parameter reserves the requested number of B+ Tree resources for use by
-        /// an instance. This setting will affect how many tables can be used at the same time.
-        /// </summary>
+        /// <summary>This parameter reserves the requested number of B+ Tree resources for
+        /// use by an instance. This setting will affect how many tables can be used at the
+        /// same time.</summary>
         MaxOpenTables = 6,
 
         // PreferredMaxOpenTables(7) is obsolete
 
-        /// <summary>
-        /// This parameter reserves the requested number of cursor resources for use by an
-        /// instance. A cursor resource directly corresponds to a JET_TABLEID data type.
+        /// <summary>This parameter reserves the requested number of cursor resources for use
+        /// by an instance. A cursor resource directly corresponds to a JET_TABLEID data type.
         /// This setting will affect how many cursors can be used at the same time. A cursor
         /// resource cannot be shared by different sessions so this parameter must be set to
-        /// a large enough value so that each session can use as many cursors as are required.
-        /// </summary>
+        /// a large enough value so that each session can use as many cursors as are required.</summary>
         MaxCursors = 8,
 
-        /// <summary>
-        /// This parameter reserves the requested number of version store pages for use by an instance.
-        /// </summary>
+        /// <summary>This parameter reserves the requested number of version store pages for
+        /// use by an instance.</summary>
         MaxVerPages = 9,
 
-        /// <summary>
-        /// This parameter reserves the requested number of temporary table resources for use
-        /// by an instance. This setting will affect how many temporary tables can be used at
-        /// the same time. If this system parameter is set to zero then no temporary database
-        /// will be created and any activity that requires use of the temporary database will
-        /// fail. This setting can be useful to avoid the I/O required to create the temporary
-        /// database if it is known that it will not be used.
-        /// </summary>
-        /// <remarks>
-        /// The use of a temporary table also requires a cursor resource.
-        /// </remarks>
+        /// <summary>This parameter reserves the requested number of temporary table resources
+        /// for use by an instance. This setting will affect how many temporary tables can be
+        /// used at the same time. If this system parameter is set to zero then no temporary
+        /// database will be created and any activity that requires use of the temporary database
+        /// will fail. This setting can be useful to avoid the I/O required to create the
+        /// temporary database if it is known that it will not be used.</summary>
+        /// <remarks>The use of a temporary table also requires a cursor resource.</remarks>
         MaxTemporaryTables = 10,
 
-        /// <summary>
-        /// This parameter will configure the size of the transaction log files. Each
-        /// transaction log file is a fixed size. The size is equal to the setting of
-        /// this system parameter in units of 1024 bytes.
-        /// </summary>
+        /// <summary>This parameter will configure the size of the transaction log files. Each
+        /// transaction log file is a fixed size. The size is equal to the setting of this
+        /// system parameter in units of 1024 bytes.</summary>
         LogFileSize = 11,
 
-        /// <summary>
-        /// This parameter will configure the amount of memory used to cache log records
-        /// before they are written to the transaction log file. The unit for this
+        /// <summary>This parameter will configure the amount of memory used to cache log
+        /// records before they are written to the transaction log file. The unit for this
         /// parameter is the sector size of the volume that holds the transaction log files.
         /// The sector size is almost always 512 bytes, so it is safe to assume that size
         /// for the unit. This parameter has an impact on performance. When the database
         /// engine is under heavy update load, this buffer can become full very rapidly.
         /// A larger cache size for the transaction log file is critical for good update
-        /// performance under such a high load condition. The default is known to be too small
-        /// for this case.
-        /// Do not set this parameter to a number of buffers that is larger (in bytes) than
-        /// half the size of a transaction log file.
-        /// </summary>
+        /// performance under such a high load condition. The default is known to be too
+        /// small for this case. Do not set this parameter to a number of buffers that is
+        /// larger (in bytes) than half the size of a transaction log file.</summary>
         LogBuffers = 12,
 
-        /// <summary>
-        /// This parameter configures how transaction log files are managed by the database
-        /// engine. When circular logging is off, all transaction log files that are generated
-        /// are retained on disk until they are no longer needed because a full backup of the
-        /// database has been performed. When circular logging is on, only transaction log files
-        /// that are younger than the current checkpoint are retained on disk. The benefit of
-        /// this mode is that backups are not required to retire old transaction log files. 
-        /// </summary>
+        /// <summary>This parameter configures how transaction log files are managed by the
+        /// database engine. When circular logging is off, all transaction log files that
+        /// are generated are retained on disk until they are no longer needed because a
+        /// full backup of the database has been performed. When circular logging is on,
+        /// only transaction log files that are younger than the current checkpoint are
+        /// retained on disk. The benefit of this mode is that backups are not required to
+        /// retire old transaction log files. </summary>
         CircularLog = 17,
 
-        /// <summary>
-        /// This parameter controls the amount of space that is added to a database file each
-        /// time it needs to grow to accommodate more data. The size is in database pages.
-        /// </summary>
+        /// <summary>This parameter controls the amount of space that is added to a database
+        /// file each time it needs to grow to accommodate more data. The size is in database
+        /// pages.</summary>
         DbExtensionSize = 18,
 
-        /// <summary>
-        /// This parameter controls the initial size of the temporary database. The size is in
-        /// database pages. A size of zero indicates that the default size of an ordinary
-        /// database should be used. It is often desirable for small applications to configure
-        /// the temporary database to be as small as possible. Setting this parameter to
-        /// SystemParameters.PageTempDBSmallest will achieve the smallest temporary database possible.
-        /// </summary>
+        /// <summary>This parameter controls the initial size of the temporary database. The
+        /// size is in database pages. A size of zero indicates that the default size of an
+        /// ordinary database should be used. It is often desirable for small applications to
+        /// configure the temporary database to be as small as possible. Setting this parameter
+        /// to SystemParameters.PageTempDBSmallest will achieve the smallest temporary database
+        /// possible.</summary>
         PageTempDBMin = 19,
 
         /// <summary>
@@ -470,88 +448,55 @@ namespace EsentLib.Jet
         /// </summary>
         LegacyFileNames = 136,
 
-        /// <summary>
-        /// Set the name associated with table class 1.
-        /// </summary>
+        /// <summary>Set the name associated with table class 1.</summary>
         TableClass1Name = 137,
 
-        /// <summary>
-        /// Set the name associated with table class 2.
-        /// </summary>
+        /// <summary>Set the name associated with table class 2.</summary>
         TableClass2Name = 138,
 
-        /// <summary>
-        /// Set the name associated with table class 3.
-        /// </summary>
+        /// <summary>Set the name associated with table class 3.</summary>
         TableClass3Name = 139,
 
-        /// <summary>
-        /// Set the name associated with table class 4.
-        /// </summary>
+        /// <summary>Set the name associated with table class 4.</summary>
         TableClass4Name = 140,
 
-        /// <summary>
-        /// Set the name associated with table class 5.
-        /// </summary>
+        /// <summary>Set the name associated with table class 5.</summary>
         TableClass5Name = 141,
 
-        /// <summary>
-        /// Set the name associated with table class 6.
-        /// </summary>
+        /// <summary>Set the name associated with table class 6.</summary>
         TableClass6Name = 142,
 
-        /// <summary>
-        /// Set the name associated with table class 7.
-        /// </summary>
+        /// <summary>Set the name associated with table class 7.</summary>
         TableClass7Name = 143,
 
-        /// <summary>
-        /// Set the name associated with table class 8.
-        /// </summary>
+        /// <summary>Set the name associated with table class 8.</summary>
         TableClass8Name = 144,
 
-        /// <summary>
-        /// Set the name associated with table class 9.
-        /// </summary>
+        /// <summary>Set the name associated with table class 9.</summary>
         TableClass9Name = 145,
 
-        /// <summary>
-        /// Set the name associated with table class 10.
-        /// </summary>
+        /// <summary>Set the name associated with table class 10.</summary>
         TableClass10Name = 146,
 
-        /// <summary>
-        /// Set the name associated with table class 11.
-        /// </summary>
+        /// <summary>Set the name associated with table class 11.</summary>
         TableClass11Name = 147,
 
-        /// <summary>
-        /// Set the name associated with table class 12.
-        /// </summary>
+        /// <summary>Set the name associated with table class 12.</summary>
         TableClass12Name = 148,
 
-        /// <summary>
-        /// Set the name associated with table class 13.
-        /// </summary>
+        /// <summary>Set the name associated with table class 13.</summary>
         TableClass13Name = 149,
 
-        /// <summary>
-        /// Set the name associated with table class 14.
-        /// </summary>
+        /// <summary>Set the name associated with table class 14.</summary>
         TableClass14Name = 150,
 
-        /// <summary>
-        /// Set the name associated with table class 15.
-        /// </summary>
+        /// <summary>Set the name associated with table class 15.</summary>
         TableClass15Name = 151,
 
-        /// <summary>
-        /// Sets the IO priority per instance, anytime. This is used
-        /// mainly for background recovery (log replay).
-        /// Does not affect the pending IOs, just the subsequent ones issued.
-        /// The valid values for this parameter are contained in the
-        /// <see cref="JET_IOPriority"/> enumeration.
-        /// </summary>
+        /// <summary>Sets the IO priority per instance, anytime. This is used mainly for
+        /// background recovery (log replay). Does not affect the pending IOs, just the
+        /// subsequent ones issued. The valid values for this parameter are contained in the
+        /// <see cref="JET_IOPriority"/> enumeration.</summary>
         IOPriority = 152,
 
         // --------- //

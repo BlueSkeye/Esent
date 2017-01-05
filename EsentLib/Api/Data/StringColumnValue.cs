@@ -7,6 +7,7 @@
 using System.Diagnostics;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib.Api.Data
 {

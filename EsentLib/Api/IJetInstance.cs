@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Generic;
 
-using EsentLib.Api.Flags;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib.Api
 {
@@ -39,11 +39,8 @@ namespace EsentLib.Api
         void Backup(string destination, BackupGrbit grbit, JET_PFNSTATUS statusCallback);
 
         /// <summary>Initialize a new ESENT session.</summary>
-        /// <param name="username">The parameter is not used.</param>
-        /// <param name="password">The parameter is not used.</param>
         /// <returns>A new session.</returns>
-        /* <seealso cref="Api.BeginSession"/> */
-        IJetSession BeginSession(string username, string password);
+        IJetSession BeginSession();
 
         /// <summary>Terminate an instance that was created with
         /// JetInstance.Create(string,string,CreateInstanceGrbit).</summary>
@@ -106,18 +103,38 @@ namespace EsentLib.Api
         /// <returns>A <see cref="IJetBackupInstance"/> implementation.</returns>
         IJetBackupInstance PrepareBackup(bool incremental = false);
 
-        /// <summary>Restores and recovers a streaming backup of an instance including all the
-        /// attached databases. It is designed to work with a backup created with the
+        /// <summary>Restores and recovers a streaming backup of an instance including all
+        /// the attached databases. It is designed to work with a backup created with the
         /// <see cref="IJetInstance.Backup"/> function. This is the simplest and most encapsulated
         /// restore function.</summary>
-        /// <param name="source">Location of the backup. The backup should have been created with
-        /// <see cref="IJetInstance.Backup"/>.</param>
-        /// <param name="destination">Name of the folder where the database files from the backup set
-        /// will be copied and recovered. If this is set to null, the database files will be copied
-        /// and recovered to their original location.</param>
+        /// <param name="source">Location of the backup. The backup should have been created
+        /// with <see cref="IJetInstance.Backup"/>.</param>
+        /// <param name="destination">Name of the folder where the database files from the
+        /// backup set will be copied and recovered. If this is set to null, the database
+        /// files will be copied and recovered to their original location.</param>
         /// <param name="statusCallback">Optional status notification callback.</param>
         /// <returns>An error code.</returns>
         void Restore(string source, string destination, JET_PFNSTATUS statusCallback);
+
+        /// <summary>Sets parameter on a specific instance.
+        /// <seealso cref="IJetEnvironment.SetSystemParameter(JET_param, JET_CALLBACK, string)"/></summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter is a
+        /// JET_CALLBACK.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter is a
+        /// string type.</param>
+        /// <returns>An ESENT warning code.</returns>
+        void SetSystemParameter(JET_param paramid, JET_CALLBACK paramValue, string paramString);
+
+        /// <summary>Sets parameter on a specific instance.
+        /// <seealso cref="IJetEnvironment.SetSystemParameter(JET_param, IntPtr, string)"/></summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter is an
+        /// integer type.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter is a
+        /// string type.</param>
+        /// <returns>An error or warning.</returns>
+        void SetSystemParameter(JET_param paramid, IntPtr paramValue, string paramString);
 
         /// <summary>Prepares an instance for termination.</summary>
         /// <param name="grbit">The options to stop or resume the instance.</param>
@@ -309,17 +326,15 @@ namespace EsentLib.Api
         int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename, string columnName,
             out JET_COLUMNDEF columndef);
 
-        /// <summary>
-        /// Retrieves information about all columns in a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database that contains the table.</param>
-        /// <param name="tablename">The name of the table containing the column.</param>
-        /// <param name="ignored">This parameter is ignored.</param>
-        /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename, string ignored,
-            out JET_COLUMNLIST columnlist);
+        ///// <summary>Retrieves information about all columns in a table.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database that contains the table.</param>
+        ///// <param name="tablename">The name of the table containing the column.</param>
+        ///// <param name="ignored">This parameter is ignored.</param>
+        ///// <param name="columnlist">Filled in with information about the columns in the table.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename, string ignored,
+        //    out JET_COLUMNLIST columnlist);
 
         /// <summary>
         /// Retrieves information about a column in a table.

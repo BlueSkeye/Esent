@@ -67,7 +67,11 @@
     <Compile Include="Api\Flags\TransactionFlushKind.cs" />
     <Compile Include="Api\ICursor.cs" />
     <Compile Include="Api\IJetBackupInstance.cs" />
+    <Compile Include="Api\IJetTemporaryTable.cs" />
     <Compile Include="JetBackupInstance.cs" />
+    <Compile Include="JetTemporaryTable.cs" />
+    <Compile Include="Jet\Types\JET_DBID.cs" />
+    <Compile Include="Jet\Types\JET_SESID.cs" />
     <Compile Include="LegacyApi.cs" />
     <Compile Include="Api\Data\BoolColumnValue.cs" />
     <Compile Include="Api\Data\ByteColumnValue.cs" />
@@ -203,7 +207,6 @@
     <Compile Include="Jet\Types\JET_INSTANCE.cs" />
     <Compile Include="LegacyFileNames.cs" />
     <Compile Include="LibraryHelpers.cs" />
-    <Compile Include="MakeKeyHelpers.cs" />
     <Compile Include="MemoryCache.cs" />
     <Compile Include="Implementation\NativeMethods.cs" />
     <Compile Include="ObjectInfoFlags.cs" />

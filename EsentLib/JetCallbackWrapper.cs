@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -136,33 +137,22 @@ namespace EsentLib
         /// <param name="nativeContext">Callback context.</param>
         /// <param name="unused">This parameter is not used.</param>
         /// <returns>An ESENT error code.</returns>
-        private JET_err CallbackImpl(
-            IntPtr nativeSesid,
-            uint nativeDbid,
-            IntPtr nativeTableid,
-            uint nativeCbtyp,
-            IntPtr arg1,
-            IntPtr arg2,
-            IntPtr nativeContext,
-            IntPtr unused)
+        private JET_err CallbackImpl(IntPtr nativeSesid, uint nativeDbid, IntPtr nativeTableid,
+            uint nativeCbtyp, IntPtr arg1, IntPtr arg2, IntPtr nativeContext, IntPtr unused)
         {
             RuntimeHelpers.PrepareConstrainedRegions();
-            try
-            {
+            try {
                 var sesid = new JET_SESID { Value = nativeSesid };
                 var dbid = new JET_DBID { Value = nativeDbid };
                 var tableid = new JET_TABLEID { Value = nativeTableid };
                 JET_cbtyp cbtyp = (JET_cbtyp)nativeCbtyp;
-
                 Debug.Assert(this.wrappedCallback.IsAlive, "Wrapped callback has been garbage collected");
-
                 // This will throw an exception if the wrapped callback has been collected. The exception
                 // will be handled below.
                 JET_CALLBACK callback = (JET_CALLBACK)this.wrappedCallback.Target;
                 return callback(sesid, dbid, tableid, cbtyp, null, null, nativeContext, IntPtr.Zero);
             }
-            catch (Exception ex)
-            {                
+            catch (Exception ex) {                
                 // Thread aborts aren't handled here. ESENT callbacks can execute on client threads or
                 // internal ESENT threads so it isn't clear what should be done on an abort.
                 Trace.WriteLineIf(

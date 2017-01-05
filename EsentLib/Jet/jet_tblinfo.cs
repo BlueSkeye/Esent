@@ -4,6 +4,8 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using EsentLib.Jet.Types;
+
 namespace EsentLib.Jet
 {
     /// <summary>

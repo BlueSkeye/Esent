@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib.Api.Data
 {

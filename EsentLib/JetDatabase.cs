@@ -6,12 +6,13 @@ using System.Text;
 using EsentLib.Api;
 using EsentLib.Api.Flags;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib.Implementation
 {
     /// <summary></summary>
     [CLSCompliant(false)]
-    public class JetDatabase : IJetDatabase
+    public class JetDatabase : IJetDatabase, IDisposable
     {
         /// <summary></summary>
         /// <param name="owner">The session that has been used to open or create this
@@ -26,6 +27,12 @@ namespace EsentLib.Implementation
             _dbid = dbid;
             _name = name;
             _owner = owner;
+        }
+
+        /// <summary></summary>
+        ~JetDatabase()
+        {
+            Dispose(false);
         }
 
         internal JetSession Session
@@ -119,28 +126,43 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
+        /// <summary>Clean-up resources.</summary>
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        /// <summary>Clean-up resources.</summary>
+        protected void Dispose(bool disposing)
+        {
+            Close(CloseDatabaseGrbit.None);
+            return;
+        }
+
         /// <summary>Enumerate the name of the tables in this database, optionally including
         /// system tables.</summary>
         /// <param name="includeSystemTables">true if system tables should be included.</param>
         /// <returns>An enumerable object.</returns>
-        public IEnumerable<string> EnumerateTableNames(bool includeSystemTables = false)
+        public IJetTemporaryTable<string> EnumerateTableNames(bool includeSystemTables = false)
         {
             JET_OBJECTLIST tables = GetDatabaseTables();
             JetTable resultTable = new JetTable(this, tables.tableid);
-            return resultTable.Enumerate<string>(
-                includeSystemTables
-                ? (JetTable.FilterDelegate)delegate() { return true; }
-                : (JetTable.FilterDelegate)delegate () {
-                    // <summary>Determine if the current entry in the table being enumerated should be
-                    // skipped (not returned). Here we are skipping system tables.</summary>
-                    // <returns>True if the current entry should be skipped.</returns>
-                    int flags = (int)resultTable.RetrieveColumnAsInt32(tables.columnidflags);
-                    return (ObjectInfoFlags.System == ((ObjectInfoFlags)flags & ObjectInfoFlags.System));
-                },
-                delegate() {
-                    string name = resultTable.RetrieveColumnAsString(tables.columnidobjectname);
-                    return StringCache.TryToIntern(name);
-                });
+            return new JetTemporaryTable<string>(resultTable,
+                resultTable.Enumerate<string>(
+                    includeSystemTables
+                    ? (JetTable.FilterDelegate)null // Accept every record.
+                    : (JetTable.FilterDelegate)delegate () {
+                        // Determine if the current entry in the table being enumerated should be
+                        // skipped (not returned). Here we are skipping system tables.
+                        // Returns true if the current entry should be skipped.
+                        int flags = (int)resultTable.RetrieveColumnAsInt32(tables.columnidflags);
+                        return (ObjectInfoFlags.System == ((ObjectInfoFlags)flags & ObjectInfoFlags.System));
+                    },
+                    delegate () {
+                        string name = resultTable.RetrieveColumnAsString(tables.columnidobjectname);
+                        return StringCache.TryToIntern(name);
+                    }));
         }
 
         //internal string RetrieveTableName()
@@ -153,19 +175,26 @@ namespace EsentLib.Implementation
         /// <summary>Retrieves information about database tables. This is the only kind of
         /// database objects that are supported for information retrieval by the underlying
         /// native API.</summary>
-        /// <returns>An object list.</returns>
+        /// <returns>An object list. One of the member of the returned structure is the identifier
+        /// of the underlying temporary table. THe caller is responsible for closing this
+        /// temporary table.</returns>
         public JET_OBJECTLIST GetDatabaseTables()
         {
             Tracing.TraceFunctionCall("GetDatabaseTables");
             JET_OBJECTLIST result = new JET_OBJECTLIST();
             NATIVE_OBJECTLIST nativeObjectlist = NATIVE_OBJECTLIST.Create();
+            bool succeeded = false;
             int returnCode = NativeMethods.JetGetObjectInfoW(_owner.Id, _dbid.Value,
                 (uint)JET_objtyp.Table, null, null, ref nativeObjectlist, nativeObjectlist.cbStruct,
                 (uint)JET_ObjInfo.ListNoStats);
-            Tracing.TraceResult(returnCode);
-            EsentExceptionHelper.Check(returnCode);
-            result.SetFromNativeObjectlist(nativeObjectlist);
-            return result;
+            try {
+                Tracing.TraceResult(returnCode);
+                EsentExceptionHelper.Check(returnCode);
+                result.SetFromNativeObjectlist(_owner, nativeObjectlist);
+                succeeded = true;
+                return result;
+            }
+            finally { if (!succeeded) { NativeMethods.JetCloseTable(_owner.Id, result.tableid.Value); } }
         }
 
         /// <summary>Retrieves certain information about the given database.</summary>

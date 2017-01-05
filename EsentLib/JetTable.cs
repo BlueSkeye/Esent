@@ -7,6 +7,7 @@ using System.Text;
 
 using EsentLib.Api;
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib.Implementation
 {
@@ -50,11 +51,10 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>Close an open table.</summary>
-        /// <param name="session">Session to use.</param>
-        public void Close(IJetSession session)
+        public void Close()
         {
             Tracing.TraceFunctionCall("Close");
-            int returnCode = NativeMethods.JetCloseTable(session.Id, _id.Value);
+            int returnCode = NativeMethods.JetCloseTable(_owner.Session.Id, _id.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
         }
@@ -178,26 +178,93 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
+        /// <summary>A delegate that will filter out unwanted records.</summary>
+        /// <returns></returns>
         internal delegate bool FilterDelegate();
         internal delegate T ItemRetriever<T>();
 
-        internal IEnumerable<T> Enumerate<T>(FilterDelegate filter, ItemRetriever<T> retriever)
+        /// <summary></summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="skipRecordFilter">This delegate, if not null, will be invoked on each
+        /// record. It has to return true if the current record should be skipped and not be
+        /// returned by the enumerator.</param>
+        /// <param name="retriever"></param>
+        /// <returns></returns>
+        internal IEnumerable<T> Enumerate<T>(FilterDelegate skipRecordFilter, ItemRetriever<T> retriever)
         {
-            //        if (this.moveToFirst) {
-            //            if (!Api.TryMoveFirst(this.Sesid, this.TableidToEnumerate)) {
-            //                this.isAtEnd = true;
-            //                return false;                    
-            //            }
-            //            this.moveToFirst = false;
-            //            needMoveNext = false;
-            //        }
-
-            while (true) {
-                if (!TryMoveNext(_owner.Session.Handle)) { yield break; }
-                if ((null != filter) && filter()) { continue; }
-                yield return retriever();
-            }
+            if (!TryMoveFirst()) { yield break; }
+            do {
+                if ((null == skipRecordFilter) || !skipRecordFilter()) {
+                    yield return retriever();
+                }
+            } while (TryMoveNext());
+            yield break;
         }
+
+        /// <summary>Retrieve a list of colums for this table.</summary>
+        /// <returns></returns>
+        private JET_COLUMNLIST GetTableColumns()
+        {
+            var nativeColumnlist = new NATIVE_COLUMNLIST();
+            nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
+            // Technically, this should have worked in Vista. But there was a bug, and
+            // it was fixed after Windows 7.
+            int returnCode = NativeMethods.JetGetTableColumnInfoW(_owner.Session.Id, _id.Value, null,
+                ref nativeColumnlist, nativeColumnlist.cbStruct, (uint)JET_ColInfo.List);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            JET_COLUMNLIST result = new JET_COLUMNLIST();
+            result.SetFromNativeColumnlist(nativeColumnlist);
+            return result;
+        }
+
+        /// <summary>Enumerate the name of the columns in this table.</summary>
+        /// <returns>An enumerable object.</returns>
+        public IJetTemporaryTable<string> EnumerateColumnNames()
+        {
+            Tracing.TraceFunctionCall("EnumerateColumnNames");
+            JET_COLUMNLIST columns = GetTableColumns();
+            JetTable resultTable = new JetTable(_owner, columns.tableid);
+            return new JetTemporaryTable<string>(resultTable,
+                resultTable.Enumerate<string>((JetTable.FilterDelegate)null, // Accept every record.
+                    delegate () {
+                        string name = resultTable.RetrieveColumnAsString(columns.columnidcolumnname);
+                        return StringCache.TryToIntern(name);
+                    }));
+        }
+
+        ///// <summary>Retrieves information about all columns in a table.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database that contains the table.</param>
+        ///// <param name="tablename">The name of the table containing the column.</param>
+        ///// <param name="ignored">This parameter is ignored.</param>
+        ///// <param name="columnlist">Filled in with information about the columns in the table.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //public int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+        //    string ignored, out JET_COLUMNLIST columnlist)
+        //{
+        //    int err;
+        //    var nativeColumnlist = new NATIVE_COLUMNLIST();
+        //    nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
+
+        //    // Technically, this should have worked in Vista. But there was a bug, and
+        //    // it was fixed after Windows 7.
+        //    if (_capabilities.SupportsWindows8Features)
+        //    {
+        //        err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(sesid.Value, dbid.Value,
+        //            tablename, ignored, ref nativeColumnlist, nativeColumnlist.cbStruct,
+        //            (uint)JET_ColInfo.List));
+        //    }
+        //    else
+        //    {
+        //        err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(sesid.Value, dbid.Value,
+        //            tablename, ignored, ref nativeColumnlist, nativeColumnlist.cbStruct,
+        //            (uint)JET_ColInfo.List));
+        //    }
+        //    columnlist.SetFromNativeColumnlist(nativeColumnlist);
+        //    return err;
+        //}
+
 
         /// <summary>Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and name.</summary>
         /// <param name="session">The session to use.</param>
@@ -987,8 +1054,8 @@ namespace EsentLib.Implementation
             const int BufferSize = 512;
             char* buffer = stackalloc char[BufferSize];
             int actualDataSize;
-            JET_wrn wrn = this.RetrieveColumn(columnid, new IntPtr(buffer),
-                BufferSize * sizeof(char), out actualDataSize, grbit, null);
+            JET_wrn wrn = RetrieveColumn(columnid, new IntPtr(buffer), BufferSize * sizeof(char),
+                out actualDataSize, grbit, null);
             if (JET_wrn.ColumnNull == wrn) { return null; }
             if (JET_wrn.Success == wrn) {
                 ////return StringCache.GetString(buffer, 0, actualDataSize);
@@ -1147,13 +1214,12 @@ namespace EsentLib.Implementation
         /// <summary>Try to navigate through an index. If the navigation succeeds this method
         /// returns true. If there is no record to navigate to this method returns false; an
         /// exception will be thrown for other errors.</summary>
-        /// <param name="sesid">The session to use.</param>
         /// <param name="move">The direction to move in.</param>
         /// <param name="grbit">Move options.</param>
         /// <returns>True if the move was successful.</returns>
-        public bool TryMove(JET_SESID sesid, JET_Move move, MoveGrbit grbit = MoveGrbit.None)
+        public bool TryMove(JET_Move move, MoveGrbit grbit = MoveGrbit.None)
         {
-            JET_err err = (JET_err)Move(sesid, (int)move, grbit);
+            JET_err err = (JET_err)Move(_owner.Session.Handle, (int)move, grbit);
             if (JET_err.NoCurrentRecord == err) { return false; }
             EsentExceptionHelper.Check((int)err);
             Debug.Assert((JET_err.Success <= err), "Exception should have been thrown in case of error");
@@ -1162,30 +1228,27 @@ namespace EsentLib.Implementation
 
         /// <summary>Try to move to the first record in the table. If the table is empty this
         /// returns false, if a different error is encountered an exception is thrown.</summary>
-        /// <param name="sesid">The session to use.</param>
         /// <returns>True if the move was successful.</returns>
-        internal bool TryMoveFirst(JET_SESID sesid)
+        internal bool TryMoveFirst()
         {
-            return TryMove(sesid, JET_Move.First);
+            return TryMove(JET_Move.First);
         }
 
         /// <summary>Try to move to the last record in the table. If the table is empty this
         /// returns false, if a different error is encountered an exception is thrown.</summary>
-        /// <param name="sesid">The session to use.</param>
         /// <returns>True if the move was successful.</returns>
-        public bool TryMoveLast(JET_SESID sesid)
+        public bool TryMoveLast()
         {
-            return TryMove(sesid, JET_Move.Last);
+            return TryMove(JET_Move.Last);
         }
 
         /// <summary>Try to move to the next record in the table. If there is not a next
         /// record this returns false, if a different error is encountered an exception is
         /// thrown.</summary>
-        /// <param name="sesid">The session to use.</param>
         /// <returns>True if the move was successful.</returns>
-        public bool TryMoveNext(JET_SESID sesid)
+        public bool TryMoveNext()
         {
-            return TryMove(sesid, JET_Move.Next, MoveGrbit.None);
+            return TryMove(JET_Move.Next, MoveGrbit.None);
         }
 
         /// <summary>The JetUpdate function performs an update operation including inserting

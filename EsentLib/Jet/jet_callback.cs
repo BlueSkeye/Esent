@@ -6,13 +6,12 @@
 
 using System;
 
+using EsentLib.Jet.Types;
+
 namespace EsentLib.Jet
 {
-    /// <summary>
-    /// A multi-purpose callback function used by the database engine to inform
-    /// the application of an event involving online defragmentation and cursor
-    /// state notifications. 
-    /// </summary>
+    /// <summary>A multi-purpose callback function used by the database engine to inform the
+    /// application of an event involving online defragmentation and cursor state notifications.</summary>
     /// <param name="sesid">The session for which the callback is being made.</param>
     /// <param name="dbid">The database for which the callback is being made.</param>
     /// <param name="tableid">The cursor for which the callback is being made.</param>
@@ -22,13 +21,6 @@ namespace EsentLib.Jet
     /// <param name="context">Callback context.</param>
     /// <param name="unused">This parameter is not used.</param>
     /// <returns>An ESENT error code.</returns>
-    public delegate JET_err JET_CALLBACK(
-        JET_SESID sesid,
-        JET_DBID dbid,
-        JET_TABLEID tableid,
-        JET_cbtyp cbtyp,
-        object arg1,
-        object arg2,
-        IntPtr context,
-        IntPtr unused);
+    public delegate JET_err JET_CALLBACK(JET_SESID sesid, JET_DBID dbid, JET_TABLEID tableid,
+        JET_cbtyp cbtyp, object arg1, object arg2, IntPtr context, IntPtr unused);
 }

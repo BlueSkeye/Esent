@@ -1,2 +1,12 @@
 ﻿ESE Handles
 https://msdn.microsoft.com/en-us/library/gg269349(v=exchg.10).aspx
+Directory Data Store
+https://technet.microsoft.com/en-us/library/cc961761.aspx
+How the Active Directory – Data Store Really Works (Inside NTDS.dit) – Part 1
+http://blogs.chrisse.se/2012/02/11/how-the-active-directory-data-store-really-works-inside-ntds-dit-part-1/
+ACTIVE DIRECTORY DATABASE, SYSVOL AND SYSTEM STATE
+http://www.rebeladmin.com/2015/02/active-directory-database-sysvol-and-system-state/
+Microsoft Active Directory Forensics
+http://www.dataforensics.org/microsoft-active-directory/
+Extensible Storage Engine Files
+https://msdn.microsoft.com/en-us/library/gg294069(v=exchg.10).aspx

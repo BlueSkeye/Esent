@@ -12,6 +12,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+using EsentLib.Jet.Types;
+
 namespace EsentLib.Jet
 {
     /// <summary>Receives information about the progress of long-running operations, such as

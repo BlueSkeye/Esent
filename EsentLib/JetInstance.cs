@@ -37,11 +37,13 @@ namespace EsentLib.Implementation
             // Prepare these methods for inclusion in a constrained execution region (CER).
             // This is needed by the Instance class. Instance accesses these methods
             // virtually so RemoveUnnecessaryCode won't be able to prepare them.
-            foreach (string methodName in new string[] { "JetCreateInstance", "JetCreateInstance2",
-                "JetInit", "JetInit2", "JetInit3", "JetTerm", "JetTerm2"})
-            {
-                RuntimeHelpers.PrepareMethod(thisType.GetMethod(methodName).MethodHandle);
-            }
+            // TODO : Reinstate this.
+            //foreach (string methodName in new string[] { "JetCreateInstance", "JetCreateInstance2",
+            //    "JetInit", "JetInit2", "JetInit3", "JetTerm", "JetTerm2"})
+            //{
+            //    RuntimeHelpers.PrepareMethod(thisType.GetMethod(methodName).MethodHandle);
+            //}
+            NullInstance = new JetInstance() { _instance = new JET_INSTANCE() };
         }
 
         /// <summary>Initializes a new instance of the JetApi class. This allows the version
@@ -164,8 +166,7 @@ namespace EsentLib.Implementation
 
         /// <summary>Gets or sets a value indicating whether JetInit fails when the database
         /// engine is configured to start using transaction log files on disk that are of a
-        /// different size than what is configured. Normally,
-        /// <see cref="EsentLib.Implementation.JetInstance.Initialize(InitGrbit, JET_RSTINFO)"/>
+        /// different size than what is configured. Normally, <see cref="JetInstance.Initialize"/>
         /// will successfully recover the databases but will fail with <see cref="JET_err.LogFileSizeMismatchDatabasesConsistent"/>
         /// to indicate that the log file size is misconfigured. However, when this parameter
         /// is set to true then the database engine will silently delete all the old log
@@ -474,6 +475,8 @@ namespace EsentLib.Implementation
             set { NativeHelpers.SetParameter(_instance, JET_param.NoInformationEvent, value); }
         }
 
+        internal static JetInstance NullInstance { get; private set; }
+
         /// <summary>Gets or sets a value indicating whether only one database is allowed to
         /// be opened using JetOpenDatabase by a given session at one time. The temporary
         /// database is excluded from this restriction.</summary>
@@ -631,19 +634,18 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>Initialize a new ESENT session.</summary>
-        /// <param name="username">The parameter is not used.</param>
-        /// <param name="password">The parameter is not used.</param>
         /// <returns>A new session.</returns>
         /* <seealso cref="Api.BeginSession"/> */
-        public IJetSession BeginSession(string username, string password)
+        public IJetSession BeginSession(/* string username, string password */)
         {
             Tracing.TraceFunctionCall("BeginSession");
             JET_SESID sessionId = JET_SESID.Nil;
-            int returnCode = NativeMethods.JetBeginSession(_instance.Value, out sessionId.Value, username, password);
+            int returnCode = NativeMethods.JetBeginSession(_instance.Value, out sessionId.Value,
+                string.Empty, string.Empty /*username, password*/);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             JetSession result = new JetSession(this, sessionId);
-            // TODO : Consider storing the associated thtrad identifier.
+            // TODO : Consider storing the associated thread identifier.
             int threadId = Thread.CurrentThread.ManagedThreadId;
             List<JetSession> thisThreadSessions;
             if (!_activeSessions.TryGetValue(threadId, out thisThreadSessions)) {
@@ -704,21 +706,10 @@ namespace EsentLib.Implementation
             };
             result._instance.Value = IntPtr.Zero;
             RuntimeHelpers.PrepareConstrainedRegions();
-            int nativeResult = 0;
-            if (string.IsNullOrEmpty(displayName)
-                && (CreateInstanceGrbit.None == grbit))
-            {
-                nativeResult = (JetEnvironment.Current.TrueCapabilities.SupportsUnicodePaths)
-                    ? NativeMethods.JetCreateInstanceW(out result._instance.Value, name)
-                    : NativeMethods.JetCreateInstance(out result._instance.Value, name);
-            }
-            else {
-                nativeResult = (JetEnvironment.Current.TrueCapabilities.SupportsUnicodePaths)
-                    ? NativeMethods.JetCreateInstance2W(out result._instance.Value, name,
-                        displayName, (uint)grbit)
-                    : NativeMethods.JetCreateInstance2(out result._instance.Value, name,
-                        displayName, (uint)grbit);
-            }
+            int nativeResult = (string.IsNullOrEmpty(displayName) && (CreateInstanceGrbit.None == grbit))
+                ? NativeMethods.JetCreateInstanceW(out result._instance.Value, name)
+                : NativeMethods.JetCreateInstance2W(out result._instance.Value, name,
+                    displayName, (uint)grbit);
             Tracing.TraceResult(nativeResult);
             EsentExceptionHelper.Check(nativeResult);
             return result;
@@ -878,7 +869,7 @@ namespace EsentLib.Implementation
             }
             if (0 == _version) {
                 // Get the version from Esent
-                using (IJetSession session = this.BeginSession(string.Empty, string.Empty)) {
+                using (IJetSession session = BeginSession()) {
                     int returnCode = NativeMethods.JetGetVersion(Id, out _version);
                     Tracing.TraceResult(returnCode);
                     EsentExceptionHelper.Check(returnCode);
@@ -896,6 +887,9 @@ namespace EsentLib.Implementation
         public void Initialize(InitGrbit grbit = InitGrbit.None,
             JET_RSTINFO recoveryOptions = null)
         {
+            if (object.ReferenceEquals(NullInstance, this)) {
+                throw new InvalidOperationException("NullInstance can't be initialized.");
+            }
             Tracing.TraceFunctionCall("Initialize");
             int returnCode;
             if (null == recoveryOptions) {
@@ -1019,40 +1013,52 @@ namespace EsentLib.Implementation
             return;
         }
 
-        /// <summary>Sets database configuration options.</summary>
-        /// <param name="sesid">The session to use.</param>
+        /// <summary>Sets parameter on a specific instance.
+        /// <seealso cref="IJetEnvironment.SetSystemParameter(JET_param, JET_CALLBACK, string)"/></summary>
         /// <param name="paramid">The parameter to set.</param>
         /// <param name="paramValue">The value of the parameter to set, if the parameter
         /// is a JET_CALLBACK.</param>
         /// <param name="paramString">The value of the parameter to set, if the parameter
         /// is a string type.</param>
         /// <returns>An ESENT warning code.</returns>
-        internal void SetSystemParameter(JET_SESID sesid, JET_param paramid,
-            JET_CALLBACK paramValue, string paramString)
+        public void SetSystemParameter(JET_param paramid, JET_CALLBACK paramValue,
+            string paramString)
         {
-            // TODO : Make this usable without an instance to set the parameter on every
-            // instance.
-            this.SetSystemParameter(sesid, paramid, paramValue, paramString);
+            SetSystemParameter(paramid, paramValue, paramString);
         }
 
-        /// <summary>Sets database configuration options.</summary>
-        /// <param name="sesid">The session to use.</param>
+        /// <summary>Sets parameter on a specific instance.
+        /// <seealso cref="IJetEnvironment.SetSystemParameter(JET_param, IntPtr, string)"/></summary>
         /// <param name="paramid">The parameter to set.</param>
         /// <param name="paramValue">The value of the parameter to set, if the parameter is an integer type.</param>
         /// <param name="paramString">The value of the parameter to set, if the parameter is a string type.</param>
         /// <returns>An error or warning.</returns>
-        internal void SetSystemParameter(JET_SESID sesid, JET_param paramid, IntPtr paramValue,
-            string paramString)
+        public void SetSystemParameter(JET_param paramid, IntPtr paramValue, string paramString)
+        {
+            if (object.ReferenceEquals(NullInstance, this)) {
+                throw new InvalidOperationException(
+                    "For system wide parameter settings, use IJetEnvironment interface.");
+            }
+            _SetSystemParameter(paramid, paramValue, paramString);
+            return;
+        }
+
+        /// <summary>Sets database configuration options.</summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter is an integer type.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter is a string type.</param>
+        /// <returns>An error or warning.</returns>
+        internal void _SetSystemParameter(JET_param paramid, IntPtr paramValue, string paramString)
         {
             // TODO : Make this usable without an instance to set the parameter on every
             // instance.
-            Tracing.TraceFunctionCall("SetSystemParameter");
+            Tracing.TraceFunctionCall("_SetSystemParameter");
             unsafe {
                 int returnCode = 0;
                 fixed (IntPtr* pinstance = &_instance.Value) {
                     returnCode = NativeMethods.JetSetSystemParameterW(
-                        (IntPtr.Zero == this._instance.Value) ? null : pinstance,
-                        sesid.Value, (uint)paramid, paramValue, paramString);
+                        (IntPtr.Zero == _instance.Value) ? null : pinstance,
+                        IntPtr.Zero, (uint)paramid, paramValue, paramString);
                 }
                 Tracing.TraceResult(returnCode);
                 EsentExceptionHelper.Check(returnCode);
@@ -1505,21 +1511,15 @@ namespace EsentLib.Implementation
 
         #region JetGetColumnInfo overloads
 
-        /// <summary>
-        /// Retrieves information about a table column.
-        /// </summary>
+        /// <summary>Retrieves information about a table column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="dbid">The database that contains the table.</param>
         /// <param name="tablename">The name of the table containing the column.</param>
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columndef">Filled in with information about the column.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string columnName,
-                out JET_COLUMNDEF columndef)
+        public int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string columnName, out JET_COLUMNDEF columndef)
         {
             Tracing.TraceFunctionCall("JetGetColumnInfo");
             columndef = new JET_COLUMNDEF();
@@ -1534,85 +1534,55 @@ namespace EsentLib.Implementation
             // it was fixed after Windows 7.
             if (_capabilities.SupportsWindows8Features)
             {
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
-                        sesid.Value,
-                        dbid.Value,
-                        tablename,
-                        columnName,
-                        ref nativeColumndef,
-                        nativeColumndef.cbStruct,
-                        (uint)JET_ColInfo.Default));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
-                    sesid.Value,
-                    dbid.Value,
-                    tablename,
-                    columnName,
-                    ref nativeColumndef,
-                    nativeColumndef.cbStruct,
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(sesid.Value, dbid.Value,
+                    tablename, columnName, ref nativeColumndef, nativeColumndef.cbStruct,
                     (uint)JET_ColInfo.Default));
             }
-
-            columndef.SetFromNativeColumndef(nativeColumndef);
-
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves information about all columns in a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database that contains the table.</param>
-        /// <param name="tablename">The name of the table containing the column.</param>
-        /// <param name="ignored">This parameter is ignored.</param>
-        /// <param name="columnlist">Filled in with information about the columns in the table.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string ignored,
-                out JET_COLUMNLIST columnlist)
-        {
-            Tracing.TraceFunctionCall("JetGetColumnInfo");
-            columnlist = new JET_COLUMNLIST();
-            Helpers.CheckNotNull(tablename, "tablename");
-            int err;
-
-            var nativeColumnlist = new NATIVE_COLUMNLIST();
-            nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
-
-            // Technically, this should have worked in Vista. But there was a bug, and
-            // it was fixed after Windows 7.
-            if (_capabilities.SupportsWindows8Features)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
-                    sesid.Value,
-                    dbid.Value,
-                    tablename,
-                    ignored,
-                    ref nativeColumnlist,
-                    nativeColumnlist.cbStruct,
-                    (uint)JET_ColInfo.List));
-            }
             else
             {
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
-                    sesid.Value,
-                    dbid.Value,
-                    tablename,
-                    ignored,
-                    ref nativeColumnlist,
-                    nativeColumnlist.cbStruct,
-                    (uint)JET_ColInfo.List));
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(sesid.Value, dbid.Value,
+                    tablename, columnName, ref nativeColumndef, nativeColumndef.cbStruct,
+                    (uint)JET_ColInfo.Default));
             }
-
-            columnlist.SetFromNativeColumnlist(nativeColumnlist);
-
+            columndef.SetFromNativeColumndef(nativeColumndef);
             return err;
         }
+
+        ///// <summary>Retrieves information about all columns in a table.</summary>
+        ///// <param name="sesid">The session to use.</param>
+        ///// <param name="dbid">The database that contains the table.</param>
+        ///// <param name="tablename">The name of the table containing the column.</param>
+        ///// <param name="ignored">This parameter is ignored.</param>
+        ///// <param name="columnlist">Filled in with information about the columns in the table.</param>
+        ///// <returns>An error if the call fails.</returns>
+        //public int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+        //    string ignored, out JET_COLUMNLIST columnlist)
+        //{
+        //    Tracing.TraceFunctionCall("JetGetColumnInfo");
+        //    columnlist = new JET_COLUMNLIST();
+        //    Helpers.CheckNotNull(tablename, "tablename");
+        //    int err;
+
+        //    var nativeColumnlist = new NATIVE_COLUMNLIST();
+        //    nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
+
+        //    // Technically, this should have worked in Vista. But there was a bug, and
+        //    // it was fixed after Windows 7.
+        //    if (_capabilities.SupportsWindows8Features)
+        //    {
+        //        err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(sesid.Value, dbid.Value,
+        //            tablename, ignored, ref nativeColumnlist, nativeColumnlist.cbStruct,
+        //            (uint)JET_ColInfo.List));
+        //    }
+        //    else
+        //    {
+        //        err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(sesid.Value, dbid.Value,
+        //            tablename, ignored, ref nativeColumnlist, nativeColumnlist.cbStruct,
+        //            (uint)JET_ColInfo.List));
+        //    }
+        //    columnlist.SetFromNativeColumnlist(nativeColumnlist);
+        //    return err;
+        //}
 
         /// <summary>
         /// Retrieves information about a column in a table.
@@ -1623,12 +1593,8 @@ namespace EsentLib.Implementation
         /// <param name="columnName">The name of the column.</param>
         /// <param name="columnbase">Filled in with information about the columns in the table.</param>
         /// <returns>An error if the call fails.</returns>
-        public int JetGetColumnInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string columnName,
-                out JET_COLUMNBASE columnbase)
+        public int JetGetColumnInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string columnName, out JET_COLUMNBASE columnbase)
         {
             Tracing.TraceFunctionCall("JetGetColumnInfo");
             Helpers.CheckNotNull(tablename, "tablename");
@@ -1642,34 +1608,20 @@ namespace EsentLib.Implementation
                 var nativeColumnbase = new NATIVE_COLUMNBASE_WIDE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE_WIDE)));
 
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(
-                    sesid.Value,
-                    dbid.Value,
-                    tablename,
-                    columnName,
-                    ref nativeColumnbase,
-                    nativeColumnbase.cbStruct,
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfoW(sesid.Value, dbid.Value,
+                    tablename, columnName, ref nativeColumnbase, nativeColumnbase.cbStruct,
                     (uint)JET_ColInfo.Base));
-
                 columnbase = new JET_COLUMNBASE(nativeColumnbase);
             }
             else
             {
                 var nativeColumnbase = new NATIVE_COLUMNBASE();
                 nativeColumnbase.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNBASE)));
-
-                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(
-                    sesid.Value,
-                    dbid.Value,
-                    tablename,
-                    columnName,
-                    ref nativeColumnbase,
-                    nativeColumnbase.cbStruct,
+                err = Tracing.TraceResult(NativeMethods.JetGetColumnInfo(sesid.Value, dbid.Value,
+                    tablename, columnName, ref nativeColumnbase, nativeColumnbase.cbStruct,
                     (uint)JET_ColInfo.Base));
-
                 columnbase = new JET_COLUMNBASE(nativeColumnbase);
             }
-
             return err;
         }
 
@@ -4144,11 +4096,8 @@ namespace EsentLib.Implementation
         #endregion
 
         #region prereading
-        /// <summary>
-        /// If the records with the specified key rangess are not in the buffer
-        /// cache, then start asynchronous reads to bring the records into the
-        /// database buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified key rangess are not in the buffer cache,
+        /// then start asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
         /// <param name="indexRanges">The key rangess to preread.</param>
@@ -4157,9 +4106,7 @@ namespace EsentLib.Implementation
         /// <param name="rangesPreread">Returns the number of keys actually preread.</param>
         /// <param name="columnsPreread">List of column ids for long value columns to preread.</param>
         /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
-        /// <returns>
-        /// An error if the call fails.
-        /// </returns>
+        /// <returns>An error if the call fails.</returns>
         public int JetPrereadIndexRanges(JET_SESID sesid, JET_TABLEID tableid, JET_INDEX_RANGE[] indexRanges,
             int rangeIndex, int rangeCount, out int rangesPreread, JET_COLUMNID[] columnsPreread,
             PrereadIndexRangesGrbit grbit)
@@ -4170,37 +4117,25 @@ namespace EsentLib.Implementation
             Helpers.CheckDataSize(indexRanges, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
 
             var handles = new GCHandleCollection();
-            try
-            {
+            try {
                 NATIVE_INDEX_RANGE[] nativeRanges = new NATIVE_INDEX_RANGE[rangeCount];
-                for (int i = 0; i < rangeCount; i++)
-                {
+                for (int i = 0; i < rangeCount; i++) {
                     nativeRanges[i] = indexRanges[i + rangeIndex].GetNativeIndexRange(ref handles);
                 }
-
-                if (columnsPreread != null)
-                {
+                if (columnsPreread != null) {
                     var nativecolumnids = new uint[columnsPreread.Length];
-                    for (int i = 0; i < columnsPreread.Length; i++)
-                    {
+                    for (int i = 0; i < columnsPreread.Length; i++) {
                         nativecolumnids[i] = (uint)columnsPreread[i].Value;
                     }
-
                     return Tracing.TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, nativeRanges, (uint)rangeCount, out rangesPreread, nativecolumnids, (uint)columnsPreread.Length, checked((uint)grbit)));
                 }
-                else
-                {
-                    return Tracing.TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, nativeRanges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
-                }
+                return Tracing.TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, nativeRanges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
             }
             finally { handles.Dispose(); }
         }
 
-        /// <summary>
-        /// If the records with the specified key ranges are not in the
-        /// buffer cache then start asynchronous reads to bring the records
-        /// into the database buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified key ranges are not in the buffer cache
+        /// then start asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
         /// <param name="keysStart">The start of key ranges to preread.</param>
@@ -4222,34 +4157,26 @@ namespace EsentLib.Implementation
             Helpers.CheckDataSize(keysStart, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
             Helpers.CheckDataSize(keyStartLengths, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
             Helpers.CheckNotNull(keysStart, "keysStart");
-            if (keysEnd != null)
-            {
+            if (keysEnd != null) {
                 Helpers.CheckNotNull(keyEndLengths, "keyEndLengths");
                 Helpers.CheckDataSize(keysEnd, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
             }
-
-            if (keyEndLengths != null)
-            {
+            if (keyEndLengths != null) {
                 Helpers.CheckNotNull(keysEnd, "keysEnd");
                 Helpers.CheckDataSize(keyEndLengths, rangeIndex, "rangeIndex", rangeCount, "rangeCount");
             }
-
             grbit = grbit | PrereadIndexRangesGrbit.NormalizedKey;
-
-            using (var handles = new GCHandleCollection())
-            {
+            using (var handles = new GCHandleCollection()) {
                 NATIVE_INDEX_COLUMN[] startColumn;
                 NATIVE_INDEX_COLUMN[] endColumn;
                 NATIVE_INDEX_RANGE[] ranges = new NATIVE_INDEX_RANGE[rangeCount];
-                for (int i = 0; i < rangeCount; i++)
-                {
+                for (int i = 0; i < rangeCount; i++) {
                     startColumn = new NATIVE_INDEX_COLUMN[1];
                     startColumn[0].pvData = handles.Add(keysStart[i + rangeIndex]);
                     startColumn[0].cbData = (uint)keyStartLengths[i + rangeIndex];
                     ranges[i].rgStartColumns = handles.Add(startColumn);
                     ranges[i].cStartColumns = 1;
-                    if (keysEnd != null)
-                    {
+                    if (keysEnd != null) {
                         endColumn = new NATIVE_INDEX_COLUMN[1];
                         endColumn[0].pvData = handles.Add(keysEnd[i + rangeIndex]);
                         endColumn[0].cbData = (uint)keyEndLengths[i + rangeIndex];
@@ -4258,20 +4185,14 @@ namespace EsentLib.Implementation
                     }
                 }
 
-                if (columnsPreread != null)
-                {
+                if (columnsPreread != null) {
                     var nativecolumnids = new uint[columnsPreread.Length];
-                    for (int i = 0; i < columnsPreread.Length; i++)
-                    {
+                    for (int i = 0; i < columnsPreread.Length; i++) {
                         nativecolumnids[i] = (uint)columnsPreread[i].Value;
                     }
-
                     return Tracing.TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, ranges, (uint)rangeCount, out rangesPreread, nativecolumnids, (uint)columnsPreread.Length, checked((uint)grbit)));
                 }
-                else
-                {
-                    return Tracing.TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, ranges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
-                }
+                return Tracing.TraceResult(NativeMethods.JetPrereadIndexRanges(sesid.Value, tableid.Value, ranges, (uint)rangeCount, out rangesPreread, null, (uint)0, checked((uint)grbit)));
             }
         }
 
@@ -4319,18 +4240,14 @@ namespace EsentLib.Implementation
         /// <param name="dbid">The database to which to add the new table.</param>
         /// <param name="tablecreate">Object describing the table to create.</param>
         /// <returns>An error if the call fails.</returns>
-        private static int CreateTableColumnIndex4(
-            JET_SESID sesid,
-            JET_DBID dbid,
+        private static int CreateTableColumnIndex4(JET_SESID sesid, JET_DBID dbid,
             JET_TABLECREATE tablecreate)
         {
             NATIVE_TABLECREATE4 nativeTableCreate = tablecreate.GetNativeTableCreate4();
 
-            unsafe
-            {
+            unsafe {
                 var handles = new GCHandleCollection();
-                try
-                {
+                try {
                     // Convert/pin the column definitions.
                     nativeTableCreate.rgcolumncreate = (NATIVE_COLUMNCREATE*)GetNativeColumnCreates(tablecreate.rgcolumncreate, true, ref handles);
 

@@ -2,6 +2,7 @@
 using System.Text;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib.Api
 {
@@ -19,15 +20,13 @@ namespace EsentLib.Api
             byte[] defaultValue, int defaultValueSize);
 
         /// <summary>Close an open table.</summary>
-        /// <param name="session">Session to use.</param>
-        void Close(IJetSession session);
+        void Close();
 
-        /// <summary>Walks each index of a table to exactly compute the number
-        /// of entries in an index, and the number of distinct keys in an index.
-        /// This information, together with the number of database pages allocated
-        /// for an index and the current time of the computation is stored in index
-        /// metadata in the database. This data can be subsequently retrieved with
-        /// information operations.</summary>
+        /// <summary>Walks each index of a table to exactly compute the number of entries in
+        /// an index, and the number of distinct keys in an index. This information, together
+        /// with the number of database pages allocated for an index and the current time of
+        /// the computation is stored in index metadata in the database. This data can be
+        /// subsequently retrieved with information operations.</summary>
         /// <param name="session">Session to use.</param>
         void ComputeStatistics(IJetSession session);
         

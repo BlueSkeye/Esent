@@ -7,6 +7,7 @@
 using System;
 
 using EsentLib.Jet;
+using EsentLib.Jet.Types;
 
 namespace EsentLib
 {
@@ -24,12 +25,8 @@ namespace EsentLib
         /// <param name="ignored">This parameter is ignored.</param>
         /// <param name="indexlist">Filled in with information about indexes on the table.</param>
         [Obsolete("Use the overload that takes a JET_IdxInfo parameter, passing in JET_IdxInfo.List")]
-        public static void JetGetIndexInfo(
-                JET_SESID sesid,
-                JET_DBID dbid,
-                string tablename,
-                string ignored,
-                out JET_INDEXLIST indexlist)
+        public static void JetGetIndexInfo(JET_SESID sesid, JET_DBID dbid, string tablename,
+            string ignored, out JET_INDEXLIST indexlist)
         {
             LegacyApi.JetGetIndexInfo(sesid, dbid, tablename, ignored, out indexlist, JET_IdxInfo.List);
         }
@@ -42,11 +39,8 @@ namespace EsentLib
         /// <param name="indexname">This parameter is ignored.</param>
         /// <param name="indexlist">Filled in with information about indexes on the table.</param>
         [Obsolete("Use the overload that takes a JET_IdxInfo parameter, passing in JET_IdxInfo.List")]
-        public static void JetGetTableIndexInfo(
-                JET_SESID sesid,
-                JET_TABLEID tableid,
-                string indexname,
-                out JET_INDEXLIST indexlist)
+        public static void JetGetTableIndexInfo(JET_SESID sesid, JET_TABLEID tableid,
+            string indexname, out JET_INDEXLIST indexlist)
         {
             LegacyApi.JetGetTableIndexInfo(sesid, tableid, indexname, out indexlist, JET_IdxInfo.List);
         }

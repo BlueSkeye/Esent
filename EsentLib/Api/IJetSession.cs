@@ -63,14 +63,13 @@ namespace EsentLib.Api
         /// <returns></returns>
         JET_COMMIT_ID FlushTransactions(TransactionFlushKind kind);
 
-        /// <summary>Opens a database previously attached with <see cref="AttachDatabase"/>,
-        /// for use with a database session. This function can be called multiple times for
-        /// the same database.</summary>
+        /// <summary>Opens a database previously attached with <see cref="IJetSession.AttachDatabase"/>,
+        /// for use with a database session. This function can be called multiple times for the same
+        /// database.</summary>
         /// <param name="database">The database to open.</param>
-        /// <param name="connect">Reserved for future use.</param>
         /// <param name="grbit">Open database options.</param>
-        /// <returns>An error or warning.</returns>
-        IJetDatabase OpenDatabase(string database, string connect, OpenDatabaseGrbit grbit);
+        /// <returns>A database instance.</returns>
+        IJetDatabase OpenDatabase(string database, OpenDatabaseGrbit grbit = OpenDatabaseGrbit.None);
 
         /// <summary>Creates a temporary table with a single index. A temporary table stores and
         /// retrieves records just like an ordinary table created using JetCreateTableColumnIndex.

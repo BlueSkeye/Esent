@@ -345,13 +345,13 @@ namespace EsentLib
             JET_INSTANCE instance = JET_INSTANCE.Nil;
             RuntimeHelpers.PrepareConstrainedRegions();
             using (JetInstance engine = JetInstance.Create(instanceName)) {
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.Recovery, new IntPtr(0), "off");
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.NoInformationEvent, new IntPtr(1), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxTemporaryTables, new IntPtr(0), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxCursors, new IntPtr(16), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxOpenTables, new IntPtr(16), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxVerPages, new IntPtr(4), null);
-                engine.SetSystemParameter(JET_SESID.Nil, JET_param.MaxSessions, new IntPtr(1), null);
+                engine.SetSystemParameter(JET_param.Recovery, new IntPtr(0), "off");
+                engine.SetSystemParameter(JET_param.NoInformationEvent, new IntPtr(1), null);
+                engine.SetSystemParameter(JET_param.MaxTemporaryTables, new IntPtr(0), null);
+                engine.SetSystemParameter(JET_param.MaxCursors, new IntPtr(16), null);
+                engine.SetSystemParameter(JET_param.MaxOpenTables, new IntPtr(16), null);
+                engine.SetSystemParameter(JET_param.MaxVerPages, new IntPtr(4), null);
+                engine.SetSystemParameter(JET_param.MaxSessions, new IntPtr(1), null);
                 engine.Initialize();
                 return engine.GetVersion();
             }
@@ -468,6 +468,33 @@ namespace EsentLib
         public static void SetParameter(JET_param paramid, string paramString)
         {
             NativeHelpers.SetParameter(JET_INSTANCE.Nil, JET_SESID.Nil, paramid, paramString);
+        }
+
+        /// <summary>Sets system wide configuration options.
+        /// <seealso cref="IJetInstance.SetSystemParameter(JET_param, JET_CALLBACK, string)"/>.
+        /// </summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter
+        /// is a JET_CALLBACK.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter
+        /// is a string type.</param>
+        /// <returns>An ESENT warning code.</returns>
+        public void SetSystemParameter(JET_param paramid, JET_CALLBACK paramValue,
+            string paramString)
+        {
+            SetSystemParameter(paramid, paramValue, paramString);
+        }
+
+        /// <summary>Sets system wide configuration options.
+        /// <seealso cref="IJetInstance.SetSystemParameter(JET_param, IntPtr, string)"/></summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter is an integer type.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter is a string type.</param>
+        /// <returns>An error or warning.</returns>
+        public void SetSystemParameter(JET_param paramid, IntPtr paramValue, string paramString)
+        {
+            JetInstance.NullInstance._SetSystemParameter(paramid, paramValue, paramString);
+            return;
         }
 
         /// <summary>Used when an unsupported API method is called. This logs an error and

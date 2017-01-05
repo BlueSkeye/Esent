@@ -1,5 +1,7 @@
 ﻿using System;
 
+using EsentLib.Jet;
+
 namespace EsentLib.Api
 {
     /// <summary></summary>
@@ -129,7 +131,7 @@ namespace EsentLib.Api
 
         /// <summary>Retrieves information about the instances that are running.</summary>
         /// <returns>An error code if the call fails.</returns>
-        EsentLib.Jet.JET_INSTANCE_INFO[] GetRunningInstancesInfo();
+        JET_INSTANCE_INFO[] GetRunningInstancesInfo();
 
         /// <summary>Retrieves performance information from the database engine for the
         /// current thread. Multiple calls can be used to collect statistics that reflect
@@ -141,6 +143,27 @@ namespace EsentLib.Api
         /// thread. Multiple calls can be used to collect statistics that reflect the activity
         /// of the database engine on this thread between those calls.</summary>
         /// <returns>An error code if the operation fails.</returns>
-        EsentLib.Jet.JET_THREADSTATS2 GetThreadStatisticsEx();
+        JET_THREADSTATS2 GetThreadStatisticsEx();
+
+        /// <summary>Sets system wide configuration options.
+        /// <seealso cref="IJetInstance.SetSystemParameter(JET_param, JET_CALLBACK, string)"/>.
+        /// </summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter is a
+        /// JET_CALLBACK.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter is a
+        /// string type.</param>
+        /// <returns>An ESENT warning code.</returns>
+        void SetSystemParameter(JET_param paramid, JET_CALLBACK paramValue, string paramString);
+
+        /// <summary>Sets system wide configuration options.
+        /// <seealso cref="IJetInstance.SetSystemParameter(JET_param, IntPtr, string)"/></summary>
+        /// <param name="paramid">The parameter to set.</param>
+        /// <param name="paramValue">The value of the parameter to set, if the parameter is an
+        /// integer type.</param>
+        /// <param name="paramString">The value of the parameter to set, if the parameter is a
+        /// string type.</param>
+        /// <returns>An error or warning.</returns>
+        void SetSystemParameter(JET_param paramid, IntPtr paramValue, string paramString);
     }
 }
