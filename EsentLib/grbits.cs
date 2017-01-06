@@ -382,12 +382,10 @@ namespace EsentLib
         /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>This table cannot be opened for write access by another
-        /// session.</summary>
+        /// <summary>This table cannot be opened for write access by another session.</summary>
         DenyWrite = 0x1,
 
-        /// <summary>This table cannot be opened for read access by another
-        /// session.</summary>
+        /// <summary>This table cannot be opened for read access by another session.</summary>
         DenyRead = 0x2,
 
         /// <summary>Request read-only access to the table.</summary>
@@ -396,20 +394,18 @@ namespace EsentLib
         /// <summary>Request write access to the table.</summary>
         Updatable = 0x8,
 
-        /// <summary>Allow DDL modifications to a table flagged as
-        /// FixedDDL. This option must be used with DenyRead.</summary>
+        /// <summary>Allow DDL modifications to a table flagged as FixedDDL. This option must be
+        /// used with DenyRead.</summary>
         PermitDDL = 0x10,
 
         /// <summary>Do not cache pages for this table.</summary>
         NoCache = 0x20,
 
-        /// <summary>Provides a hint that the table is probably not in
-        /// the buffer cache, and that pre-reading may be beneficial to
-        /// performance.</summary>
+        /// <summary>Provides a hint that the table is probably not in the buffer cache, and that
+        /// pre-reading may be beneficial to performance.</summary>
         Preread = 0x40,
 
-        /// <summary>Assume a sequential access pattern and prefetch
-        /// database pages.</summary>
+        /// <summary>Assume a sequential access pattern and prefetch database pages.</summary>
         Sequential = 0x8000,
 
         /// <summary>Table belongs to stats class 1.</summary>
@@ -458,9 +454,7 @@ namespace EsentLib
         TableClass15 = 0x000F0000,
     }
 
-    /// <summary>
-    /// Options for <see cref="LegacyApi.JetDupCursor"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="LegacyApi.JetDupCursor"/>.</summary>
     [Flags]
     public enum DupCursorGrbit
     {

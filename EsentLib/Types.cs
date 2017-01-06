@@ -131,38 +131,33 @@ namespace EsentLib
         }
     }
 
-
-    /// <summary>
-    /// A JET_COLUMNID identifies a column within a table.
-    /// </summary>
+    /// <summary>A JET_COLUMNID identifies a column within a table.</summary>
     public struct JET_COLUMNID : IEquatable<JET_COLUMNID>, IComparable<JET_COLUMNID>, IFormattable
     {
-        /// <summary>
-        /// The native value.
-        /// </summary>
-        internal uint Value;
+        /// <summary>Creates a new instance of a <see cref="JET_COLUMNID"/> using the specified
+        /// value as the underlying value.</summary>
+        /// <param name="nativeValue">The native ESE JET_COLUMNID.</param>
+        /// <returns>An initialized <see cref="JET_COLUMNID"/> structure.</returns>
+        /// <remarks>Use of this function should be exceedingly rare.</remarks>
+        internal JET_COLUMNID(uint nativeValue)
+        {
+            Value = nativeValue;
+        }
 
-        /// <summary>
-        /// Gets a null JET_COLUMNID.
-        /// </summary>
+        /// <summary>Gets a null JET_COLUMNID.</summary>
         public static JET_COLUMNID Nil
         {
             [DebuggerStepThrough]
             get { return new JET_COLUMNID(); }
         }
 
-        /// <summary>
-        /// Gets a value indicating whether the <see cref="JET_COLUMNID"/> is valid (checks against 0 and -1).
-        /// </summary>
+        /// <summary>Gets a value indicating whether the <see cref="JET_COLUMNID"/> is valid (checks against 0 and -1).</summary>
         public bool IsInvalid
         {
-            get { return this.Value == 0 || this.Value == 0xffffffff; }
+            get { return (0 == Value) || (uint.MaxValue == Value); }
         }
 
-        /// <summary>
-        /// Determines whether two specified instances of JET_COLUMNID
-        /// are equal.
-        /// </summary>
+        /// <summary>Determines whether two specified instances of JET_COLUMNID are equal.</summary>
         /// <param name="lhs">The first instance to compare.</param>
         /// <param name="rhs">The second instance to compare.</param>
         /// <returns>True if the two instances are equal.</returns>
@@ -171,10 +166,7 @@ namespace EsentLib
             return lhs.Value == rhs.Value;
         }
 
-        /// <summary>
-        /// Determines whether two specified instances of JET_COLUMNID
-        /// are not equal.
-        /// </summary>
+        /// <summary>Determines whether two specified instances of JET_COLUMNID are not equal.</summary>
         /// <param name="lhs">The first instance to compare.</param>
         /// <param name="rhs">The second instance to compare.</param>
         /// <returns>True if the two instances are not equal.</returns>
@@ -257,35 +249,23 @@ namespace EsentLib
             return string.IsNullOrEmpty(format) || "G" == format ? this.ToString() : this.Value.ToString(format, formatProvider);
         }
 
-        /// <summary>
-        /// Returns a value indicating whether this instance is equal
-        /// to another instance.
-        /// </summary>
+        /// <summary>Returns a value indicating whether this instance is equal to another instance.</summary>
         /// <param name="obj">An object to compare with this instance.</param>
         /// <returns>True if the two instances are equal.</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType())
-            {
-                return false;
-            }
-
-            return this.Equals((JET_COLUMNID)obj);
+            return ((null != obj) && (GetType() == obj.GetType()) && this.Equals((JET_COLUMNID)obj));
         }
 
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
+        /// <summary>Returns the hash code for this instance.</summary>
         /// <returns>The hash code for this instance.</returns>
         public override int GetHashCode()
         {
             return this.Value.GetHashCode();
         }
 
-        /// <summary>
-        /// Returns a value indicating whether this instance is equal
-        /// to another instance.
-        /// </summary>
+        /// <summary>Returns a value indicating whether this instance is equal to another
+        /// instance.</summary>
         /// <param name="other">An instance to compare with this instance.</param>
         /// <returns>True if the two instances are equal.</returns>
         public bool Equals(JET_COLUMNID other)
@@ -293,34 +273,28 @@ namespace EsentLib
             return this.Value.Equals(other.Value);
         }
 
-        /// <summary>
-        /// Compares this columnid to another columnid and determines
-        /// whether this instance is before, the same as or after the other
-        /// instance.
-        /// </summary>
+        /// <summary>Compares this columnid to another columnid and determines whether this
+        /// instance is before, the same as or after the other instance.</summary>
         /// <param name="other">The columnid to compare to the current instance.</param>
-        /// <returns>
-        /// A signed number indicating the relative positions of this instance and the value parameter.
-        /// </returns>
+        /// <returns>A signed number indicating the relative positions of this instance and the
+        /// value parameter.</returns>
         public int CompareTo(JET_COLUMNID other)
         {
             return this.Value.CompareTo(other.Value);
         }
 
-        /// <summary>
-        /// Creates a new instance of a <see cref="JET_COLUMNID"/> using the specified
-        /// value as the underlying value.
-        /// </summary>
+        /// <summary>Creates a new instance of a <see cref="JET_COLUMNID"/> using the specified
+        /// value as the underlying value.</summary>
         /// <param name="nativeValue">The native ESE JET_COLUMNID.</param>
         /// <returns>An initialized <see cref="JET_COLUMNID"/> structure.</returns>
         /// <remarks>Use of this function should be exceedingly rare.</remarks>
         internal static JET_COLUMNID CreateColumnidFromNativeValue(int nativeValue)
         {
-            return new JET_COLUMNID()
-            {
-                Value = unchecked((uint)nativeValue)
-            };
+            return new JET_COLUMNID() { Value = unchecked((uint)nativeValue) };
         }
+
+        /// <summary>The native value.</summary>
+        internal uint Value;
     }
 
     /// <summary>

@@ -89,10 +89,9 @@ namespace EsentLib.Api
 
         /// <summary>Opens a cursor on a previously created table.</summary>
         /// <param name="tablename">The name of the table to open.</param>
-        /// <param name="parameters">The parameter is not used.</param>
         /// <param name="grbit">Table open options.</param>
         /// <returns>An ESENT warning.</returns>
-        IJetTable OpenTable(string tablename, byte[] parameters, OpenTableGrbit grbit);
+        IJetTable OpenTable(string tablename, OpenTableGrbit grbit = OpenTableGrbit.None);
 
         /// <summary>Resizes a currently open database. Windows 8: Only supports growing a database file.
         /// Windows 8.1: When <see cref="JET_param.EnableShrinkDatabase"/> is set to

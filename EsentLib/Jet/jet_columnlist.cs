@@ -169,7 +169,7 @@ namespace EsentLib.Jet
 
         /// <summary>Sets the fields of the object from a native JET_COLUMNLIST struct.</summary>
         /// <param name="value">The native columnlist to set the values from.</param>
-        internal void SetFromNativeColumnlist(NATIVE_COLUMNLIST value)
+        internal JET_COLUMNLIST SetFromNativeColumnlist(NATIVE_COLUMNLIST value)
         {
             this.tableid = new JET_TABLEID { Value = value.tableid };
             this.cRecord = checked((int)value.cRecord);
@@ -181,6 +181,7 @@ namespace EsentLib.Jet
             this.columnidgrbit = new JET_COLUMNID { Value = value.columnidgrbit };
             this.columnidDefault = new JET_COLUMNID { Value = value.columnidDefault };
             this.columnidBaseTableName = new JET_COLUMNID { Value = value.columnidBaseTableName };
+            return this;
         }
     }
 }

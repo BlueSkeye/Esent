@@ -513,8 +513,7 @@ namespace EsentLib.Implementation
 
         [DllImport(Constants.EsentDll, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern int JetGetTableColumnInfoW(IntPtr sesid, IntPtr tableid,
-            string szIgnored, ref NATIVE_COLUMNLIST columnlist, uint cbMax,
-            uint InfoLevel);
+            string szIgnored, ref NATIVE_COLUMNLIST columnlist, uint cbMax, uint InfoLevel);
         #endregion
 
         #region JetGetColumnInfo overlaods.

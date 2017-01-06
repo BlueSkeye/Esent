@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 using EsentLib.Jet;
@@ -8,8 +9,11 @@ namespace EsentLib.Api
 {
     /// <summary></summary>
     [CLSCompliant(false)]
-    public interface IJetTable
+    public interface IJetTable : IDisposable
     {
+        /// <summary>Returns the database this table belongs to.</summary>
+        IJetDatabase Database { get; }
+
         /// <summary>Add a new column to an existing table.</summary>
         /// <param name="session">Session to use.</param>
         /// <param name="column">The name of the column.</param>
@@ -63,11 +67,14 @@ namespace EsentLib.Api
         /// <param name="index">The name of the index to be deleted.</param>
         void DeleteIndex(IJetSession session, string index);
 
+        /// <summary>Enumerate the name of the columns in this table.</summary>
+        /// <returns>An enumerable object.</returns>
+        IJetTemporaryTable<string> EnumerateColumnNames();
+
         /// <summary>Retrieves information about all columns in the table.</summary>
-        /// <param name="sesion">The session to use.</param>
         /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
         /// <returns>Filled in with information about the columns in the table.</returns>
-        JET_COLUMNLIST GetTableColumns(IJetSession sesion, ColInfoGrbit grbit = ColInfoGrbit.None);
+        ICollection<IJetColumn> GetColumns(ColInfoGrbit grbit = ColInfoGrbit.None);
 
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
         /// prevent a row from being updated by any other session, read lock. Normally, row write
@@ -219,6 +226,71 @@ namespace EsentLib.Api
         JET_wrn RetrieveColumn(JET_COLUMNID columnid, IntPtr data, int dataSize, out int actualDataSize,
             RetrieveColumnGrbit grbit, JET_RETINFO retinfo);
 
+        /// <summary>Retrieves a boolean column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a boolean. Null if the column is null.</returns>
+        bool? RetrieveColumnAsBoolean(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a byte column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a byte. Null if the column is null.</returns>
+        byte? RetrieveColumnAsByte(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a byte column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="length"></param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a byte. Null if the column is null.</returns>
+        byte[] RetrieveColumnAsByteArray(JET_COLUMNID columnid, int length = 0,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a datetime column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a datetime. Null if the column is null.</returns>
+        DateTime? RetrieveColumnAsDateTime(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a double column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a double. Null if the column is null.</returns>
+        double? RetrieveColumnAsDouble(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a float column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a float. Null if the column is null.</returns>
+        float? RetrieveColumnAsFloat(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves an int16 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a short. Null if the column is null.</returns>
+        short? RetrieveColumnAsInt16(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a guid column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a guid. Null if the column is null.</returns>
+        Guid? RetrieveColumnAsGuid(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
+        int? RetrieveColumnAsInt32(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
         /// prevent a row from being updated by any other session, read lock. Normally, row write
         /// locks are acquired implicitly as a result of updating rows. Read locks are usually not
@@ -235,6 +307,17 @@ namespace EsentLib.Api
         /// <returns>True if the lock was obtained, false otherwise. An exception is thrown if an
         /// unexpected error is encountered.</returns>
         bool TryGetLock(IJetSession session, bool readLock, bool writeLock);
+
+        /// <summary>Try to move to the first record in the table. If the table is empty this
+        /// returns false, if a different error is encountered an exception is thrown.</summary>
+        /// <returns>True if the move was successful.</returns>
+        bool TryMoveFirst();
+
+        /// <summary>Try to move to the next record in the table. If there is not a next
+        /// record this returns false, if a different error is encountered an exception is
+        /// thrown.</summary>
+        /// <returns>True if the move was successful.</returns>
+        bool TryMoveNext();
 
         /// <summary>The JetUpdate function performs an update operation including inserting
         /// a new row into a table or updating an existing row. Deleting a table row is performed

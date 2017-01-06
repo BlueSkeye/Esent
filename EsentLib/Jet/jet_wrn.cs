@@ -21,101 +21,67 @@ namespace EsentLib.Jet
         Justification = "Auto-generated comments.")]
     public enum JET_wrn
     {
-        /// <summary>
-        /// Successful operation.
-        /// </summary>
+        /// <summary>Successful operation.</summary>
         Success = 0,
 
         #region Warnings        
 
-        /// <summary>
-        /// The version store is still active
-        /// </summary>
+        /// <summary>The version store is still active</summary>
         RemainingVersions = 321,
 
-        /// <summary>
-        /// seek on non-unique index yielded a unique key
-        /// </summary>
+        /// <summary>seek on non-unique index yielded a unique key</summary>
         UniqueKey = 345,
 
-        /// <summary>
-        /// Column is a separated long-value
-        /// </summary>
+        /// <summary>Column is a separated long-value</summary>
         SeparateLongValue = 406,
 
-        /// <summary>
-        /// No more records to stream
-        /// </summary>
+        /// <summary>No more records to stream</summary>
         NoMoreRecords = 428,
 
-        /// <summary>
-        /// Existing log file has bad signature
-        /// </summary>
+        /// <summary>Existing log file has bad signature</summary>
         ExistingLogFileHasBadSignature = 558,
 
-        /// <summary>
-        /// Existing log file is not contiguous
-        /// </summary>
+        /// <summary>Existing log file is not contiguous</summary>
         ExistingLogFileIsNotContiguous = 559,
 
-        /// <summary>
-        /// INTERNAL ERROR
-        /// </summary>
+        /// <summary>INTERNAL ERROR</summary>
         SkipThisRecord = 564,
 
-        /// <summary>
-        /// TargetInstance specified for restore is running
-        /// </summary>
+        /// <summary>TargetInstance specified for restore is running</summary>
         TargetInstanceRunning = 578,
 
-        /// <summary>
-        /// One or more logs that were committed to this database, were not recovered.  The database is still clean/consistent, as though the lost log's transactions were committed lazily (and lost).
-        /// </summary>
+        /// <summary>One or more logs that were committed to this database, were not recovered.
+        /// The database is still clean/consistent, as though the lost log's transactions were
+        /// committed lazily (and lost).</summary>
         CommittedLogFilesLost = 585,
 
-        /// <summary>
-        /// One or more logs that were committed to this database, were no recovered.  The database is still clean/consistent, as though the corrupted log's transactions were committed lazily (and lost).
-        /// </summary>
+        /// <summary>One or more logs that were committed to this database, were no recovered.
+        /// The database is still clean/consistent, as though the corrupted log's transactions
+        /// were committed lazily (and lost).</summary>
         CommittedLogFilesRemoved = 587,
 
-        /// <summary>
-        /// Signal used by clients to indicate JetInit() finished with undo
-        /// </summary>
+        /// <summary>Signal used by clients to indicate JetInit() finished with undo</summary>
         FinishWithUndo = 588,
 
-        /// <summary>
-        /// Database corruption has been repaired
-        /// </summary>
+        /// <summary>Database corruption has been repaired</summary>
         DatabaseRepaired = 595,
 
-        /// <summary>
-        /// Column is NULL-valued
-        /// </summary>
+        /// <summary>Column is NULL-valued</summary>
         ColumnNull = 1004,
 
-        /// <summary>
-        /// Buffer too small for data
-        /// </summary>
+        /// <summary>Buffer too small for data</summary>
         BufferTruncated = 1006,
 
-        /// <summary>
-        /// Database is already attached
-        /// </summary>
+        /// <summary>Database is already attached</summary>
         DatabaseAttached = 1007,
 
-        /// <summary>
-        /// Sort does not fit in memory
-        /// </summary>
+        /// <summary>Sort does not fit in memory</summary>
         SortOverflow = 1009,
 
-        /// <summary>
-        /// Exact match not found during seek
-        /// </summary>
+        /// <summary>Exact match not found during seek</summary>
         SeekNotEqual = 1039,
 
-        /// <summary>
-        /// No extended error information
-        /// </summary>
+        /// <summary>No extended error information</summary>
         NoErrorInfo = 1055,
 
         /// <summary>

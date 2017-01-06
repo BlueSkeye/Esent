@@ -13,10 +13,21 @@ namespace EsentLib.Implementation
 {
     internal class JetTable : IJetTable
     {
+        /// <summary>A delegate that will filter out unwanted records.</summary>
+        /// <returns></returns>
+        internal delegate bool FilterDelegate();
+        internal delegate T ItemRetriever<T>();
+
         internal JetTable(JetDatabase owner, JET_TABLEID id)
         {
             _owner = owner;
             _id = id;
+        }
+
+        /// <summary>Gets the database this table belongs to.</summary>
+        public IJetDatabase Database
+        {
+            get { return _owner; }
         }
 
         internal IntPtr Id
@@ -178,10 +189,16 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
-        /// <summary>A delegate that will filter out unwanted records.</summary>
-        /// <returns></returns>
-        internal delegate bool FilterDelegate();
-        internal delegate T ItemRetriever<T>();
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            Close();
+        }
 
         /// <summary></summary>
         /// <typeparam name="T"></typeparam>
@@ -201,7 +218,42 @@ namespace EsentLib.Implementation
             yield break;
         }
 
-        /// <summary>Retrieve a list of colums for this table.</summary>
+        /// <summary>Enumerate the name of the columns in this table.</summary>
+        /// <returns>An enumerable object.</returns>
+        public IJetTemporaryTable<string> EnumerateColumnNames()
+        {
+            Tracing.TraceFunctionCall("EnumerateColumnNames");
+            JET_COLUMNLIST columns = GetTableColumns();
+            JetTable resultTable = new JetTable(_owner, columns.tableid);
+            return new JetTemporaryTable<string>(resultTable,
+                resultTable.Enumerate<string>(null, // Accept every record.
+                    delegate () {
+                        string name = resultTable.RetrieveColumnAsString(columns.columnidcolumnname);
+                        return StringCache.TryToIntern(name);
+                    }));
+        }
+
+        /// <summary>Retrieves information about all columns in the table.</summary>
+        /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
+        /// <returns>Filled in with information about the columns in the table.</returns>
+        public ICollection<IJetColumn> GetColumns(ColInfoGrbit grbit = ColInfoGrbit.None)
+        {
+            Tracing.TraceFunctionCall("GetColumns");
+            JET_COLUMNLIST columns = GetTableColumns();
+            List<IJetColumn> result = new List<IJetColumn>();
+            JetTable inputTable = new JetTable(_owner, columns.tableid);
+            using (JetTemporaryTable<IJetColumn> input =
+                new JetTemporaryTable<IJetColumn>(inputTable,
+                    inputTable.Enumerate<IJetColumn>(null, // Accept every record.
+                        delegate () { return JetColumn.FromColumnList(this, columns, inputTable); })))
+            {
+                result.AddRange(input);
+            }
+            return result;
+        }
+
+        /// <summary>Retrieve a list of colums for this table. This is used by both
+        /// <see cref="EnumerateColumnNames"/> and <see cref="GetColumns"/></summary>
         /// <returns></returns>
         private JET_COLUMNLIST GetTableColumns()
         {
@@ -213,24 +265,7 @@ namespace EsentLib.Implementation
                 ref nativeColumnlist, nativeColumnlist.cbStruct, (uint)JET_ColInfo.List);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            JET_COLUMNLIST result = new JET_COLUMNLIST();
-            result.SetFromNativeColumnlist(nativeColumnlist);
-            return result;
-        }
-
-        /// <summary>Enumerate the name of the columns in this table.</summary>
-        /// <returns>An enumerable object.</returns>
-        public IJetTemporaryTable<string> EnumerateColumnNames()
-        {
-            Tracing.TraceFunctionCall("EnumerateColumnNames");
-            JET_COLUMNLIST columns = GetTableColumns();
-            JetTable resultTable = new JetTable(_owner, columns.tableid);
-            return new JetTemporaryTable<string>(resultTable,
-                resultTable.Enumerate<string>((JetTable.FilterDelegate)null, // Accept every record.
-                    delegate () {
-                        string name = resultTable.RetrieveColumnAsString(columns.columnidcolumnname);
-                        return StringCache.TryToIntern(name);
-                    }));
+            return new JET_COLUMNLIST().SetFromNativeColumnlist(nativeColumnlist);
         }
 
         ///// <summary>Retrieves information about all columns in a table.</summary>
@@ -264,7 +299,6 @@ namespace EsentLib.Implementation
         //    columnlist.SetFromNativeColumnlist(nativeColumnlist);
         //    return err;
         //}
-
 
         /// <summary>Retrieves information about a table column, given its <see cref="JET_TABLEID"/> and name.</summary>
         /// <param name="session">The session to use.</param>
@@ -301,10 +335,9 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>Retrieves information about all columns in the table.</summary>
-        /// <param name="session">The session to use.</param>
         /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
         /// <returns>Filled in with information about the columns in the table.</returns>
-        public JET_COLUMNLIST GetTableColumns(IJetSession session, ColInfoGrbit grbit = ColInfoGrbit.None)
+        public ICollection<IJetColumn> GetTableColumns(ColInfoGrbit grbit = ColInfoGrbit.None)
         {
             Tracing.TraceFunctionCall("GetTableColumns");
             JET_COLUMNLIST columnlist = new JET_COLUMNLIST();
@@ -312,13 +345,14 @@ namespace EsentLib.Implementation
             nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            int returnCode = NativeMethods.JetGetTableColumnInfoW(session.Id, this._id.Value,
+            int returnCode = NativeMethods.JetGetTableColumnInfoW(_owner.Session.Id, this._id.Value,
                 null, ref nativeColumnlist, nativeColumnlist.cbStruct,
                 (uint)grbit | (uint)JET_ColInfo.List);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
+            List<IJetColumn> result = new List<IJetColumn>();
             columnlist.SetFromNativeColumnlist(nativeColumnlist);
-            return columnlist;
+            return result;
         }
 
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
@@ -745,8 +779,8 @@ namespace EsentLib.Implementation
         public JET_wrn RetrieveColumn(JET_COLUMNID columnid, byte[] data, int dataOffset,
             out int actualDataSize, RetrieveColumnGrbit grbit, JET_RETINFO retinfo)
         {
-            return RetrieveColumn(columnid, data, 0, dataOffset, out actualDataSize,
-                grbit, retinfo);
+            return RetrieveColumn(columnid, data, (null == data) ? 0 : data.Length, dataOffset,
+                out actualDataSize, grbit, retinfo);
         }
 
         /// <summary>Retrieves a single column value from the current record. The record
@@ -780,8 +814,7 @@ namespace EsentLib.Implementation
                 throw new ArgumentOutOfRangeException(
                     string.Format("dataOffset {0} must be inside the data buffer", dataOffset));
             }
-            if ((null == data && dataSize > 0) || (null != data && dataSize > data.Length))
-            {
+            if ((null == data && dataSize > 0) || (null != data && dataSize > data.Length)) {
                 throw new ArgumentOutOfRangeException(
                     string.Format("dataSize {0} cannot be greater than the length of the data", dataSize));
             }
@@ -884,6 +917,38 @@ namespace EsentLib.Implementation
                 JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
                     grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
+        /// <summary>Retrieves a byte column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="length"></param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a byte. Null if the column is null.</returns>
+        public byte[] RetrieveColumnAsByteArray(JET_COLUMNID columnid, int length = 0,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) { // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+
+            if (0 == length) {
+                uint actualSize = 0;
+                int returnCode = NativeMethods.JetRetrieveColumn(_owner.Session.Id, this._id.Value,
+                    columnid.Value, IntPtr.Zero, 0, out actualSize, unchecked((uint)grbit),
+                    IntPtr.Zero);
+                length = checked((int)actualSize);
+                if (0 == length) { return null; }
+            }
+            unsafe {
+                byte[] data = new byte[length];
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, data, 0, out actualDataSize, grbit, null);
+                if (JET_wrn.ColumnNull == wrn) { return null; }
+                Helpers.CheckDataSize(length, actualDataSize);
+                return data;
             }
         }
 
@@ -1229,7 +1294,7 @@ namespace EsentLib.Implementation
         /// <summary>Try to move to the first record in the table. If the table is empty this
         /// returns false, if a different error is encountered an exception is thrown.</summary>
         /// <returns>True if the move was successful.</returns>
-        internal bool TryMoveFirst()
+        public bool TryMoveFirst()
         {
             return TryMove(JET_Move.First);
         }

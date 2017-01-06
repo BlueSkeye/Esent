@@ -330,17 +330,16 @@ namespace EsentLib.Implementation
 
         /// <summary>Opens a cursor on a previously created table.</summary>
         /// <param name="tablename">The name of the table to open.</param>
-        /// <param name="parameters">The parameter is not used.</param>
         /// <param name="grbit">Table open options.</param>
         /// <returns>An ESENT warning.</returns>
         [CLSCompliant(false)]
-        public IJetTable OpenTable(string tablename, byte[] parameters, OpenTableGrbit grbit)
+        public IJetTable OpenTable(string tablename, OpenTableGrbit grbit = OpenTableGrbit.None)
         {
             Tracing.TraceFunctionCall("OpenTable");
             JET_TABLEID tableid = JET_TABLEID.Nil;
             Helpers.CheckNotNull(tablename, "tablename");
-            int returnCode = NativeMethods.JetOpenTable(_owner.Id, this._dbid.Value, tablename,
-                parameters, checked((uint)parameters.Length), (uint)grbit, out tableid.Value);
+            int returnCode = NativeMethods.JetOpenTable(_owner.Id, _dbid.Value, tablename,
+                null, 0, (uint)grbit, out tableid.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return new JetTable(this, tableid);
