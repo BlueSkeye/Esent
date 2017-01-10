@@ -7,6 +7,29 @@ using EsentLib.Jet.Types;
 
 namespace EsentLib.Api
 {
+    /// <summary>A delegate that will filter out unwanted records.</summary>
+    /// <returns></returns>
+    public delegate bool FilterDelegate();
+    /// <summary></summary>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public delegate T ItemRetriever<T>();
+
+    /// <summary></summary>
+    public struct BasicColumnDesriptor
+    {
+        internal BasicColumnDesriptor(string name, JET_COLUMNID id)
+        {
+            Name = name;
+            Id = id;
+        }
+
+        /// <summary></summary>
+        public JET_COLUMNID Id { get; private set; }
+        /// <summary></summary>
+        public string Name { get; private set; }
+    }
+
     /// <summary></summary>
     [CLSCompliant(false)]
     public interface IJetTable : IDisposable
@@ -67,9 +90,18 @@ namespace EsentLib.Api
         /// <param name="index">The name of the index to be deleted.</param>
         void DeleteIndex(IJetSession session, string index);
 
-        /// <summary>Enumerate the name of the columns in this table.</summary>
+        /// <summary>Enumerate the name and identifier of the columns in this table.</summary>
         /// <returns>An enumerable object.</returns>
-        IJetTemporaryTable<string> EnumerateColumnNames();
+        IJetTemporaryTable<BasicColumnDesriptor> EnumerateColumns();
+
+        /// <summary></summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="skipRecordFilter">This delegate, if not null, will be invoked on each
+        /// record. It has to return true if the current record should be skipped and not be
+        /// returned by the enumerator.</param>
+        /// <param name="retriever"></param>
+        /// <returns></returns>
+        IEnumerable<T> Enumerate<T>(FilterDelegate skipRecordFilter, ItemRetriever<T> retriever);
 
         /// <summary>Retrieves information about all columns in the table.</summary>
         /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>
@@ -270,13 +302,6 @@ namespace EsentLib.Api
         /// <returns>The data retrieved from the column as a float. Null if the column is null.</returns>
         float? RetrieveColumnAsFloat(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
 
-        /// <summary>Retrieves an int16 column value from the current record. The record is
-        /// that record associated with the index entry at the current position of the cursor.</summary>
-        /// <param name="columnid">The columnid to retrieve.</param>
-        /// <param name="grbit">Retrieval options.</param>
-        /// <returns>The data retrieved from the column as a short. Null if the column is null.</returns>
-        short? RetrieveColumnAsInt16(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
-
         /// <summary>Retrieves a guid column value from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
@@ -284,12 +309,34 @@ namespace EsentLib.Api
         /// <returns>The data retrieved from the column as a guid. Null if the column is null.</returns>
         Guid? RetrieveColumnAsGuid(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
 
+        /// <summary>Retrieves an int16 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a short. Null if the column is null.</returns>
+        short? RetrieveColumnAsInt16(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
         /// <summary>Retrieves an int32 column value from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
         /// <param name="grbit">Retrieval options.</param>
         /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
         int? RetrieveColumnAsInt32(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a uint64 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an UInt64. Null if the column is null.</returns>
+        // [CLSCompliant(false)]
+        ulong? RetrieveColumnAsUInt64(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a string column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a string. Null if the column is null.</returns>
+        string RetrieveColumnAsString(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
 
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
         /// prevent a row from being updated by any other session, read lock. Normally, row write

@@ -6,19 +6,13 @@
 
 namespace EsentLib.Jet
 {
-    /// <summary>
-    /// Type of an ESENT object.
-    /// </summary>
+    /// <summary>Type of an ESENT object.</summary>
     public enum JET_objtyp
     {
-        /// <summary>
-        /// Invalid object type.
-        /// </summary>
+        /// <summary>Invalid object type.</summary>
         Nil = 0,
 
-        /// <summary>
-        /// Object is a table.
-        /// </summary>
+        /// <summary>Object is a table.</summary>
         Table = 1,
     }
 }

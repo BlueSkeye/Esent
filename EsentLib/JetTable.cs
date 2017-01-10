@@ -13,11 +13,6 @@ namespace EsentLib.Implementation
 {
     internal class JetTable : IJetTable
     {
-        /// <summary>A delegate that will filter out unwanted records.</summary>
-        /// <returns></returns>
-        internal delegate bool FilterDelegate();
-        internal delegate T ItemRetriever<T>();
-
         internal JetTable(JetDatabase owner, JET_TABLEID id)
         {
             _owner = owner;
@@ -207,7 +202,7 @@ namespace EsentLib.Implementation
         /// returned by the enumerator.</param>
         /// <param name="retriever"></param>
         /// <returns></returns>
-        internal IEnumerable<T> Enumerate<T>(FilterDelegate skipRecordFilter, ItemRetriever<T> retriever)
+        public IEnumerable<T> Enumerate<T>(FilterDelegate skipRecordFilter, ItemRetriever<T> retriever)
         {
             if (!TryMoveFirst()) { yield break; }
             do {
@@ -218,18 +213,19 @@ namespace EsentLib.Implementation
             yield break;
         }
 
-        /// <summary>Enumerate the name of the columns in this table.</summary>
+        /// <summary>Enumerate the name and identifier of the columns in this table.</summary>
         /// <returns>An enumerable object.</returns>
-        public IJetTemporaryTable<string> EnumerateColumnNames()
+        public IJetTemporaryTable<BasicColumnDesriptor> EnumerateColumns()
         {
             Tracing.TraceFunctionCall("EnumerateColumnNames");
             JET_COLUMNLIST columns = GetTableColumns();
             JetTable resultTable = new JetTable(_owner, columns.tableid);
-            return new JetTemporaryTable<string>(resultTable,
-                resultTable.Enumerate<string>(null, // Accept every record.
+            return new JetTemporaryTable<BasicColumnDesriptor>(resultTable,
+                resultTable.Enumerate<BasicColumnDesriptor>(null, // Accept every record.
                     delegate () {
-                        string name = resultTable.RetrieveColumnAsString(columns.columnidcolumnname);
-                        return StringCache.TryToIntern(name);
+                        return new BasicColumnDesriptor(
+                            resultTable.RetrieveColumnAsString(columns.columnidcolumnname),
+                            new JET_COLUMNID(resultTable.RetrieveColumnAsUInt32(columns.columnidcolumnid).Value)); 
                     }));
         }
 
@@ -253,7 +249,7 @@ namespace EsentLib.Implementation
         }
 
         /// <summary>Retrieve a list of colums for this table. This is used by both
-        /// <see cref="EnumerateColumnNames"/> and <see cref="GetColumns"/></summary>
+        /// <see cref="EnumerateColumns"/> and <see cref="GetColumns"/></summary>
         /// <returns></returns>
         private JET_COLUMNLIST GetTableColumns()
         {
@@ -936,9 +932,12 @@ namespace EsentLib.Implementation
 
             if (0 == length) {
                 uint actualSize = 0;
-                int returnCode = NativeMethods.JetRetrieveColumn(_owner.Session.Id, this._id.Value,
+                JET_wrn wrn = (JET_wrn)NativeMethods.JetRetrieveColumn(_owner.Session.Id, this._id.Value,
                     columnid.Value, IntPtr.Zero, 0, out actualSize, unchecked((uint)grbit),
                     IntPtr.Zero);
+                if (JET_wrn.BufferTruncated != wrn) {
+                    EsentExceptionHelper.Check((int)wrn);
+                }
                 length = checked((int)actualSize);
                 if (0 == length) { return null; }
             }
@@ -1110,35 +1109,37 @@ namespace EsentLib.Implementation
         /// <param name="columnid">The columnid to retrieve.</param>
         /// <param name="grbit">Retrieval options.</param>
         /// <returns>The data retrieved from the column as a string. Null if the column is null.</returns>
-        public unsafe string RetrieveColumnAsString(JET_COLUMNID columnid,
+        public string RetrieveColumnAsString(JET_COLUMNID columnid,
             RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
         {
             Debug.Assert((grbit & (RetrieveColumnGrbit)0x00020000) == 0,
                 "UnpublishedGrbits.RetrieveAsRefIfNotInRecord is not supported.");
             // 512 Unicode characters (1kb on stack)
             const int BufferSize = 512;
-            char* buffer = stackalloc char[BufferSize];
-            int actualDataSize;
-            JET_wrn wrn = RetrieveColumn(columnid, new IntPtr(buffer), BufferSize * sizeof(char),
-                out actualDataSize, grbit, null);
-            if (JET_wrn.ColumnNull == wrn) { return null; }
-            if (JET_wrn.Success == wrn) {
-                ////return StringCache.GetString(buffer, 0, actualDataSize);
-                return new string(buffer, 0, actualDataSize / sizeof(char));
-            }
-            Debug.Assert(JET_wrn.BufferTruncated == wrn, "Unexpected warning code");
-            // Create a fake string of the appropriate size and then fill it in.
-            var s = new string('\0', actualDataSize / sizeof(char));
-            fixed (char* p = s) {
-                int newDataSize;
-                wrn = this.RetrieveColumn(columnid, new IntPtr(p),
-                    actualDataSize, out newDataSize, grbit, null);
-                if (JET_wrn.BufferTruncated != wrn) { return s; }
-                string error = string.Format(CultureInfo.CurrentCulture,
-                    "Column size changed from {0} to {1}. The record was probably updated by another thread.",
-                    actualDataSize, newDataSize);
-                Trace.TraceError(error);
-                throw new InvalidOperationException(error);
+            unsafe {
+                char* buffer = stackalloc char[BufferSize];
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid, new IntPtr(buffer), BufferSize * sizeof(char),
+                    out actualDataSize, grbit, null);
+                if (JET_wrn.ColumnNull == wrn) { return null; }
+                if (JET_wrn.Success == wrn) {
+                    ////return StringCache.GetString(buffer, 0, actualDataSize);
+                    return new string(buffer, 0, actualDataSize / sizeof(char));
+                }
+                Debug.Assert(JET_wrn.BufferTruncated == wrn, "Unexpected warning code");
+                // Create a fake string of the appropriate size and then fill it in.
+                var s = new string('\0', actualDataSize / sizeof(char));
+                fixed (char* p = s) {
+                    int newDataSize;
+                    wrn = this.RetrieveColumn(columnid, new IntPtr(p),
+                        actualDataSize, out newDataSize, grbit, null);
+                    if (JET_wrn.BufferTruncated != wrn) { return s; }
+                    string error = string.Format(CultureInfo.CurrentCulture,
+                        "Column size changed from {0} to {1}. The record was probably updated by another thread.",
+                        actualDataSize, newDataSize);
+                    Trace.TraceError(error);
+                    throw new InvalidOperationException(error);
+                }
             }
         }
 

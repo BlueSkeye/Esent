@@ -151,8 +151,8 @@ namespace EsentLib.Implementation
             return new JetTemporaryTable<string>(resultTable,
                 resultTable.Enumerate<string>(
                     includeSystemTables
-                    ? (JetTable.FilterDelegate)null // Accept every record.
-                    : (JetTable.FilterDelegate)delegate () {
+                    ? (FilterDelegate)null // Accept every record.
+                    : (FilterDelegate)delegate () {
                         // Determine if the current entry in the table being enumerated should be
                         // skipped (not returned). Here we are skipping system tables.
                         // Returns true if the current entry should be skipped.
