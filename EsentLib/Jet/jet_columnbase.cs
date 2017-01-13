@@ -24,30 +24,16 @@ namespace EsentLib.Jet
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
     internal struct NATIVE_COLUMNBASE
     {
-        /// <summary>
-        /// Size of the structure.
-        /// </summary>
+        /// <summary>Size of the structure.</summary>
         public uint cbStruct;
-
-        /// <summary>
-        /// Column ID.
-        /// </summary>
+        /// <summary>Column ID.</summary>
         public uint columnid;
-
-        /// <summary>
-        /// Type of the column.
-        /// </summary>
+        /// <summary>Type of the column.</summary>
         public uint coltyp;
-
-        /// <summary>
-        /// Reserved. Should be 0.
-        /// </summary>
+        /// <summary>Reserved. Should be 0.</summary>
         [Obsolete("Reserved")]
         public ushort wCountry;
-
-        /// <summary>
-        /// Obsolete. Should be .
-        /// </summary>
+        /// <summary>Obsolete. Should be .</summary>
         [Obsolete("Use cp")]
         public ushort langid;
 

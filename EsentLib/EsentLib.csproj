@@ -65,10 +65,13 @@
     <Compile Include="Api\Flags\ResizeDatabaseGrbit.cs" />
     <Compile Include="Api\Flags\TemporaryTableCreationFlags.cs" />
     <Compile Include="Api\Flags\TransactionFlushKind.cs" />
-    <Compile Include="Api\ICursor.cs" />
+    <Compile Include="Api\IJetCursor.cs" />
     <Compile Include="Api\IJetBackupInstance.cs" />
+    <Compile Include="Api\IJetIndex.cs" />
+    <Compile Include="Api\IJetIndexColumn.cs" />
     <Compile Include="Api\IJetTemporaryTable.cs" />
     <Compile Include="JetBackupInstance.cs" />
+    <Compile Include="JetIndex.cs" />
     <Compile Include="JetTemporaryTable.cs" />
     <Compile Include="Jet\Types\JET_DBID.cs" />
     <Compile Include="Jet\Types\JET_SESID.cs" />
@@ -211,7 +214,6 @@
     <Compile Include="Implementation\NativeMethods.cs" />
     <Compile Include="ObjectInfoFlags.cs" />
     <Compile Include="objectinfogrbit.cs" />
-    <Compile Include="ObsoleteApi.cs" />
     <Compile Include="OnlineMaintenanceHelpers.cs" />
     <Compile Include="RetrieveColumnHelpers.cs" />
     <Compile Include="MERGEABLE\Session.cs" />

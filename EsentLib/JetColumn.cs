@@ -41,11 +41,10 @@ namespace EsentLib
         public JET_coltyp Type { get; private set; }
 
         internal static JetColumn FromColumnList(IJetTable owner, JET_COLUMNLIST metadata,
-            JetTable dataSource)
+            IJetCursor dataSource)
         {
             uint columnId = dataSource.RetrieveColumnAsUInt32(metadata.columnidcolumnname).Value;
             return new JetColumn(owner, new JET_COLUMNID(columnId)) {
-                Owner = owner,
                 Name = dataSource.RetrieveColumnAsString(metadata.columnidcolumnname),
                 CodePage = dataSource.RetrieveColumnAsUInt16(metadata.columnidCp) ?? 0,
                 DefaultValue = dataSource.RetrieveColumnAsString(metadata.columnidDefault),

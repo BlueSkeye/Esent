@@ -175,9 +175,7 @@ namespace EsentLib
             return !(lhs == rhs);
         }
 
-        /// <summary>
-        /// Determine whether one columnid is before another columnid.
-        /// </summary>
+        /// <summary>Determine whether one columnid is before another columnid.</summary>
         /// <param name="lhs">The first columnid to compare.</param>
         /// <param name="rhs">The second columnid to compare.</param>
         /// <returns>True if lhs comes before rhs.</returns>
@@ -186,9 +184,7 @@ namespace EsentLib
             return lhs.Value < rhs.Value;
         }
 
-        /// <summary>
-        /// Determine whether one columnid is after another columnid.
-        /// </summary>
+        /// <summary>Determine whether one columnid is after another columnid.</summary>
         /// <param name="lhs">The first columnid to compare.</param>
         /// <param name="rhs">The second columnid to compare.</param>
         /// <returns>True if lhs comes after rhs.</returns>
@@ -197,10 +193,7 @@ namespace EsentLib
             return lhs.Value > rhs.Value;
         }
 
-        /// <summary>
-        /// Determine whether one columnid is before or equal to
-        /// another columnid.
-        /// </summary>
+        /// <summary>Determine whether one columnid is before or equal to another columnid.</summary>
         /// <param name="lhs">The first columnid to compare.</param>
         /// <param name="rhs">The second columnid to compare.</param>
         /// <returns>True if lhs comes before or is equal to rhs.</returns>
@@ -209,10 +202,7 @@ namespace EsentLib
             return lhs.Value <= rhs.Value;
         }
 
-        /// <summary>
-        /// Determine whether one columnid is after or equal to
-        /// another columnid.
-        /// </summary>
+        /// <summary>Determine whether one columnid is after or equal to another columnid.</summary>
         /// <param name="lhs">The first columnid to compare.</param>
         /// <param name="rhs">The second columnid to compare.</param>
         /// <returns>True if lhs comes after or is equal to rhs.</returns>
@@ -221,32 +211,27 @@ namespace EsentLib
             return lhs.Value >= rhs.Value;
         }
 
-        /// <summary>
-        /// Generate a string representation of the structure.
-        /// </summary>
+        /// <summary>Generate a string representation of the structure.</summary>
         /// <returns>The structure as a string.</returns>
         public override string ToString()
         {
             return string.Format(CultureInfo.InvariantCulture, "JET_COLUMNID(0x{0:x})", this.Value);
         }
 
-        /// <summary>
-        /// Formats the value of the current instance using the specified format.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="T:System.String"/> containing the value of the current instance in the specified format.
-        /// </returns>
+        /// <summary>Formats the value of the current instance using the specified format.</summary>
+        /// <returns>A <see cref="T:System.String"/> containing the value of the current instance
+        /// in the specified format.</returns>
         /// <param name="format">The <see cref="T:System.String"/> specifying the format to use.
-        /// -or- 
-        /// null to use the default format defined for the type of the <see cref="T:System.IFormattable"/> implementation. 
-        /// </param>
-        /// <param name="formatProvider">The <see cref="T:System.IFormatProvider"/> to use to format the value.
-        /// -or- 
-        /// null to obtain the numeric format information from the current locale setting of the operating system. 
-        /// </param>
+        /// -or- null to use the default format defined for the type of the <see cref="T:System.IFormattable"/>
+        /// implementation. </param>
+        /// <param name="formatProvider">The <see cref="T:System.IFormatProvider"/> to use to format
+        /// the value. -or- null to obtain the numeric format information from the current locale
+        /// setting of the operating system. </param>
         public string ToString(string format, IFormatProvider formatProvider)
         {
-            return string.IsNullOrEmpty(format) || "G" == format ? this.ToString() : this.Value.ToString(format, formatProvider);
+            return (string.IsNullOrEmpty(format) || ("G" == format))
+                ? this.ToString()
+                : this.Value.ToString(format, formatProvider);
         }
 
         /// <summary>Returns a value indicating whether this instance is equal to another instance.</summary>

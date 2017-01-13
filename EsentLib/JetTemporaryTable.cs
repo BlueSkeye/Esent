@@ -9,16 +9,16 @@ namespace EsentLib
     /// <typeparam name="T"></typeparam>
     public class JetTemporaryTable<T> : IJetTemporaryTable<T>
     {
-        internal JetTemporaryTable(IJetTable table, IEnumerable<T> enumerable)
+        internal JetTemporaryTable(IJetCursor cursor, IEnumerable<T> enumerable)
         {
-            _table = table;
+            _cursor = cursor;
             _enumerable = enumerable;
         }
 
         /// <summary></summary>
         public void Dispose()
         {
-            _table.Close();
+            _cursor.Close();
         }
 
         /// <summary></summary>
@@ -36,6 +36,6 @@ namespace EsentLib
         }
 
         private IEnumerable<T> _enumerable;
-        private IJetTable _table;
+        private IJetCursor _cursor;
     }
 }

@@ -381,7 +381,7 @@ namespace EsentLib.Implementation
         /// present then the default options are used. </param>
         /// <returns>Returns the tableid of the temporary table. Closing this tableid with
         /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
-        public IJetTable OpenTemporaryTable(JET_COLUMNDEF[] columns, TemporaryTableCreationFlags grbit,
+        public IJetCursor OpenTemporaryTable(JET_COLUMNDEF[] columns, TemporaryTableCreationFlags grbit,
             JET_COLUMNID[] columnids, int lcid /* JetOpenTempTable2*/, JET_UNICODEINDEX unicodeindex /* JetOpenTempTable3 */)
         {
             Tracing.TraceFunctionCall("OpenTemporaryTable");
@@ -415,7 +415,7 @@ namespace EsentLib.Implementation
             Tracing.TraceResult(returnCode);
             columns.SetColumnids(columnids, nativecolumnids);
             EsentExceptionHelper.Check(returnCode);
-            return new JetTable(null, tableid);
+            return new JetCursor(null, tableid);
         }
 
         /// <summary>Disassociates a session from the current thread. This should be

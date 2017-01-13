@@ -825,115 +825,75 @@ namespace EsentLib
         RetrieveCopy = 0x1,
     }
 
-    /// <summary>
-    /// Options for <see cref="LegacyApi.JetSeek"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetCursor.Seek"/>.</summary>
     [Flags]
     public enum SeekGrbit
     {
-        /// <summary>
-        /// The cursor will be positioned at the index entry closest to the
-        /// start of the index that exactly matches the search key.
-        /// </summary>
+        /// <summary>The cursor will be positioned at the index entry closest to the start of the index
+        /// that exactly matches the search key.</summary>
         SeekEQ = 0x1,
 
-        /// <summary>
-        /// The cursor will be positioned at the index entry closest to the
-        /// end of the index that is less than an index entry that would
-        /// exactly match the search criteria.
-        /// </summary>
+        /// <summary>The cursor will be positioned at the index entry closest to the end of the index
+        /// that is less than an index entry that would exactly match the search criteria.</summary>
         SeekLT = 0x2,
 
-        /// <summary>
-        /// The cursor will be positioned at the index entry closest to the
-        /// end of the index that is less than or equal to an index entry
-        /// that would exactly match the search criteria.
-        /// </summary>
+        /// <summary>The cursor will be positioned at the index entry closest to the end of the index
+        /// that is less than or equal to an index entry that would exactly match the search criteria.</summary>
         SeekLE = 0x4,
 
-        /// <summary>
-        /// The cursor will be positioned at the index entry closest to the
-        /// start of the index that is greater than or equal to an index
-        /// entry that would exactly match the search criteria.
-        /// </summary>
+        /// <summary>The cursor will be positioned at the index entry closest to the start of the index
+        /// that is greater than or equal to an index entry that would exactly match the search criteria.</summary>
         SeekGE = 0x8,
 
-        /// <summary>
-        /// The cursor will be positioned at the index entry closest to the
-        /// start of the index that is greater than an index entry that
-        /// would exactly match the search criteria.
-        /// </summary>
+        /// <summary>The cursor will be positioned at the index entry closest to the start of the index
+        /// that is greater than an index entry that would exactly match the search criteria.</summary>
         SeekGT = 0x10,
 
-        /// <summary>
-        /// An index range will automatically be setup for all keys that
-        /// exactly match the search key. 
-        /// </summary>
+        /// <summary>An index range will automatically be setup for all keys that exactly match the
+        /// search key. </summary>
         SetIndexRange = 0x20,
     }
 
-    /// <summary>
-    /// Options for <see cref="LegacyApi.JetSetIndexRange"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="IJetCursor.SetIndexRange"/>.</summary>
     [Flags]
     public enum SetIndexRangeGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0x0,
 
-        /// <summary>
-        /// This option indicates that the limit of the index range is inclusive.
-        /// </summary>
+        /// <summary>This option indicates that the limit of the index range is inclusive.</summary>
         RangeInclusive = 0x1,
 
-        /// <summary>
-        /// The search key in the cursor represents the search criteria for the
-        /// index entry closest to the end of the index that will match the index
-        /// range. 
-        /// </summary>
+        /// <summary>The search key in the cursor represents the search criteria for the index entry
+        /// closest to the end of the index that will match the index range.</summary>
         RangeUpperLimit = 0x2,
 
-        /// <summary>
-        /// The index range should be removed as soon as it has been established.
-        /// This is useful for testing for the existence of index entries that
-        /// match the search criteria.
-        /// </summary>
+        /// <summary>The index range should be removed as soon as it has been established. This is
+        /// useful for testing for the existence of index entries that match the search criteria.</summary>
         RangeInstantDuration = 0x4,
 
-        /// <summary>
-        /// Cancel and existing index range.
-        /// </summary>
+        /// <summary>Cancel and existing index range.</summary>
         RangeRemove = 0x8,
     }
 
-    /// <summary>
-    /// Options for the <see cref="JET_INDEXRANGE"/> object.
-    /// </summary>
+    /// <summary>Options for the <see cref="JET_INDEXRANGE"/> object.</summary>
     [Flags]
     public enum IndexRangeGrbit
     {
-        /// <summary>
-        /// Records in the cursors indexrange should be included in the output.
-        /// </summary>
+        /// <summary>Records in the cursors indexrange should be included in the output.</summary>
         RecordInIndex = 0x1,
     }
 
-    /// <summary>
-    /// Options for <see cref="LegacyApi.JetIntersectIndexes"/>.
-    /// </summary>
+    /// <summary>Options for <see cref="LegacyApi.JetIntersectIndexes"/>.</summary>
     [Flags]
     public enum IntersectIndexesGrbit
     {
-        /// <summary>
-        /// Default options.
-        /// </summary>
+        /// <summary>Default options.</summary>
         None = 0,
     }
 
-    /// <summary>Options for <see cref="ICursor.SetCurrentIndex(JET_INDEXID, SetCurrentIndexGrbit, int)"/>
-    /// and <see cref="ICursor.SetCurrentIndex(string, SetCurrentIndexGrbit, int)"/>.</summary>
+    /// <summary>Options for <see cref="IJetCursor.SetCurrentIndex(JET_INDEXID, SetCurrentIndexGrbit, int)"/>
+    /// and <see cref="IJetCursor.SetCurrentIndex(string, SetCurrentIndexGrbit, int)"/>.</summary>
     [Flags]
     public enum SetCurrentIndexGrbit
     {
@@ -1472,7 +1432,7 @@ namespace EsentLib
         None = 0,
     }
 
-    /// <summary>Options for <see cref="IJetTable.Update"/>.</summary>
+    /// <summary>Options for IJetCursor.Update.</summary>
     [Flags]
     public enum UpdateGrbit
     {

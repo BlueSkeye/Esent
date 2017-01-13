@@ -542,104 +542,7 @@ namespace EsentLib.Api
             JET_IdxInfo infoLevel);
 
         #endregion
-
-        #region JetGetTableIndexInfo overloads
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out ushort result,
-            JET_IdxInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out int result,
-            JET_IdxInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out JET_INDEXID result,
-            JET_IdxInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out JET_INDEXLIST result,
-            JET_IdxInfo infoLevel);
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out string result,
-            JET_IdxInfo infoLevel);
-
-        #endregion
-
-        /// <summary>
-        /// Changes the name of an existing table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database containing the table.</param>
-        /// <param name="tableName">The name of the table.</param>
-        /// <param name="newTableName">The new name of the table.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetRenameTable(JET_SESID sesid, JET_DBID dbid, string tableName, string newTableName);
-
-        /// <summary>
-        /// Changes the name of an existing column.
-        /// </summary>
+        /// <summary>Changes the name of an existing column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="name">The name of the column.</param>
@@ -684,85 +587,44 @@ namespace EsentLib.Api
         int JetGotoSecondaryIndexBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] secondaryKey,
             int secondaryKeySize, byte[] primaryKey, int primaryKeySize, GotoSecondaryIndexBookmarkGrbit grbit);
 
-        /// <summary>
-        /// Efficiently positions a cursor to an index entry that matches the search
-        /// criteria specified by the search key in that cursor and the specified
-        /// inequality. A search key must have been previously constructed using 
-        /// JetMakeKey.
-        /// </summary>
+        /// <summary>Computes the intersection between multiple sets of index entries from different
+        /// secondary indices over the same table. This operation is useful for finding the set of records
+        /// in a table that match two or more criteria that can be expressed using index ranges.</summary>
         /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <param name="grbit">Seek options.</param>
-        /// <returns>An error or warning..</returns>
-        int JetSeek(JET_SESID sesid, JET_TABLEID tableid, SeekGrbit grbit);
-
-        /// <summary>
-        /// Temporarily limits the set of index entries that the cursor can walk using
-        /// <see cref="IJetTable.Move"/> to those starting
-        /// from the current index entry and ending at the index entry that matches the
-        /// search criteria specified by the search key in that cursor and the specified
-        /// bound criteria. A search key must have been previously constructed using
-        /// JetMakeKey.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index range on.</param>
-        /// <param name="grbit">Index range options.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetSetIndexRange(JET_SESID sesid, JET_TABLEID tableid, SetIndexRangeGrbit grbit);
-
-        /// <summary>
-        /// Computes the intersection between multiple sets of index entries from different secondary
-        /// indices over the same table. This operation is useful for finding the set of records in a
-        /// table that match two or more criteria that can be expressed using index ranges. 
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="ranges">
-        /// An the index ranges to intersect. The tableids in the ranges
-        ///  must have index ranges set on them.
-        /// </param>
-        /// <param name="numRanges">
-        /// The number of index ranges.
-        /// </param>
-        /// <param name="recordlist">
-        /// Returns information about the temporary table containing the intersection results.
-        /// </param>
+        /// <param name="ranges">An the index ranges to intersect. The tableids in the ranges must have
+        /// index ranges set on them.</param>
+        /// <param name="numRanges">The number of index ranges.</param>
+        /// <param name="recordlist">Returns information about the temporary table containing the
+        /// intersection results.</param>
         /// <param name="grbit">Intersection options.</param>
         /// <returns>An error if the call fails.</returns>
         int JetIntersectIndexes(JET_SESID sesid, JET_INDEXRANGE[] ranges, int numRanges,
             out JET_RECORDLIST recordlist, IntersectIndexesGrbit grbit);
 
-        /// <summary>
-        /// Counts the number of entries in the current index from the current position forward.
-        /// The current position is included in the count. The count can be greater than the
-        /// total number of records in the table if the current index is over a multi-valued
-        /// column and instances of the column have multiple-values. If the table is empty,
-        /// then 0 will be returned for the count. 
-        /// </summary>
+        /// <summary>Counts the number of entries in the current index from the current position
+        /// forward. The current position is included in the count. The count can be greater than
+        /// the total number of records in the table if the current index is over a multi-valued
+        /// column and instances of the column have multiple-values. If the table is empty, then
+        /// 0 will be returned for the count. </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to count the records in.</param>
         /// <param name="numRecords">Returns the number of records.</param>
-        /// <param name="maxRecordsToCount">
-        /// The maximum number of records to count.
-        /// </param>
+        /// <param name="maxRecordsToCount">The maximum number of records to count.</param>
         /// <returns>An error if the call fails.</returns>
-        int JetIndexRecordCount(JET_SESID sesid, JET_TABLEID tableid, out int numRecords, int maxRecordsToCount);
+        int JetIndexRecordCount(JET_SESID sesid, JET_TABLEID tableid, out int numRecords,
+            int maxRecordsToCount);
 
-        /// <summary>
-        /// Notifies the database engine that the application is scanning the entire
-        /// index that the cursor is positioned on. Consequently, the methods that
-        /// are used to access the index data will be tuned to make this scenario as
-        /// fast as possible. 
-        /// </summary>
+        /// <summary>Notifies the database engine that the application is scanning the entire index
+        /// that the cursor is positioned on. Consequently, the methods that are used to access the
+        /// index data will be tuned to make this scenario as fast as possible. </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor that will be accessing the data.</param>
         /// <param name="grbit">Reserved for future use.</param>
         /// <returns>An error if the call fails.</returns>
         int JetSetTableSequential(JET_SESID sesid, JET_TABLEID tableid, SetTableSequentialGrbit grbit);
 
-        /// <summary>
-        /// Notifies the database engine that the application is no longer scanning the
-        /// entire index the cursor is positioned on. This call reverses a notification
-        /// sent by JetSetTableSequential.
+        /// <summary>Notifies the database engine that the application is no longer scanning the entire
+        /// index the cursor is positioned on. This call reverses a notification sent by JetSetTableSequential.
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor that was accessing the data.</param>
@@ -770,60 +632,35 @@ namespace EsentLib.Api
         /// <returns>An error if the call fails.</returns>
         int JetResetTableSequential(JET_SESID sesid, JET_TABLEID tableid, ResetTableSequentialGrbit grbit);
 
-        /// <summary>
-        /// Returns the fractional position of the current record in the current index
-        /// in the form of a JET_RECPOS structure.
-        /// </summary>
+        /// <summary>Returns the fractional position of the current record in the current index in the
+        /// form of a JET_RECPOS structure.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor positioned on the record.</param>
         /// <param name="recpos">Returns the approximate fractional position of the record.</param>
         /// <returns>An error if the call fails.</returns>
         int JetGetRecordPosition(JET_SESID sesid, JET_TABLEID tableid, out JET_RECPOS recpos);
 
-        /// <summary>
-        /// Moves a cursor to a new location that is a fraction of the way through
-        /// the current index. 
-        /// </summary>
+        /// <summary>Moves a cursor to a new location that is a fraction of the way through the current
+        /// index. </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to position.</param>
         /// <param name="recpos">The approximate position to move to.</param>
         /// <returns>An error if the call fails.</returns>
         int JetGotoPosition(JET_SESID sesid, JET_TABLEID tableid, JET_RECPOS recpos);
 
-        /// <summary>
-        /// If the records with the specified keys are not in the buffer cache
-        /// then start asynchronous reads to bring the records into the database
-        /// buffer cache.
-        /// </summary>
+        /// <summary>If the records with the specified keys are not in the buffer cache then start
+        /// asynchronous reads to bring the records into the database buffer cache.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table to issue the prereads against.</param>
-        /// <param name="keys">
-        /// The keys to preread. The keys must be sorted.
-        /// </param>
+        /// <param name="keys">The keys to preread. The keys must be sorted.</param>
         /// <param name="keyLengths">The lengths of the keys to preread.</param>
-        /// <param name="keyIndex">
-        /// The index of the first key in the keys array to read.
-        /// </param>
-        /// <param name="keyCount">
-        /// The maximum number of keys to preread.
-        /// </param>
-        /// <param name="keysPreread">
-        /// Returns the number of keys to actually preread.
-        /// </param>
-        /// <param name="grbit">
-        /// Preread options. Used to specify the direction of the preread.
-        /// </param>
+        /// <param name="keyIndex">The index of the first key in the keys array to read.</param>
+        /// <param name="keyCount">The maximum number of keys to preread.</param>
+        /// <param name="keysPreread">Returns the number of keys to actually preread.</param>
+        /// <param name="grbit">Preread options. Used to specify the direction of the preread.</param>
         /// <returns>An error or warning.</returns>
-        int JetPrereadKeys(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            byte[][] keys,
-            int[] keyLengths,
-            int keyIndex,
-            int keyCount,
-            out int keysPreread,
-            PrereadKeysGrbit grbit);
-
+        int JetPrereadKeys(JET_SESID sesid, JET_TABLEID tableid, byte[][] keys, int[] keyLengths,
+            int keyIndex, int keyCount, out int keysPreread, PrereadKeysGrbit grbit);
         #endregion
 
         #region Data Retrieval
@@ -831,7 +668,7 @@ namespace EsentLib.Api
         /// <summary>Retrieves the bookmark for the record that is associated with the index
         /// entry at the current position of a cursor. This bookmark can then be used to
         /// reposition that cursor back to the same record using
-        /// <see cref="ICursor.GotoBookmark"/>. The bookmark will be no longer than
+        /// <see cref="IJetCursor.GotoBookmark"/>. The bookmark will be no longer than
         /// <see cref="JetEnvironment.BookmarkMost"/> bytes.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the bookmark from.</param>

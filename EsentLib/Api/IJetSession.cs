@@ -91,7 +91,7 @@ namespace EsentLib.Api
         /// present then the default options are used. </param>
         /// <returns>Returns the tableid of the temporary table. Closing this tableid with
         /// <see cref="IJetTable.Close"/> frees the resources associated with the temporary table.</returns>
-        IJetTable OpenTemporaryTable(JET_COLUMNDEF[] columns, TemporaryTableCreationFlags grbit,
+        IJetCursor OpenTemporaryTable(JET_COLUMNDEF[] columns, TemporaryTableCreationFlags grbit,
             JET_COLUMNID[] columnids, int lcid /* JetOpenTempTable2*/, JET_UNICODEINDEX unicodeindex /* JetOpenTempTable3 */);
 
         /// <summary>Disassociates a session from the current thread. This should be

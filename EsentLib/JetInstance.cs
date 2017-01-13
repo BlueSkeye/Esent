@@ -2147,242 +2147,7 @@ namespace EsentLib.Implementation
         }
 
         #endregion
-
-        #region JetGetTableIndexInfo overloads
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out ushort result,
-            JET_IdxInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
-            int err;
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    out result,
-                    sizeof(ushort),
-                    (uint)infoLevel));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    out result,
-                    sizeof(ushort),
-                    (uint)infoLevel));
-            }
-
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out int result,
-            JET_IdxInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
-
-            uint nativeResult;
-            int err;
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    out nativeResult,
-                    sizeof(uint),
-                    (uint)infoLevel));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    out nativeResult,
-                    sizeof(uint),
-                    (uint)infoLevel));
-            }
-
-            result = unchecked((int)nativeResult);
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out JET_INDEXID result,
-            JET_IdxInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
-            int err;
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    out result,
-                    JET_INDEXID.SizeOfIndexId,
-                    (uint)infoLevel));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    out result,
-                    JET_INDEXID.SizeOfIndexId,
-                    (uint)infoLevel));
-            }
-
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out JET_INDEXLIST result,
-            JET_IdxInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
-
-            var nativeIndexlist = new NATIVE_INDEXLIST();
-            nativeIndexlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_INDEXLIST)));
-            int err;
-
-            if (_capabilities.SupportsVistaFeatures)
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    ref nativeIndexlist,
-                    nativeIndexlist.cbStruct,
-                    (uint)infoLevel));
-            }
-            else
-            {
-                err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfo(
-                    sesid.Value,
-                    tableid.Value,
-                    indexname,
-                    ref nativeIndexlist,
-                    nativeIndexlist.cbStruct,
-                    (uint)infoLevel));
-            }
-
-            result = new JET_INDEXLIST();
-            result.SetFromNativeIndexlist(nativeIndexlist);
-
-            return err;
-        }
-
-        /// <summary>
-        /// Retrieves information about indexes on a table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The table to retrieve index information about.</param>
-        /// <param name="indexname">The name of the index.</param>
-        /// <param name="result">Filled in with information about indexes on the table.</param>
-        /// <param name="infoLevel">The type of information to retrieve.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetTableIndexInfo(
-            JET_SESID sesid,
-            JET_TABLEID tableid,
-            string indexname,
-            out string result,
-            JET_IdxInfo infoLevel)
-        {
-            Tracing.TraceFunctionCall("JetGetTableIndexInfo");
-
-            // Will need to check for Windows 8 Features.
-            //
-            // Currently only JET_IdxInfo.LocaleName is supported.
-            uint bytesMax = checked((uint)Constants.LocaleNameMaxLength * sizeof(char));
-
-            var stringBuilder = new StringBuilder(Constants.LocaleNameMaxLength);
-            int err = Tracing.TraceResult(NativeMethods.JetGetTableIndexInfoW(sesid.Value,
-                tableid.Value, indexname, stringBuilder, bytesMax, (uint)infoLevel));
-            result = stringBuilder.ToString();
-            result = StringCache.TryToIntern(result);
-            return err;
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Changes the name of an existing table.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="dbid">The database containing the table.</param>
-        /// <param name="tableName">The name of the table.</param>
-        /// <param name="newTableName">The new name of the table.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetRenameTable(JET_SESID sesid, JET_DBID dbid, string tableName, string newTableName)
-        {
-            Tracing.TraceFunctionCall("JetRenameTable");
-            Helpers.CheckNotNull(tableName, "tableName");
-            Helpers.CheckNotNull(newTableName, "newTableName");
-            return Tracing.TraceResult(NativeMethods.JetRenameTable(sesid.Value, dbid.Value, tableName, newTableName));
-        }
-
-        /// <summary>
-        /// Changes the name of an existing column.
-        /// </summary>
+        /// <summary>Changes the name of an existing column.</summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The table containing the column.</param>
         /// <param name="name">The name of the column.</param>
@@ -2464,37 +2229,6 @@ namespace EsentLib.Implementation
                         primaryKey,
                         checked((uint)primaryKeySize),
                         (uint)grbit));
-        }
-
-        /// <summary>
-        /// Efficiently positions a cursor to an index entry that matches the search
-        /// criteria specified by the search key in that cursor and the specified
-        /// inequality. A search key must have been previously constructed using
-        /// JetMakeKey.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to position.</param>
-        /// <param name="grbit">Seek options.</param>
-        /// <returns>An error or warning..</returns>
-        public int JetSeek(JET_SESID sesid, JET_TABLEID tableid, SeekGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetSeek");
-            return Tracing.TraceResult(NativeMethods.JetSeek(sesid.Value, tableid.Value, unchecked((uint)grbit)));
-        }
-
-        /// <summary>Temporarily limits the set of index entries that the cursor can walk
-        /// using <see cref="IJetTable.Move"/> to those starting from the current index entry
-        /// and ending at the index entry that matches the search criteria specified by the
-        /// search key in that cursor and the specified bound criteria. A search key must
-        /// have been previously constructed using JetMakeKey.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to set the index range on.</param>
-        /// <param name="grbit">Index range options.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetSetIndexRange(JET_SESID sesid, JET_TABLEID tableid, SetIndexRangeGrbit grbit)
-        {
-            Tracing.TraceFunctionCall("JetSetIndexRange");
-            return Tracing.TraceResult(NativeMethods.JetSetIndexRange(sesid.Value, tableid.Value, unchecked((uint)grbit)));
         }
 
         /// <summary>
@@ -2710,7 +2444,7 @@ namespace EsentLib.Implementation
         /// <summary>
         /// Retrieves the bookmark for the record that is associated with the index entry
         /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="ICursor.GotoBookmark"/>.
+        /// reposition that cursor back to the same record using <see cref="IJetCursor.GotoBookmark"/>.
         /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
         /// bytes.
         /// </summary>
@@ -4196,7 +3930,7 @@ namespace EsentLib.Implementation
             }
         }
 
-        /// <summary>Set an array of simple filters for <see cref="IJetTable.Move"/></summary>
+        /// <summary>Set an array of simple filters for <see cref="IJetCursor.Move"/></summary>
         /// <param name="sesid">The session to use for the call.</param>
         /// <param name="tableid">The cursor to position.</param>
         /// <param name="filters">Simple record filters.</param>

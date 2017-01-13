@@ -91,7 +91,14 @@ namespace EsentLib.Api
         /// <param name="tablename">The name of the table to open.</param>
         /// <param name="grbit">Table open options.</param>
         /// <returns>An ESENT warning.</returns>
-        IJetTable OpenTable(string tablename, OpenTableGrbit grbit = OpenTableGrbit.None);
+        IJetCursor OpenTable(string tablename, OpenTableGrbit grbit = OpenTableGrbit.None);
+
+        /// <summary>Changes the name of an existing table.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="newTableName">The new name of the table.</param>
+        /// <returns>An error if the call fails.</returns>
+        void RenameTable(IJetSession session, string tableName, string newTableName);
 
         /// <summary>Resizes a currently open database. Windows 8: Only supports growing a database file.
         /// Windows 8.1: When <see cref="JET_param.EnableShrinkDatabase"/> is set to

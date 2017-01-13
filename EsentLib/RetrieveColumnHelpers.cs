@@ -32,7 +32,7 @@ namespace EsentLib
         /// <summary>Retrieves the bookmark for the record that is associated with the
         /// index entry at the current position of a cursor. This bookmark can then be
         /// used to reposition that cursor back to the same record using
-        /// <see cref="ICursor.GotoBookmark"/>. </summary>
+        /// <see cref="IJetCursor.GotoBookmark"/>. </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the bookmark from.</param>
         /// <returns>The bookmark of the record.</returns>
@@ -55,7 +55,7 @@ namespace EsentLib
 
         /// <summary>Retrieves the bookmark for the record that is associated with the index
         /// entry at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="ICursor.GotoBookmark"/>. 
+        /// reposition that cursor back to the same record using <see cref="IJetCursor.GotoBookmark"/>. 
         /// </summary>
         /// <param name="sesid">The session to use.</param>
         /// <param name="tableid">The cursor to retrieve the bookmark from.</param>

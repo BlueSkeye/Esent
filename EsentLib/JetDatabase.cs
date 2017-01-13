@@ -147,20 +147,20 @@ namespace EsentLib.Implementation
         public IJetTemporaryTable<string> EnumerateTableNames(bool includeSystemTables = false)
         {
             JET_OBJECTLIST tables = GetDatabaseTables();
-            JetTable resultTable = new JetTable(this, tables.tableid);
-            return new JetTemporaryTable<string>(resultTable,
-                resultTable.Enumerate<string>(
+            JetCursor cursor = new JetCursor(Session, tables.tableid);
+            return new JetTemporaryTable<string>(cursor,
+                cursor.Enumerate<string>(
                     includeSystemTables
                     ? (FilterDelegate)null // Accept every record.
                     : (FilterDelegate)delegate () {
                         // Determine if the current entry in the table being enumerated should be
                         // skipped (not returned). Here we are skipping system tables.
                         // Returns true if the current entry should be skipped.
-                        int flags = (int)resultTable.RetrieveColumnAsInt32(tables.columnidflags);
+                        int flags = (int)cursor.RetrieveColumnAsInt32(tables.columnidflags);
                         return (ObjectInfoFlags.System == ((ObjectInfoFlags)flags & ObjectInfoFlags.System));
                     },
                     delegate () {
-                        string name = resultTable.RetrieveColumnAsString(tables.columnidobjectname);
+                        string name = cursor.RetrieveColumnAsString(tables.columnidobjectname);
                         return StringCache.TryToIntern(name);
                     }));
         }
@@ -331,18 +331,33 @@ namespace EsentLib.Implementation
         /// <summary>Opens a cursor on a previously created table.</summary>
         /// <param name="tablename">The name of the table to open.</param>
         /// <param name="grbit">Table open options.</param>
-        /// <returns>An ESENT warning.</returns>
+        /// <returns>A cursor.</returns>
         [CLSCompliant(false)]
-        public IJetTable OpenTable(string tablename, OpenTableGrbit grbit = OpenTableGrbit.None)
+        public IJetCursor OpenTable(string tablename, OpenTableGrbit grbit = OpenTableGrbit.None)
         {
             Tracing.TraceFunctionCall("OpenTable");
-            JET_TABLEID tableid = JET_TABLEID.Nil;
+            JET_TABLEID cursorId = JET_TABLEID.Nil;
             Helpers.CheckNotNull(tablename, "tablename");
             int returnCode = NativeMethods.JetOpenTable(_owner.Id, _dbid.Value, tablename,
-                null, 0, (uint)grbit, out tableid.Value);
+                null, 0, (uint)grbit, out cursorId.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetTable(this, tableid);
+            return new JetCursor(_owner, cursorId);
+        }
+
+        /// <summary>Changes the name of an existing table.</summary>
+        /// <param name="session">The session to use.</param>
+        /// <param name="tableName">The name of the table.</param>
+        /// <param name="newTableName">The new name of the table.</param>
+        /// <returns>An error if the call fails.</returns>
+        public void RenameTable(IJetSession session, string tableName, string newTableName)
+        {
+            Tracing.TraceFunctionCall("JetRenameTable");
+            Helpers.CheckNotNull(tableName, "tableName");
+            Helpers.CheckNotNull(newTableName, "newTableName");
+            int returnCode = NativeMethods.JetRenameTable(session.Id, _dbid.Value, tableName, newTableName);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
         }
 
         /// <summary>Resizes a currently open database. Windows 8: Only supports growing a
