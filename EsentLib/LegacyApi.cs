@@ -22,6 +22,7 @@ namespace EsentLib
     /// <summary>Managed versions of the ESENT Api. This class contains static methods
     /// corresponding with the unmanaged ESENT Api. These methods throw exceptions when
     /// errors are returned.</summary>
+    [CLSCompliant(false)]
     public static partial class LegacyApi
     {
         /// <summary>Initializes static members of the Api class.</summary>
@@ -421,24 +422,6 @@ namespace EsentLib
         #endregion
 
         #region Data Retrieval
-
-        /// <summary>
-        /// Retrieves the bookmark for the record that is associated with the index entry
-        /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="IJetCursor.GotoBookmark"/>. 
-        /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
-        /// bytes.
-        /// Also see <seealso cref="GetBookmark"/>.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to retrieve the bookmark from.</param>
-        /// <param name="bookmark">Buffer to contain the bookmark.</param>
-        /// <param name="bookmarkSize">Size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        public static void JetGetBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
-        {
-            EsentExceptionHelper.Check(Impl.JetGetBookmark(sesid, tableid, bookmark, bookmarkSize, out actualBookmarkSize));
-        }
 
         /// <summary>
         /// Retrieves a special bookmark for the secondary index entry at the

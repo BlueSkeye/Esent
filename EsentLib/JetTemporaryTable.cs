@@ -18,7 +18,7 @@ namespace EsentLib
         /// <summary></summary>
         public void Dispose()
         {
-            _cursor.Close();
+            _cursor.Dispose();
         }
 
         /// <summary></summary>

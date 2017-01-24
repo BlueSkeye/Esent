@@ -43,12 +43,12 @@ namespace EsentLib
         internal static JetColumn FromColumnList(IJetTable owner, JET_COLUMNLIST metadata,
             IJetCursor dataSource)
         {
-            uint columnId = dataSource.RetrieveColumnAsUInt32(metadata.columnidcolumnname).Value;
+            int columnId = dataSource.RetrieveColumnAsInt32(metadata.columnidcolumnname).Value;
             return new JetColumn(owner, new JET_COLUMNID(columnId)) {
                 Name = dataSource.RetrieveColumnAsString(metadata.columnidcolumnname),
                 CodePage = dataSource.RetrieveColumnAsUInt16(metadata.columnidCp) ?? 0,
                 DefaultValue = dataSource.RetrieveColumnAsString(metadata.columnidDefault),
-                Id = new JET_COLUMNID(dataSource.RetrieveColumnAsUInt32(metadata.columnidcolumnid) ?? 0),
+                Id = new JET_COLUMNID(dataSource.RetrieveColumnAsInt32(metadata.columnidcolumnid) ?? 0),
                 MaximumLength = dataSource.RetrieveColumnAsInt32(metadata.columnidcbMax) ?? 0,
                 Type = (JET_coltyp)dataSource.RetrieveColumnAsInt32(metadata.columnidcoltyp),
                 Characteristics = dataSource.RetrieveColumnAsUInt32(metadata.columnidgrbit) ?? 0

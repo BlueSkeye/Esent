@@ -1,7 +1,9 @@
-﻿
+﻿using System;
+
 namespace EsentLib.Api
 {
     /// <summary></summary>
+    [CLSCompliant(false)]
     public interface IJetIndexColumn
     {
         /// <summary></summary>

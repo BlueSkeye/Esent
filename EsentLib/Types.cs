@@ -139,9 +139,9 @@ namespace EsentLib
         /// <param name="nativeValue">The native ESE JET_COLUMNID.</param>
         /// <returns>An initialized <see cref="JET_COLUMNID"/> structure.</returns>
         /// <remarks>Use of this function should be exceedingly rare.</remarks>
-        internal JET_COLUMNID(uint nativeValue)
+        public JET_COLUMNID(int nativeValue)
         {
-            Value = nativeValue;
+            Value = (uint)nativeValue;
         }
 
         /// <summary>Gets a null JET_COLUMNID.</summary>
@@ -155,6 +155,12 @@ namespace EsentLib
         public bool IsInvalid
         {
             get { return (0 == Value) || (uint.MaxValue == Value); }
+        }
+
+        /// <summary></summary>
+        public int RawValue
+        {
+            get { return (int)Value; }
         }
 
         /// <summary>Determines whether two specified instances of JET_COLUMNID are equal.</summary>

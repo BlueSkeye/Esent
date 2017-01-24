@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 using EsentLib.Jet;
-using EsentLib.Jet.Types;
 
 namespace EsentLib.Api
 {
     /// <summary></summary>
-    public struct BasicColumnDesriptor
+    [CLSCompliant(false)]
+    public struct BasicColumnDescriptor
     {
-        internal BasicColumnDesriptor(string name, JET_COLUMNID id)
+        internal BasicColumnDescriptor(string jetColumnName, JET_COLUMNID jetId)
         {
-            Name = name;
-            Id = id;
+            JetColumnName = jetColumnName;
+            JetId = jetId;
         }
 
-        /// <summary></summary>
-        public JET_COLUMNID Id { get; private set; }
-        /// <summary></summary>
-        public string Name { get; private set; }
+        /// <summary>The JET column identifier</summary>
+        public JET_COLUMNID JetId { get; private set; }
+        /// <summary>The column name in the 'datatable' table.</summary>
+        public string JetColumnName { get; private set; }
     }
 
     /// <summary></summary>
@@ -84,7 +83,7 @@ namespace EsentLib.Api
 
         /// <summary>Enumerate the name and identifier of the columns in this table.</summary>
         /// <returns>An enumerable object.</returns>
-        IJetTemporaryTable<BasicColumnDesriptor> EnumerateColumns();
+        IJetTemporaryTable<BasicColumnDescriptor> EnumerateColumns();
 
         /// <summary>Retrieves information about all columns in the table.</summary>
         /// <param name="grbit">Additional options for JetGetTableColumnInfo.</param>

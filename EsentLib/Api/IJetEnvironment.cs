@@ -9,7 +9,7 @@ namespace EsentLib.Api
     public interface IJetEnvironment
     {
         #region PROPERTIES
-        /// <summary>Gets the maximum size of a bookmark. <seealso cref="LegacyApi.JetGetBookmark"/>.</summary>
+        /// <summary>Gets the maximum size of a bookmark. <seealso cref="IJetCursor.GetBookmark"/>.</summary>
         int BookmarkMost { get; }
 
         /// <summary>Gets or sets the size of the database cache in pages. By default the

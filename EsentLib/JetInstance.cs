@@ -2442,37 +2442,6 @@ namespace EsentLib.Implementation
         #region Data Retrieval
 
         /// <summary>
-        /// Retrieves the bookmark for the record that is associated with the index entry
-        /// at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using <see cref="IJetCursor.GotoBookmark"/>.
-        /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>
-        /// bytes.
-        /// </summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to retrieve the bookmark from.</param>
-        /// <param name="bookmark">Buffer to contain the bookmark.</param>
-        /// <param name="bookmarkSize">Size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <returns>An error if the call fails.</returns>
-        public int JetGetBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize, out int actualBookmarkSize)
-        {
-            Tracing.TraceFunctionCall("JetGetBookmark");
-            Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
-
-            uint bytesActual = 0;
-            int err = Tracing.TraceResult(
-                NativeMethods.JetGetBookmark(
-                    sesid.Value,
-                    tableid.Value,
-                    bookmark,
-                    checked((uint)bookmarkSize),
-                    out bytesActual));
-
-            actualBookmarkSize = GetActualSize(bytesActual);
-            return err;
-        }
-
-        /// <summary>
         /// Retrieves a special bookmark for the secondary index entry at the
         /// current position of a cursor. This bookmark can then be used to
         /// efficiently reposition that cursor back to the same index entry

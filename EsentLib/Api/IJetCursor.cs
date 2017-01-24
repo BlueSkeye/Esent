@@ -18,7 +18,7 @@ namespace EsentLib.Api
     /// <see cref="IJetTable"/>. An instance can be retrieved with <see cref="IJetTable.PrepareUpdate"/>
     /// or with <see cref="IJetDatabase.OpenTable"/></summary>
     [CLSCompliant(false)]
-    public interface IJetCursor : IDisposable
+    public interface IJetCursor : IJetTable, IDisposable
     {
         /// <summary>Get the name of the current index of a given cursor.</summary>
         /// <remarks>This accessor is also used to later re-select that index as the current
@@ -27,12 +27,6 @@ namespace EsentLib.Api
         /// the current index is the clustered index and no primary index was explicitly
         /// defined.</remarks>
         string CurrentIndex { get; }
-
-        /// <summary>Retrieve the underlying table.</summary>
-        IJetTable Table { get; }
-
-        /// <summary>Close an open cursor.</summary>
-        void Close();
 
         /// <summary></summary>
         /// <typeparam name="T"></typeparam>
@@ -43,13 +37,19 @@ namespace EsentLib.Api
         /// <returns></returns>
         IEnumerable<T> Enumerate<T>(FilterDelegate skipRecordFilter, ItemRetrieverDelegate<T> retriever);
 
+        /// <summary>Retrieves the bookmark for the record that is associated with the index
+        /// entry at the current position of a cursor. This bookmark can then be used to
+        /// reposition that cursor back to the same record using <see cref="IJetCursor.GotoBookmark"/>.
+        /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>bytes.</summary>
+        /// <returns>An error if the call fails.</returns>
+        byte[] GetBookmark();
+
         /// <summary>Positions a cursor to an index entry for the record that is associated
         /// with the specified bookmark. The bookmark can be used with any index defined over
         /// a table. The bookmark for a record can be retrieved using
-        /// <see cref="IJetInstance.JetGetBookmark"/>.</summary>
+        /// <see cref="IJetCursor.GetBookmark"/>.</summary>
         /// <param name="bookmark">The bookmark used to position the cursor.</param>
-        /// <param name="bookmarkSize">The size of the bookmark.</param>
-        void GotoBookmark(byte[] bookmark, int bookmarkSize);
+        void GotoBookmark(byte[] bookmark);
 
         /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.
         /// </summary>
@@ -193,6 +193,15 @@ namespace EsentLib.Api
         byte[] RetrieveColumnAsByteArray(JET_COLUMNID columnid, int length = 0,
             RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
 
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an array of byte arrays. Null if the
+        /// column is null.</returns>
+        List<byte[]> RetrieveColumnAsArrayOfByteArray(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
         /// <summary>Retrieves a datetime column value from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
@@ -235,6 +244,14 @@ namespace EsentLib.Api
         /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
         int? RetrieveColumnAsInt32(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
 
+        /// <summary>Retrieves an array of int32 column values from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
+        List<int> RetrieveColumnAsArrayOfInt32(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
         /// <summary>Retrieves an int32 column value from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
@@ -266,12 +283,31 @@ namespace EsentLib.Api
         // [CLSCompliant(false)]
         ulong? RetrieveColumnAsUInt64(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
 
-        /// <summary>Retrieves a string column value from the current record. The record is
+        /// <summary>Retrieves an array of uint64 column values from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
         /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
+        List<ulong> RetrieveColumnAsArrayOfUInt64(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves a string column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="ascii"></param>
+        /// <param name="grbit">Retrieval options.</param>
         /// <returns>The data retrieved from the column as a string. Null if the column is null.</returns>
-        string RetrieveColumnAsString(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+        string RetrieveColumnAsString(JET_COLUMNID columnid, bool ascii = false,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
+
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="ascii"></param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a string. Null if the column is null.</returns>
+        List<string> RetrieveColumnAsArrayOfString(JET_COLUMNID columnid, bool ascii = false,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None);
 
         /// <summary>Efficiently positions a cursor to an index entry that matches the search
         /// criteria specified by the search key in that cursor and the specified inequality.
@@ -337,5 +373,12 @@ namespace EsentLib.Api
         /// thrown.</summary>
         /// <returns>True if the move was successful.</returns>
         bool TryMoveNext();
+
+        /// <summary>Efficiently positions a cursor to an index entry that matches the search
+        /// criteria specified by the search key in that cursor and the specified inequality.
+        /// A search key must have been previously constructed using IJetTable.MakeKey.</summary>
+        /// <param name="grbit">Seek options.</param>
+        /// <returns>An ESENT warning.</returns>
+        bool TrySeek(SeekGrbit grbit = SeekGrbit.SeekEQ);
     }
 }

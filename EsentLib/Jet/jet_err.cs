@@ -21,31 +21,16 @@ namespace EsentLib.Jet
         Justification = "Auto-generated comments.")]
     public enum JET_err
     {
-        /// <summary>
-        /// Successful operation.
-        /// </summary>
+        /// <summary>Successful operation.</summary>
         Success = 0,
-
         #region Errors        
-
-        /// <summary>
-        /// Resource Failure Simulator failure
-        /// </summary>
+        /// <summary>Resource Failure Simulator failure</summary>
         RfsFailure = -100,
-
-        /// <summary>
-        /// Resource Failure Simulator not initialized
-        /// </summary>
+        /// <summary>Resource Failure Simulator not initialized</summary>
         RfsNotArmed = -101,
-
-        /// <summary>
-        /// Could not close file
-        /// </summary>
+        /// <summary>Could not close file</summary>
         FileClose = -102,
-
-        /// <summary>
-        /// Could not start thread
-        /// </summary>
+        /// <summary>Could not start thread</summary>
         OutOfThreads = -103,
 
         /// <summary>
@@ -438,179 +423,124 @@ namespace EsentLib.Jet
         /// </summary>
         EndingRestoreLogTooLow = -553,
 
-        /// <summary>
-        /// The starting log number too high for the restore
-        /// </summary>
+        /// <summary>The starting log number too high for the restore</summary>
         StartingRestoreLogTooHigh = -554,
 
-        /// <summary>
-        /// Restore log file has bad signature
-        /// </summary>
+        /// <summary>Restore log file has bad signature</summary>
         GivenLogFileHasBadSignature = -555,
 
-        /// <summary>
-        /// Restore log file is not contiguous
-        /// </summary>
+        /// <summary>Restore log file is not contiguous</summary>
         GivenLogFileIsNotContiguous = -556,
 
-        /// <summary>
-        /// Some restore log files are missing
-        /// </summary>
+        /// <summary>Some restore log files are missing</summary>
         MissingRestoreLogFiles = -557,
 
-        /// <summary>
-        /// The database missed a previous full backup before incremental backup
-        /// </summary>
+        /// <summary>The database missed a previous full backup before incremental backup</summary>
         MissingFullBackup = -560,
 
-        /// <summary>
-        /// The backup database size is not in 4k
-        /// </summary>
+        /// <summary>The backup database size is not in 4k</summary>
         BadBackupDatabaseSize = -561,
 
-        /// <summary>
-        /// Attempted to upgrade a database that is already current
-        /// </summary>
+        /// <summary>Attempted to upgrade a database that is already current</summary>
         DatabaseAlreadyUpgraded = -562,
 
-        /// <summary>
-        /// Attempted to use a database which was only partially converted to the current format -- must restore from backup
-        /// </summary>
+        /// <summary>Attempted to use a database which was only partially converted to the
+        /// current format -- must restore from backup</summary>
         DatabaseIncompleteUpgrade = -563,
 
-        /// <summary>
-        /// Some current log files are missing for continuous restore
-        /// </summary>
+        /// <summary>Some current log files are missing for continuous restore</summary>
         MissingCurrentLogFiles = -565,
 
-        /// <summary>
-        /// dbtime on page smaller than dbtimeBefore in record
-        /// </summary>
+        /// <summary>dbtime on page smaller than dbtimeBefore in record</summary>
         DbTimeTooOld = -566,
 
-        /// <summary>
-        /// dbtime on page in advance of the dbtimeBefore in record
-        /// </summary>
+        /// <summary>dbtime on page in advance of the dbtimeBefore in record</summary>
         DbTimeTooNew = -567,
 
-        /// <summary>
-        /// Some log or patch files are missing during backup
-        /// </summary>
+        /// <summary>Some log or patch files are missing during backup</summary>
         MissingFileToBackup = -569,
 
-        /// <summary>
-        /// torn-write was detected in a backup set during hard restore
-        /// </summary>
+        /// <summary>torn-write was detected in a backup set during hard restore</summary>
         LogTornWriteDuringHardRestore = -570,
 
-        /// <summary>
-        /// torn-write was detected during hard recovery (log was not part of a backup set)
-        /// </summary>
+        /// <summary>torn-write was detected during hard recovery (log was not part of a
+        /// backup set)</summary>
         LogTornWriteDuringHardRecovery = -571,
 
-        /// <summary>
-        /// corruption was detected in a backup set during hard restore
-        /// </summary>
+        /// <summary>corruption was detected in a backup set during hard restore</summary>
         LogCorruptDuringHardRestore = -573,
 
-        /// <summary>
-        /// corruption was detected during hard recovery (log was not part of a backup set)
-        /// </summary>
+        /// <summary>corruption was detected during hard recovery (log was not part of a
+        /// backup set)</summary>
         LogCorruptDuringHardRecovery = -574,
 
-        /// <summary>
-        /// Cannot have logging enabled while attempting to upgrade db
-        /// </summary>
+        /// <summary>Cannot have logging enabled while attempting to upgrade db</summary>
         MustDisableLoggingForDbUpgrade = -575,
 
-        /// <summary>
-        /// TargetInstance specified for restore is not found or log files don't match
-        /// </summary>
+        /// <summary>TargetInstance specified for restore is not found or log files don't
+        /// match</summary>
         BadRestoreTargetInstance = -577,
 
-        /// <summary>
-        /// Soft recovery successfully replayed all operations, but the Undo phase of recovery was skipped
-        /// </summary>
+        /// <summary>Soft recovery successfully replayed all operations, but the Undo phase
+        /// of recovery was skipped</summary>
         RecoveredWithoutUndo = -579,
 
-        /// <summary>
-        /// Databases to be restored are not from the same shadow copy backup
-        /// </summary>
+        /// <summary>Databases to be restored are not from the same shadow copy backup</summary>
         DatabasesNotFromSameSnapshot = -580,
 
-        /// <summary>
-        /// Soft recovery on a database from a shadow copy backup set
-        /// </summary>
+        /// <summary>Soft recovery on a database from a shadow copy backup set</summary>
         SoftRecoveryOnSnapshot = -581,
 
-        /// <summary>
-        /// One or more logs that were committed to this database, are missing.  These log files are required to maintain durable ACID semantics, but not required to maintain consistency if the JET_bitReplayIgnoreLostLogs bit is specified during recovery.
-        /// </summary>
+        /// <summary>One or more logs that were committed to this database, are missing. These
+        /// log files are required to maintain durable ACID semantics, but not required to
+        /// maintain consistency if the JET_bitReplayIgnoreLostLogs bit is specified during
+        /// recovery.</summary>
         CommittedLogFilesMissing = -582,
 
-        /// <summary>
-        /// The physical sector size reported by the disk subsystem, is unsupported by ESE for a specific file type.
-        /// </summary>
+        /// <summary>The physical sector size reported by the disk subsystem, is unsupported
+        /// by ESE for a specific file type.</summary>
         SectorSizeNotSupported = -583,
 
-        /// <summary>
-        /// Soft recovery successfully replayed all operations and intended to skip the Undo phase of recovery, but the Undo phase was not required
-        /// </summary>
+        /// <summary>Soft recovery successfully replayed all operations and intended to skip
+        /// the Undo phase of recovery, but the Undo phase was not required</summary>
         RecoveredWithoutUndoDatabasesConsistent = -584,
 
-        /// <summary>
-        /// One or more logs were found to be corrupt during recovery.  These log files are required to maintain durable ACID semantics, but not required to maintain consistency if the JET_bitIgnoreLostLogs bit and JET_paramDeleteOutOfRangeLogs is specified during recovery.
-        /// </summary>
+        /// <summary>One or more logs were found to be corrupt during recovery.  These log
+        /// files are required to maintain durable ACID semantics, but not required to maintain
+        /// consistency if the JET_bitIgnoreLostLogs bit and JET_paramDeleteOutOfRangeLogs is
+        /// specified during recovery.</summary>
         CommittedLogFileCorrupt = -586,
 
-        /// <summary>
-        /// The previous log's accumulated segment checksum doesn't match the next log
-        /// </summary>
+        /// <summary>The previous log's accumulated segment checksum doesn't match the next log</summary>
         LogSequenceChecksumMismatch = -590,
 
-        /// <summary>
-        /// Database divergence mismatch. Page was uninitialized on remote node, but initialized on local node.
-        /// </summary>
+        /// <summary>Database divergence mismatch. Page was uninitialized on remote node,
+        /// but initialized on local node.</summary>
         PageInitializedMismatch = -596,
 
-        /// <summary>
-        /// Unicode translation buffer too small
-        /// </summary>
+        /// <summary>Unicode translation buffer too small</summary>
         UnicodeTranslationBufferTooSmall = -601,
 
-        /// <summary>
-        /// Unicode normalization failed
-        /// </summary>
+        /// <summary>Unicode normalization failed</summary>
         UnicodeTranslationFail = -602,
 
-        /// <summary>
-        /// OS does not provide support for Unicode normalisation (and no normalisation callback was specified)
-        /// </summary>
+        /// <summary>OS does not provide support for Unicode normalisation (and no normalisation
+        /// callback was specified)</summary>
         UnicodeNormalizationNotSupported = -603,
 
-        /// <summary>
-        /// Can not validate the language
-        /// </summary>
+        /// <summary>Can not validate the language</summary>
         UnicodeLanguageValidationFailure = -604,
 
-        /// <summary>
-        /// Existing log file has bad signature
-        /// </summary>
+        /// <summary>Existing log file has bad signature</summary>
         ExistingLogFileHasBadSignature = -610,
 
-        /// <summary>
-        /// Existing log file is not contiguous
-        /// </summary>
+        /// <summary>Existing log file is not contiguous</summary>
         ExistingLogFileIsNotContiguous = -611,
 
-        /// <summary>
-        /// Checksum error in log file during backup
-        /// </summary>
+        /// <summary>Checksum error in log file during backup</summary>
         LogReadVerifyFailure = -612,
 
-        /// <summary>
-        /// too many outstanding generations between checkpoint and current generation
-        /// </summary>
+        /// <summary>too many outstanding generations between checkpoint and current generation</summary>
         CheckpointDepthTooDeep = -614,
 
         /// <summary>
@@ -1708,74 +1638,46 @@ namespace EsentLib.Jet
         /// </summary>
         TooManySorts = -1701,
 
-        /// <summary>
-        /// Invalid operation on Sort
-        /// </summary>
+        /// <summary>Invalid operation on Sort</summary>
         InvalidOnSort = -1702,
 
-        /// <summary>
-        /// Temp file could not be opened
-        /// </summary>
+        /// <summary>Temp file could not be opened</summary>
         TempFileOpenError = -1803,
 
-        /// <summary>
-        /// Too many open databases
-        /// </summary>
+        /// <summary>Too many open databases</summary>
         TooManyAttachedDatabases = -1805,
 
-        /// <summary>
-        /// No space left on disk
-        /// </summary>
+        /// <summary>No space left on disk</summary>
         DiskFull = -1808,
 
-        /// <summary>
-        /// Permission denied
-        /// </summary>
+        /// <summary>Permission denied</summary>
         PermissionDenied = -1809,
 
-        /// <summary>
-        /// File not found
-        /// </summary>
+        /// <summary>File not found</summary>
         FileNotFound = -1811,
 
-        /// <summary>
-        /// Invalid file type
-        /// </summary>
+        /// <summary>Invalid file type</summary>
         FileInvalidType = -1812,
 
-        /// <summary>
-        /// File already exists
-        /// </summary>
+        /// <summary>File already exists</summary>
         FileAlreadyExists = -1814,
 
-        /// <summary>
-        /// Cannot Restore after init.
-        /// </summary>
+        /// <summary>Cannot Restore after init.</summary>
         AfterInitialization = -1850,
 
-        /// <summary>
-        /// Logs could not be interpreted
-        /// </summary>
+        /// <summary>Logs could not be interpreted</summary>
         LogCorrupted = -1852,
 
-        /// <summary>
-        /// Invalid operation
-        /// </summary>
+        /// <summary>Invalid operation</summary>
         InvalidOperation = -1906,
 
-        /// <summary>
-        /// Access denied
-        /// </summary>
+        /// <summary>Access denied</summary>
         AccessDenied = -1907,
 
-        /// <summary>
-        /// Infinite split
-        /// </summary>
+        /// <summary>Infinite split</summary>
         TooManySplits = -1909,
 
-        /// <summary>
-        /// Multiple threads are using the same session
-        /// </summary>
+        /// <summary>Multiple threads are using the same session</summary>
         SessionSharingViolation = -1910,
 
         /// <summary>
@@ -1913,21 +1815,12 @@ namespace EsentLib.Jet
         /// </summary>
         FileIOAbort = -4002,
 
-        /// <summary>
-        /// instructs the JET_ABORTRETRYFAILCALLBACK caller to retry the specified I/O
-        /// </summary>
+        /// <summary>instructs the JET_ABORTRETRYFAILCALLBACK caller to retry the specified I/O</summary>
         FileIORetry = -4003,
-
-        /// <summary>
-        /// instructs the JET_ABORTRETRYFAILCALLBACK caller to fail the specified I/O
-        /// </summary>
+        /// <summary>instructs the JET_ABORTRETRYFAILCALLBACK caller to fail the specified I/O</summary>
         FileIOFail = -4004,
-
-        /// <summary>
-        /// read/write access is not supported on compressed files
-        /// </summary>
+        /// <summary>read/write access is not supported on compressed files</summary>
         FileCompressed = -4005,
-
         #endregion
     }
 }

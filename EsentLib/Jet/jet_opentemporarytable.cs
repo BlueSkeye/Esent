@@ -58,6 +58,7 @@ namespace EsentLib.Jet
         "Microsoft.StyleCop.CSharp.NamingRules",
         "SA1300:ElementMustBeginWithUpperCaseLetter",
         Justification = "This should match the unmanaged API, which isn't capitalized.")]
+    [CLSCompliant(false)]
     public partial class JET_OPENTEMPORARYTABLE
     {
         /// <summary>Gets or sets the column definitions for the columns created in the temporary

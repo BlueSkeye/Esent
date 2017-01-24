@@ -765,12 +765,13 @@ namespace EsentLib.Implementation
             [Out] byte[] primaryKey, uint primaryKeySize, out uint actualPrimaryKeySize, uint grbit);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
-        public static extern int JetRetrieveColumn(IntPtr sesid, IntPtr tableid, uint columnid, IntPtr pvData, uint cbData, out uint cbActual, uint grbit, IntPtr pretinfo);
+        public static extern int JetRetrieveColumn(IntPtr sesid, IntPtr tableid, uint columnid,
+            IntPtr pvData, uint cbData, out uint cbActual, uint grbit, IntPtr pretinfo);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetRetrieveColumn(IntPtr sesid, IntPtr tableid, uint columnid,
             IntPtr pvData, uint cbData, out uint cbActual, uint grbit,
-            [In] [Out] ref NATIVE_RETINFO pretinfo);
+            [In, Out] ref NATIVE_RETINFO pretinfo);
 
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static unsafe extern int JetRetrieveColumns(
@@ -792,11 +793,9 @@ namespace EsentLib.Implementation
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetGetRecordSize2(
             IntPtr sesid, IntPtr tableid, ref NATIVE_RECSIZE2 precsize, uint grbit);
-
         #endregion
 
         #region DML
-
         [DllImport(Constants.EsentDll, ExactSpelling = true)]
         public static extern int JetDelete(IntPtr sesid, IntPtr tableid);
 

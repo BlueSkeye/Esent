@@ -14,6 +14,8 @@ namespace EsentLib
         /// <param name="actualDataSize">The size of the retrieved data.</param>
         internal static void CheckDataSize(int expectedDataSize, int actualDataSize)
         {
+            // This is a special case. The returned value is null. This can't be anticipated.
+            if (0 == actualDataSize) { return; }
             if (actualDataSize < expectedDataSize) { throw new EsentInvalidColumnException(); }
         }
 

@@ -665,20 +665,6 @@ namespace EsentLib.Api
 
         #region Data Retrieval
 
-        /// <summary>Retrieves the bookmark for the record that is associated with the index
-        /// entry at the current position of a cursor. This bookmark can then be used to
-        /// reposition that cursor back to the same record using
-        /// <see cref="IJetCursor.GotoBookmark"/>. The bookmark will be no longer than
-        /// <see cref="JetEnvironment.BookmarkMost"/> bytes.</summary>
-        /// <param name="sesid">The session to use.</param>
-        /// <param name="tableid">The cursor to retrieve the bookmark from.</param>
-        /// <param name="bookmark">Buffer to contain the bookmark.</param>
-        /// <param name="bookmarkSize">Size of the bookmark buffer.</param>
-        /// <param name="actualBookmarkSize">Returns the actual size of the bookmark.</param>
-        /// <returns>An error if the call fails.</returns>
-        int JetGetBookmark(JET_SESID sesid, JET_TABLEID tableid, byte[] bookmark, int bookmarkSize,
-            out int actualBookmarkSize);
-
         /// <summary>
         /// Retrieves a special bookmark for the secondary index entry at the
         /// current position of a cursor. This bookmark can then be used to

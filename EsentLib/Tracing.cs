@@ -38,7 +38,7 @@ namespace EsentLib
         {
 #if DEBUG
             // Make sure the name of the calling function is correct.
-            var stackTrace = new StackTrace();
+            StackTrace stackTrace = new StackTrace();
             Debug.Assert(stackTrace.GetFrame(1).GetMethod().Name == function,
                 "Incorrect function name", function);
 #endif // DEBUG

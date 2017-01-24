@@ -19,7 +19,7 @@ namespace EsentLib
         }
 
         #region PROPERTIES
-        /// <summary>Gets the maximum size of a bookmark. <seealso cref="LegacyApi.JetGetBookmark"/>.</summary>
+        /// <summary>Gets the maximum size of a bookmark. <seealso cref="IJetCursor.GetBookmark"/>.</summary>
         public int BookmarkMost
         {
             // This correctly returns 256 on pre-Vista systems

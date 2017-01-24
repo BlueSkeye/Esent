@@ -35,7 +35,13 @@ namespace EsentLib.Implementation
             Dispose(false);
         }
 
-        internal JetSession Session
+        /// <summary>Returns the associated session.</summary>
+        public IJetSession Session
+        {
+            get { return _owner; }
+        }
+
+        internal JetSession _Session
         {
             get { return _owner; }
         }
@@ -147,7 +153,7 @@ namespace EsentLib.Implementation
         public IJetTemporaryTable<string> EnumerateTableNames(bool includeSystemTables = false)
         {
             JET_OBJECTLIST tables = GetDatabaseTables();
-            JetCursor cursor = new JetCursor(Session, tables.tableid);
+            JetCursor cursor = new JetCursor(_Session, this, tables.tableid);
             return new JetTemporaryTable<string>(cursor,
                 cursor.Enumerate<string>(
                     includeSystemTables
@@ -342,7 +348,7 @@ namespace EsentLib.Implementation
                 null, 0, (uint)grbit, out cursorId.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetCursor(_owner, cursorId);
+            return new JetCursor(_owner, this, cursorId);
         }
 
         /// <summary>Changes the name of an existing table.</summary>

@@ -29,8 +29,8 @@ namespace EsentLib
         /// <summary>Dispose of this object, releasing the underlying Esent resource.</summary>
         public void Dispose()
         {
-            this.Dispose(true);
             GC.SuppressFinalize(this);
+            this.Dispose(true);
         }
 
         /// <summary>Called by Dispose and the finalizer.</summary>

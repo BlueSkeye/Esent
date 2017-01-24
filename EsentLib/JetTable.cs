@@ -9,12 +9,17 @@ using EsentLib.Jet;
 
 namespace EsentLib.Implementation
 {
-    internal class JetTable : IJetTable
+    /// <summary></summary>
+    [CLSCompliant(false)]
+    public class JetTable : EsentResource, IJetTable
     {
         internal JetTable(JetDatabase owner, JET_TABLEID id)
         {
             _owner = owner;
             _id = id;
+#if DEBUG
+            lock (typeof(JetTable)) { DebugId = ++LastDebugId; }
+#endif
         }
 
         /// <summary>Gets the database this table belongs to.</summary>
@@ -22,6 +27,11 @@ namespace EsentLib.Implementation
         {
             get { return _owner; }
         }
+
+#if DEBUG
+        /// <summary></summary>
+        public int DebugId { get; private set; }
+#endif
 
         internal IntPtr Id
         {
@@ -58,7 +68,7 @@ namespace EsentLib.Implementation
         public void Close()
         {
             Tracing.TraceFunctionCall("Close");
-            int returnCode = NativeMethods.JetCloseTable(_owner.Session.Id, _id.Value);
+            int returnCode = NativeMethods.JetCloseTable(_owner._Session.Id, _id.Value);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
         }
@@ -167,30 +177,27 @@ namespace EsentLib.Implementation
             EsentExceptionHelper.Check(returnCode);
         }
 
-        public void Dispose()
+        /// <summary></summary>
+        /// <param name="disposing"></param>
+        protected override void Dispose(bool disposing)
         {
-            GC.SuppressFinalize(this);
-            Dispose(true);
-        }
-
-        protected void Dispose(bool disposing)
-        {
-            Close();
+            base.Dispose(disposing);
+            if (disposing) { Close(); }
         }
 
         /// <summary>Enumerate the name and identifier of the columns in this table.</summary>
         /// <returns>An enumerable object.</returns>
-        public IJetTemporaryTable<BasicColumnDesriptor> EnumerateColumns()
+        public IJetTemporaryTable<BasicColumnDescriptor> EnumerateColumns()
         {
             Tracing.TraceFunctionCall("EnumerateColumns");
             JET_COLUMNLIST columns = GetTableColumns();
-            JetCursor cursor = new JetCursor(_owner.Session, columns.tableid);
-            return new JetTemporaryTable<BasicColumnDesriptor>(cursor,
-                cursor.Enumerate<BasicColumnDesriptor>(null, // Accept every record.
+            JetCursor cursor = new JetCursor(_owner._Session, _owner, columns.tableid);
+            return new JetTemporaryTable<BasicColumnDescriptor>(cursor,
+                cursor.Enumerate<BasicColumnDescriptor>(null, // Accept every record.
                     delegate () {
-                        return new BasicColumnDesriptor(
+                        return new BasicColumnDescriptor(
                             cursor.RetrieveColumnAsString(columns.columnidcolumnname),
-                            new JET_COLUMNID(cursor.RetrieveColumnAsUInt32(columns.columnidcolumnid).Value)); 
+                            new JET_COLUMNID(cursor.RetrieveColumnAsInt32(columns.columnidcolumnid).Value)); 
                     }));
         }
 
@@ -202,7 +209,7 @@ namespace EsentLib.Implementation
             Tracing.TraceFunctionCall("GetColumns");
             JET_COLUMNLIST columns = GetTableColumns();
             List<IJetColumn> result = new List<IJetColumn>();
-            JetCursor cursor = new JetCursor(_owner.Session, columns.tableid);
+            JetCursor cursor = new JetCursor(_owner._Session, _owner, columns.tableid);
             using (JetTemporaryTable<IJetColumn> input =
                 new JetTemporaryTable<IJetColumn>(cursor,
                     cursor.Enumerate<IJetColumn>(null, // Accept every record.
@@ -211,6 +218,13 @@ namespace EsentLib.Implementation
                 result.AddRange(input);
             }
             return result;
+        }
+
+        /// <summary>Called when the transaction is being disposed while active. This should
+        /// rollback the transaction.</summary>
+        protected override void ReleaseResource()
+        {
+            return;
         }
 
         ///// <summary>Returns a <see cref="JET_INDEXLIST"/> structure with information about
@@ -276,14 +290,14 @@ namespace EsentLib.Implementation
             nativeIndexlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_INDEXLIST)));
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            int returnCode = NativeMethods.JetGetTableIndexInfoW(_owner.Session.Id, _id.Value, null,
+            int returnCode = NativeMethods.JetGetTableIndexInfoW(_owner._Session.Id, _id.Value, null,
                 ref nativeIndexlist, nativeIndexlist.cbStruct, (uint)JET_IdxInfo.List);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             JET_INDEXLIST indexes = new JET_INDEXLIST().SetFromNativeIndexlist(nativeIndexlist);
 
             List<IJetIndex> result = new List<IJetIndex>();
-            JetCursor inputTable = new JetCursor(_owner.Session, indexes.tableid);
+            JetCursor inputTable = new JetCursor(_owner._Session, _owner, indexes.tableid);
             JetIndex currentIndex = null;
             uint columnsCount = 0;
             using (JetTemporaryTable<IJetIndex> input =
@@ -447,7 +461,7 @@ namespace EsentLib.Implementation
             nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            int returnCode = NativeMethods.JetGetTableColumnInfoW(_owner.Session.Id, _id.Value, null,
+            int returnCode = NativeMethods.JetGetTableColumnInfoW(_owner._Session.Id, _id.Value, null,
                 ref nativeColumnlist, nativeColumnlist.cbStruct, (uint)JET_ColInfo.List);
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
@@ -531,7 +545,7 @@ namespace EsentLib.Implementation
             nativeColumnlist.cbStruct = checked((uint)Marshal.SizeOf(typeof(NATIVE_COLUMNLIST)));
             // Technically, this should have worked in Vista. But there was a bug, and
             // it was fixed after Windows 7.
-            int returnCode = NativeMethods.JetGetTableColumnInfoW(_owner.Session.Id, this._id.Value,
+            int returnCode = NativeMethods.JetGetTableColumnInfoW(_owner._Session.Id, this._id.Value,
                 null, ref nativeColumnlist, nativeColumnlist.cbStruct,
                 (uint)grbit | (uint)JET_ColInfo.List);
             Tracing.TraceResult(returnCode);
@@ -650,7 +664,7 @@ namespace EsentLib.Implementation
                 unchecked((uint)prep));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
-            return new JetCursor(session, cursorId, prep);
+            return new JetCursor(session, _owner, cursorId, prep);
         }
 
         /// <summary>Explicitly reserve the ability to update a row, write lock, or to explicitly
@@ -690,6 +704,7 @@ namespace EsentLib.Implementation
             return (JET_err)result;
         }
 
+        private static int LastDebugId = 0;
         private JET_TABLEID _id;
         private JetDatabase _owner;
 

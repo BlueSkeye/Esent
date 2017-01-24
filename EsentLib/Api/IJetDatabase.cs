@@ -10,6 +10,9 @@ namespace EsentLib.Api
     [CLSCompliant(false)]
     public interface IJetDatabase : IDisposable
     {
+        /// <summary>Returns the associated session.</summary>
+        IJetSession Session { get; }
+
         /// <summary>Closes a database file that was previously opened with
         /// <see cref="IJetSession.OpenDatabase"/> or created with
         /// <see cref="IJetSession.CreateDatabase"/>.</summary>

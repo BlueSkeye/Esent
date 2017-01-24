@@ -72,7 +72,7 @@ namespace EsentLib.Implementation
                 JetCursor dataSource)
             {
                 Column result = new Column() {
-                    Id = new JET_COLUMNID(dataSource.RetrieveColumnAsUInt32(metadata.columnidcolumnid).Value),
+                    Id = new JET_COLUMNID(dataSource.RetrieveColumnAsInt32(metadata.columnidcolumnid).Value),
                     Name = dataSource.RetrieveColumnAsString(metadata.columnidcolumnname),
 
                     //CodePage = dataSource.RetrieveColumnAsUInt16(metadata.columnidCp) ?? 0,

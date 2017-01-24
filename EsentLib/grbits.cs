@@ -575,49 +575,38 @@ namespace EsentLib
         /// <summary>Default options.</summary>
         None = 0,
 
-        /// <summary>
-        ///  This flag causes retrieve column to retrieve the modified value instead of
-        ///  the original value. If the value has not been modified, then the original
-        ///  value is retrieved. In this way, a value that has not yet been inserted or
-        ///  updated may be retrieved during the operation of inserting or updating a record.
-        /// </summary>
+        /// <summary>This flag causes retrieve column to retrieve the modified value instead
+        /// of the original value. If the value has not been modified, then the original
+        /// value is retrieved. In this way, a value that has not yet been inserted or
+        /// updated may be retrieved during the operation of inserting or updating a record.</summary>
         RetrieveCopy = 0x1,
 
-        /// <summary>
-        /// This option is used to retrieve column values from the index, if possible,
-        /// without accessing the record. In this way, unnecessary loading of records
-        /// can be avoided when needed data is available from index entries themselves.
-        /// </summary>
+        /// <summary>This option is used to retrieve column values from the index, if
+        /// possible, without accessing the record. In this way, unnecessary loading of
+        /// records can be avoided when needed data is available from index entries
+        /// themselves.</summary>
         RetrieveFromIndex = 0x2,
         
-        /// <summary>
-        /// This option is used to retrieve column values from the index bookmark,
-        /// and may differ from the index value when a column appears both in the
-        /// primary index and the current index. This option should not be specified
-        /// if the current index is the clustered, or primary, index. This bit cannot
-        /// be set if RetrieveFromIndex is also set. 
-        /// </summary>
+        /// <summary>This option is used to retrieve column values from the index bookmark,
+        /// and may differ from the index value when a column appears both in the primary
+        /// index and the current index. This option should not be specified if the current
+        /// index is the clustered, or primary, index. This bit cannot be set if
+        /// RetrieveFromIndex is also set. </summary>
         RetrieveFromPrimaryBookmark = 0x4,
 
-        /// <summary>
-        /// This option is used to retrieve the sequence number of a multi-valued
-        /// column value in JET_RETINFO.itagSequence. Retrieving the sequence number
-        /// can be a costly operation and should only be done if necessary. 
-        /// </summary>
+        /// <summary>This option is used to retrieve the sequence number of a multi-valued
+        /// column value in JET_RETINFO.itagSequence. Retrieving the sequence number can be
+        /// a costly operation and should only be done if necessary.</summary>
         RetrieveTag = 0x8,
 
-        /// <summary>
-        /// This option is used to retrieve multi-valued column NULL values. If
-        /// this option is not specified, multi-valued column NULL values will
-        /// automatically be skipped. 
-        /// </summary>
+        /// <summary>This option is used to retrieve multi-valued column NULL values. If
+        /// this option is not specified, multi-valued column NULL values will automatically
+        /// be skipped. </summary>
         RetrieveNull = 0x10,
 
-        /// <summary>
-        /// This option affects only multi-valued columns and causes a NULL
-        /// value to be returned when the requested sequence number is 1 and
-        /// there are no set values for the column in the record. 
-        /// </summary>
+        /// <summary>This option affects only multi-valued columns and causes a NULL value
+        /// to be returned when the requested sequence number is 1 and there are no set
+        /// values for the column in the record. </summary>
         RetrieveIgnoreDefault = 0x20,
     }
 

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using EsentLib.Api;
@@ -18,21 +19,19 @@ namespace EsentLib
 {
     /// <summary>A cursor allowing for reading and writing a table.</summary>
     [CLSCompliant(false)]
-    public class JetCursor : EsentResource, IJetCursor
+    public class JetCursor : JetTable, IJetCursor
     {
-        internal JetCursor(IJetSession session, JET_TABLEID cursorId, JET_prep prep = (JET_prep)(-1))
+        internal JetCursor(IJetSession session, JetDatabase owner, JET_TABLEID cursorId, JET_prep prep = (JET_prep)(-1))
+            : base(owner, cursorId)
         {
             if (JET_prep.Cancel == prep) {
                 throw new ArgumentException("Cannot create an Update for JET_prep.Cancel", "prep");
             }
             this._session = (JetSession)session;
-            this._cursorId = cursorId;
+            //this._cursorId = cursorId;
             this.prep = prep;
             ResourceWasAllocated();
         }
-
-        /// <summary>Get the underlying table/</summary>
-        public IJetTable Table { get; private set; }
 
         /// <summary>Get the name of the current index of a given cursor.</summary>
         /// <remarks>This accessor is also used to later re-select that index as the current
@@ -47,8 +46,8 @@ namespace EsentLib
                 Tracing.TraceFunctionCall("CurrentIndex");
                 int maxNameLength = Constants.NameMost + 1;
                 StringBuilder name = new StringBuilder(maxNameLength);
-                int returnCode = NativeMethods.JetGetCurrentIndex(_session.Id, _cursorId.Value,
-                    name, checked((uint)maxNameLength));
+                int returnCode = NativeMethods.JetGetCurrentIndex(_session.Id, base.Id, name,
+                    checked((uint)maxNameLength));
                 Tracing.TraceResult(returnCode);
                 EsentExceptionHelper.Check(returnCode);
                 string indexName = name.ToString();
@@ -62,20 +61,11 @@ namespace EsentLib
             this.CheckObjectIsNotDisposed();
             if (!this.HasResource) { throw new InvalidOperationException("Not in an update"); }
             Tracing.TraceFunctionCall("Cancel");
-            int returnCode = NativeMethods.JetPrepareUpdate(_session.Id, _cursorId.Value,
+            int returnCode = NativeMethods.JetPrepareUpdate(_session.Id, base.Id,
                 unchecked((uint)JET_prep.Cancel));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             this.ResourceWasReleased();
-        }
-
-        /// <summary>Close an open table.</summary>
-        public void Close()
-        {
-            Tracing.TraceFunctionCall("Close");
-            int returnCode = NativeMethods.JetCloseTable(_session.Id, _cursorId.Value);
-            Tracing.TraceResult(returnCode);
-            EsentExceptionHelper.Check(returnCode);
         }
 
         /// <summary>Create the nullable return value.</summary>
@@ -111,19 +101,36 @@ namespace EsentLib
             yield break;
         }
 
+        /// <summary>Retrieves the bookmark for the record that is associated with the index
+        /// entry at the current position of a cursor. This bookmark can then be used to
+        /// reposition that cursor back to the same record using <see cref="IJetCursor.GotoBookmark"/>.
+        /// The bookmark will be no longer than <see cref="JetEnvironment.BookmarkMost"/>bytes.</summary>
+        /// <returns>The bookmark value.</returns>
+        public byte[] GetBookmark()
+        {
+            Tracing.TraceFunctionCall("GetBookmark");
+            uint bytesActual = 0;
+            NativeMethods.JetGetBookmark(_session.Id, base.Id, null, 0, out bytesActual);
+            byte[] bookmark = new byte[bytesActual];
+            int returnCode = NativeMethods.JetGetBookmark(_session.Id, base.Id, bookmark,
+                checked((uint)bookmark.Length), out bytesActual);
+            Tracing.TraceResult(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            // actualBookmarkSize = GetActualSize(bytesActual);
+            return bookmark;
+        }
+
         /// <summary>Positions a cursor to an index entry for the record that is associated
         /// with the specified bookmark. The bookmark can be used with any index defined over
         /// a table. The bookmark for a record can be retrieved using
-        /// <see cref="IJetInstance.JetGetBookmark"/>.</summary>
+        /// <see cref="IJetCursor.GetBookmark"/>.</summary>
         /// <param name="bookmark">The bookmark used to position the cursor.</param>
-        /// <param name="bookmarkSize">The size of the bookmark.</param>
-        public void GotoBookmark(byte[] bookmark, int bookmarkSize)
+        public void GotoBookmark(byte[] bookmark)
         {
             Tracing.TraceFunctionCall("GotoBookmark");
             Helpers.CheckNotNull(bookmark, "bookmark");
-            Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
-            int returnCode = NativeMethods.JetGotoBookmark(this._session.Id, _cursorId.Value,
-                bookmark, checked((uint)bookmarkSize));
+            int returnCode = NativeMethods.JetGotoBookmark(this._session.Id, base.Id, bookmark,
+                checked((uint)bookmark.Length));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return;
@@ -161,35 +168,27 @@ namespace EsentLib
         {
             Helpers.CheckEncodingIsValid(encoding);
             if (null == data) { MakeKey(null, 0, grbit); }
-            else if (0 == data.Length)
-            {
+            else if (0 == data.Length) {
                 MakeKey(null, 0, grbit | MakeKeyGrbit.KeyDataZeroLength);
             }
-            else if (Encoding.Unicode == encoding)
-            {
+            else if (Encoding.Unicode == encoding) {
                 // Optimization for Unicode strings
-                unsafe
-                {
-                    fixed (char* buffer = data)
-                    {
+                unsafe {
+                    fixed (char* buffer = data) {
                         MakeKey(new IntPtr(buffer), checked(data.Length * sizeof(char)), grbit);
                     }
                 }
             }
-            else
-            {
+            else {
                 // Convert the string using a cached column buffer. The column buffer is far larger
                 // than the maximum key size, so any data truncation here won't matter.
                 byte[] buffer = null;
-                try
-                {
+                try {
                     buffer = MemoryCache.ColumnCache.Allocate();
                     int dataSize;
-                    unsafe
-                    {
+                    unsafe {
                         fixed (char* chars = data)
-                        fixed (byte* bytes = buffer)
-                        {
+                        fixed (byte* bytes = buffer) {
                             dataSize = encoding.GetBytes(chars, data.Length, bytes, buffer.Length);
                         }
                     }
@@ -214,8 +213,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public void MakeKey(byte data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(byte);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -227,8 +225,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public void MakeKey(short data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(short);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -240,8 +237,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public void MakeKey(int data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(int);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -253,8 +249,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public void MakeKey(long data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(long);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -266,8 +261,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public void MakeKey(Guid data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = 16 /* sizeof(Guid) */;
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -287,8 +281,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public void MakeKey(float data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(float);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -300,8 +293,7 @@ namespace EsentLib
         /// <param name="grbit">Key options.</param>
         public void MakeKey(double data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(double);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -314,8 +306,7 @@ namespace EsentLib
         // [CLSCompliant(false)]
         public void MakeKey(ushort data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(ushort);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -328,8 +319,7 @@ namespace EsentLib
         // [CLSCompliant(false)]
         public void MakeKey(uint data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(uint);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -342,8 +332,7 @@ namespace EsentLib
         // [CLSCompliant(false)]
         public void MakeKey(ulong data, MakeKeyGrbit grbit = MakeKeyGrbit.None)
         {
-            unsafe
-            {
+            unsafe {
                 const int DataSize = sizeof(ulong);
                 var pointer = new IntPtr(&data);
                 MakeKey(pointer, DataSize, grbit);
@@ -362,7 +351,7 @@ namespace EsentLib
                 throw new ArgumentOutOfRangeException(string.Format(
                     "dataSize {0} cannot be greater than the length of the data", dataSize));
             }
-            unsafe { fixed (byte* pointer = data) { MakeKey(data, dataSize, grbit); } }
+            unsafe { fixed (byte* pointer = data) { MakeKey(new IntPtr(pointer), dataSize, grbit); } }
         }
 
         /// <summary>Constructs search keys that may then be used by JetSeek and JetSetIndexRange.</summary>
@@ -373,8 +362,8 @@ namespace EsentLib
         {
             Tracing.TraceFunctionCall("MakeKey");
             Helpers.CheckNotNegative(dataSize, "dataSize");
-            int returnCode = NativeMethods.JetMakeKey(_session.Id, _cursorId.Value,
-                pointer, checked((uint)dataSize), unchecked((uint)grbit));
+            int returnCode = NativeMethods.JetMakeKey(_session.Id, base.Id, pointer,
+                checked((uint)dataSize), unchecked((uint)grbit));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
         }
@@ -388,7 +377,7 @@ namespace EsentLib
         public int Move(int numRows, MoveGrbit grbit = MoveGrbit.None)
         {
             Tracing.TraceFunctionCall("Move");
-            int returnCode = NativeMethods.JetMove(_session.Id, this._cursorId.Value, numRows,
+            int returnCode = NativeMethods.JetMove(_session.Id, base.Id, numRows,
                 unchecked((uint)grbit));
             return Tracing.TraceResult(returnCode);
         }
@@ -397,7 +386,9 @@ namespace EsentLib
         /// rollback the transaction.</summary>
         protected override void ReleaseResource()
         {
-            this.Cancel();
+            if ((JET_prep)(-1) != prep) { this.Cancel(); }
+            ResourceWasReleased();
+            return;
         }
 
         /// <summary>Retrieves a single column value from the current record. The record is
@@ -523,23 +514,26 @@ namespace EsentLib
             Helpers.CheckNotNegative(dataSize, "dataSize");
             int returnCode;
             uint bytesActual = 0;
-            if (null != retinfo)
-            {
+            if (null != retinfo) {
                 NATIVE_RETINFO nativeRetinfo = retinfo.GetNativeRetinfo();
-                returnCode = NativeMethods.JetRetrieveColumn(_session.Id, _cursorId.Value,
-                    columnid, data, checked((uint)dataSize), out bytesActual,
-                    unchecked((uint)grbit), ref nativeRetinfo);
+                returnCode = NativeMethods.JetRetrieveColumn(_session.Id, base.Id, columnid, data,
+                    checked((uint)dataSize), out bytesActual, unchecked((uint)grbit), ref nativeRetinfo);
+                actualDataSize = checked((int)bytesActual);
+                if (0 <= returnCode) {
+                    if (actualDataSize > dataSize) {
+                        throw new ApplicationException("Data size mismatch.");
+                    }
+                }
                 retinfo.SetFromNativeRetinfo(nativeRetinfo);
             }
-            else
-            {
-                returnCode = NativeMethods.JetRetrieveColumn(_session.Id, _cursorId.Value,
-                    columnid, data, checked((uint)dataSize), out bytesActual,
-                    unchecked((uint)grbit), IntPtr.Zero);
+            else {
+                returnCode = NativeMethods.JetRetrieveColumn(_session.Id, base.Id, columnid, data,
+                    checked((uint)dataSize), out bytesActual, unchecked((uint)grbit), IntPtr.Zero);
+                actualDataSize = (int)bytesActual;
             }
             Tracing.TraceResult(returnCode);
-            actualDataSize = checked((int)bytesActual);
-            return EsentExceptionHelper.Check(returnCode);
+            EsentExceptionHelper.Check(returnCode);
+            return (JET_wrn)returnCode;
         }
 
         /// <summary>Retrieves a single column value from the current record. The record is
@@ -557,8 +551,8 @@ namespace EsentLib
         /// column retrieval to retrieve the first value of a multi-valued column, and to
         /// retrieve long data at offset 0 (zero).</param>
         /// <returns>The data retrieved from the column. Null if the column is null.</returns>
-        public byte[] RetrieveColumn(JET_COLUMNID columnid,
-            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None, JET_RETINFO retinfo = null)
+        public byte[] RetrieveColumn(JET_COLUMNID columnid, RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None,
+            JET_RETINFO retinfo = null)
         {
             // We expect most column values retrieved this way to be small (retrieving a 1GB LV as one
             // chunk is a bit extreme!). Allocate a cached buffer and use that, allocating a larger one
@@ -609,8 +603,8 @@ namespace EsentLib
         public bool? RetrieveColumnAsBoolean(JET_COLUMNID columnid,
             RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
         {
-            byte? b = RetrieveColumnAsByte(columnid, grbit);
-            return (b.HasValue) ? (0 != b.Value) :new bool?();
+            int? b = RetrieveColumnAsInt32(columnid, grbit);
+            return (b.HasValue) ? (0 != b.Value) : new bool?();
         }
 
         /// <summary>Retrieves a byte column value from the current record. The record is
@@ -628,7 +622,7 @@ namespace EsentLib
             unsafe {
                 const int DataSize = sizeof(byte);
                 byte data;
-                var pointer = new IntPtr(&data);
+                IntPtr pointer = new IntPtr(&data);
                 int actualDataSize;
                 JET_wrn wrn = RetrieveColumn(columnid.Value, pointer, DataSize, out actualDataSize,
                     grbit, null);
@@ -652,7 +646,7 @@ namespace EsentLib
 
             if (0 == length) {
                 uint actualSize = 0;
-                JET_wrn wrn = (JET_wrn)NativeMethods.JetRetrieveColumn(_session.Id, _cursorId.Value,
+                JET_wrn wrn = (JET_wrn)NativeMethods.JetRetrieveColumn(_session.Id, base.Id,
                     columnid.Value, IntPtr.Zero, 0, out actualSize, unchecked((uint)grbit),
                     IntPtr.Zero);
                 if (JET_wrn.BufferTruncated != wrn) {
@@ -668,6 +662,58 @@ namespace EsentLib
                 if (JET_wrn.ColumnNull == wrn) { return null; }
                 Helpers.CheckDataSize(length, actualDataSize);
                 return data;
+            }
+        }
+
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an array of byte arrays. Null if the
+        /// column is null.</returns>
+        public List<byte[]> RetrieveColumnAsArrayOfByteArray(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            List<byte[]> result = new List<byte[]>();
+            unsafe {
+                JET_RETINFO returnInfo = new JET_RETINFO() { itagSequence = 1 };
+                while (true) {
+                    int actualSize = 0;
+                    //NATIVE_RETINFO nativeReturnInfo = returnInfo.GetNativeRetinfo();
+                    //JET_wrn wrn = (JET_wrn)NativeMethods.JetRetrieveColumn(_session.Id, base.Id,
+                    //    columnid.Value, IntPtr.Zero, 0, out actualSize, unchecked((uint)grbit),
+                    //    ref nativeReturnInfo);
+                    JET_wrn wrn = RetrieveColumn(columnid, null, 0, out actualSize, grbit, returnInfo);
+                    if (JET_wrn.BufferTruncated != wrn) {
+                        if (JET_wrn.ColumnNull == wrn) { break; }
+                        throw new ApplicationException();
+                    }
+                    // Here we have a buffer truncation. We will allocate sufficient
+                    // space for buffer and attempt access again.
+                    int length = checked((int)actualSize);
+                    if (0 == length) { result.Add(null); }
+                    else {
+                        unsafe {
+                            byte[] data = new byte[length];
+                            int actualDataSize;
+                            wrn = RetrieveColumn(columnid, data, 0, out actualDataSize, grbit, returnInfo);
+                            if (0 != wrn) {
+                                if (JET_wrn.ColumnNull == wrn) { break; }
+                                throw new ApplicationException();
+                            }
+                            else {
+                                Helpers.CheckDataSize(length, actualDataSize);
+                                result.Add(data);
+                            }
+                        }
+                    }
+                    returnInfo.itagSequence += 1;
+                }
+                return result;
             }
         }
 
@@ -732,29 +778,6 @@ namespace EsentLib
             }
         }
 
-        /// <summary>Retrieves an int16 column value from the current record. The record is
-        /// that record associated with the index entry at the current position of the cursor.</summary>
-        /// <param name="columnid">The columnid to retrieve.</param>
-        /// <param name="grbit">Retrieval options.</param>
-        /// <returns>The data retrieved from the column as a short. Null if the column is null.</returns>
-        public short? RetrieveColumnAsInt16(JET_COLUMNID columnid,
-            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
-        {
-            // We cannot support this request when there is no way to indicate that a column reference is returned.
-            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
-                throw new EsentInvalidGrbitException();
-            }
-            unsafe {
-                const int DataSize = sizeof(short);
-                short data;
-                var pointer = new IntPtr(&data);
-                int actualDataSize;
-                JET_wrn wrn = RetrieveColumn(columnid.Value, pointer, DataSize,
-                    out actualDataSize, grbit, null);
-                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
-            }
-        }
-
         /// <summary>Retrieves a guid column value from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
@@ -778,6 +801,29 @@ namespace EsentLib
             }
         }
 
+        /// <summary>Retrieves an int16 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a short. Null if the column is null.</returns>
+        public short? RetrieveColumnAsInt16(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            unsafe {
+                const int DataSize = sizeof(short);
+                short data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_wrn wrn = RetrieveColumn(columnid.Value, pointer, DataSize,
+                    out actualDataSize, grbit, null);
+                return CreateReturnValue(data, DataSize, wrn, actualDataSize);
+            }
+        }
+
         /// <summary>Retrieves an int32 column value from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
@@ -787,6 +833,39 @@ namespace EsentLib
             RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
         {
             return RetrieveColumnAsInt32(columnid.Value, grbit);
+        }
+
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
+        public List<int> RetrieveColumnAsArrayOfInt32(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            List<int> result = new List<int>();
+            unsafe {
+                const int DataSize = sizeof(int);
+                int data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_RETINFO returnInfo = new JET_RETINFO() { itagSequence = 1 };
+                while (true) {
+                    JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                        grbit, returnInfo);
+                    if (0 != wrn) {
+                        if (JET_wrn.ColumnNull == wrn) { break; }
+                        throw new ApplicationException();
+                    }
+                    result.Add(CreateReturnValue(data, DataSize, wrn, actualDataSize).Value);
+                    returnInfo.itagSequence += 1;
+                }
+                return result;
+            }
         }
 
         /// <summary>Retrieves an int32 column value from the current record. The record is
@@ -805,8 +884,8 @@ namespace EsentLib
                 int data;
                 var pointer = new IntPtr(&data);
                 int actualDataSize;
-                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize,
-                    out actualDataSize, grbit, null);
+                JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                    grbit, null);
                 return CreateReturnValue(data, DataSize, wrn, actualDataSize);
             }
         }
@@ -834,12 +913,74 @@ namespace EsentLib
             }
         }
 
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="ascii"></param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as a string. Null if the column is null.</returns>
+        public List<string> RetrieveColumnAsArrayOfString(JET_COLUMNID columnid, bool ascii = false,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000))
+            {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            List<string> result = new List<string>();
+            unsafe {
+                // const int DataSize = sizeof(int);
+                int data;
+                var pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_RETINFO returnInfo = new JET_RETINFO() { itagSequence = 1 };
+                // 512 Unicode characters (1kb on stack)
+                const int BufferSize = 512;
+                IntPtr localBuffer;
+                if (ascii) {
+                    byte* nativeBuffer = stackalloc byte[BufferSize];
+                    localBuffer = new IntPtr(nativeBuffer);
+                }
+                else {
+                    char* nativeBuffer = stackalloc char[BufferSize];
+                    localBuffer = new IntPtr(nativeBuffer);
+                }
+                while (true) {
+                    //JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                    //    grbit, returnInfo);
+                    //if (0 != wrn) {
+                    //    if (JET_wrn.ColumnNull == wrn) { break; }
+                    //    break;
+                    //}
+                    JET_wrn wrn = RetrieveColumn(columnid.Value, localBuffer, BufferSize * sizeof(char),
+                        out actualDataSize, grbit, null);
+                    if (JET_wrn.ColumnNull == wrn) { break; }
+                    if (JET_wrn.Success == wrn) {
+                        string item;
+                        if (ascii) {
+                            byte* nativeBuffer = (byte*)localBuffer.ToPointer();
+                            item = Marshal.PtrToStringAnsi(localBuffer);
+                        }
+                        else {
+                            char* nativeBuffer = (char*)localBuffer.ToPointer();
+                            item = new string(nativeBuffer, 0, actualDataSize / sizeof(char));
+                        }
+                        if (string.IsNullOrEmpty(item)) { break; }
+                        result.Add(item);
+                    }
+                    returnInfo.itagSequence += 1;
+                }
+                return result;
+            }
+        }
+
         /// <summary>Retrieves a string column value from the current record. The record is
         /// that record associated with the index entry at the current position of the cursor.</summary>
         /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="ascii"></param>
         /// <param name="grbit">Retrieval options.</param>
         /// <returns>The data retrieved from the column as a string. Null if the column is null.</returns>
-        public string RetrieveColumnAsString(JET_COLUMNID columnid,
+        public string RetrieveColumnAsString(JET_COLUMNID columnid, bool ascii = false,
             RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
         {
             Debug.Assert((grbit & (RetrieveColumnGrbit)0x00020000) == 0,
@@ -847,14 +988,28 @@ namespace EsentLib
             // 512 Unicode characters (1kb on stack)
             const int BufferSize = 512;
             unsafe {
-                char* buffer = stackalloc char[BufferSize];
+                IntPtr _buffer;
+                if (ascii) {
+                    byte* buffer = stackalloc byte[BufferSize];
+                    _buffer = new IntPtr(buffer);
+                }
+                else {
+                    char* buffer = stackalloc char[BufferSize];
+                    _buffer = new IntPtr(buffer);
+                }
                 int actualDataSize;
-                JET_wrn wrn = RetrieveColumn(columnid.Value, new IntPtr(buffer), BufferSize * sizeof(char),
+                JET_wrn wrn = RetrieveColumn(columnid.Value, _buffer, BufferSize * sizeof(char),
                     out actualDataSize, grbit, null);
                 if (JET_wrn.ColumnNull == wrn) { return null; }
                 if (JET_wrn.Success == wrn) {
-                    ////return StringCache.GetString(buffer, 0, actualDataSize);
-                    return new string(buffer, 0, actualDataSize / sizeof(char));
+                    if (ascii) {
+                        byte* buffer = (byte*)_buffer.ToPointer();
+                        return Marshal.PtrToStringAnsi(_buffer);
+                    }
+                    else {
+                        char* buffer = (char*)_buffer.ToPointer();
+                        return new string(buffer, 0, actualDataSize / sizeof(char));
+                    }
                 }
                 Debug.Assert(JET_wrn.BufferTruncated == wrn, "Unexpected warning code");
                 // Create a fake string of the appropriate size and then fill it in.
@@ -945,6 +1100,39 @@ namespace EsentLib
             }
         }
 
+        /// <summary>Retrieves an int32 column value from the current record. The record is
+        /// that record associated with the index entry at the current position of the cursor.</summary>
+        /// <param name="columnid">The columnid to retrieve.</param>
+        /// <param name="grbit">Retrieval options.</param>
+        /// <returns>The data retrieved from the column as an int. Null if the column is null.</returns>
+        public List<ulong> RetrieveColumnAsArrayOfUInt64(JET_COLUMNID columnid,
+            RetrieveColumnGrbit grbit = RetrieveColumnGrbit.None)
+        {
+            // We cannot support this request when there is no way to indicate that a column reference is returned.
+            if (0 != (grbit & (RetrieveColumnGrbit)0x00020000)) {  // UnpublishedGrbits.RetrieveAsRefIfNotInRecord
+                throw new EsentInvalidGrbitException();
+            }
+            List<ulong> result = new List<ulong>();
+            unsafe {
+                const int DataSize = sizeof(ulong);
+                ulong data;
+                IntPtr pointer = new IntPtr(&data);
+                int actualDataSize;
+                JET_RETINFO returnInfo = new JET_RETINFO() { itagSequence = 1 };
+                while (true) {
+                    JET_wrn wrn = RetrieveColumn(columnid, pointer, DataSize, out actualDataSize,
+                        grbit, returnInfo);
+                    if (0 != wrn) {
+                        if (JET_wrn.ColumnNull == wrn) { break; }
+                        throw new ApplicationException();
+                    }
+                    result.Add(CreateReturnValue(data, DataSize, wrn, actualDataSize).Value);
+                    returnInfo.itagSequence += 1;
+                }
+                return result;
+            }
+        }
+
         /// <summary>Retrieves the size of a single column value from the current record. The
         /// record is that record associated with the index entry at the current position of
         /// the cursor. Alternatively, this function can retrieve a column from a record being
@@ -1001,7 +1189,7 @@ namespace EsentLib
             try {
                 bookmark = MemoryCache.BookmarkCache.Allocate();
                 int actualBookmarkSize = Save(bookmark, bookmark.Length);
-                GotoBookmark(bookmark, actualBookmarkSize);
+                GotoBookmark(bookmark);
             }
             finally { if (bookmark != null) { MemoryCache.BookmarkCache.Free(ref bookmark); } }
         }
@@ -1015,7 +1203,7 @@ namespace EsentLib
         public void Seek(SeekGrbit grbit = SeekGrbit.SeekEQ)
         {
             Tracing.TraceFunctionCall("Seek");
-            int returnCode = NativeMethods.JetSeek(_session.Id, _cursorId.Value, unchecked((uint)grbit));
+            int returnCode = NativeMethods.JetSeek(_session.Id, base.Id, unchecked((uint)grbit));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
         }
@@ -1034,10 +1222,10 @@ namespace EsentLib
         {
             Tracing.TraceFunctionCall("SetCurrentIndex");
             int returnCode = (SetCurrentIndexGrbit.None == grbit)
-                ? NativeMethods.JetSetCurrentIndex(_session.Id, _cursorId.Value, index)
+                ? NativeMethods.JetSetCurrentIndex(_session.Id, base.Id, index)
                 : (1 == itagSequence)
-                    ? NativeMethods.JetSetCurrentIndex2(_session.Id, _cursorId.Value, index, (uint)grbit)
-                    : NativeMethods.JetSetCurrentIndex3(_session.Id, _cursorId.Value, index, (uint)grbit, checked((uint)itagSequence));
+                    ? NativeMethods.JetSetCurrentIndex2(_session.Id, base.Id, index, (uint)grbit)
+                    : NativeMethods.JetSetCurrentIndex3(_session.Id, base.Id, index, (uint)grbit, checked((uint)itagSequence));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return;
@@ -1058,8 +1246,8 @@ namespace EsentLib
         {
             Tracing.TraceFunctionCall("SetCurrentIndex");
             // A null index name is valid here -- it will set the table to the primary index
-            int returnCode = NativeMethods.JetSetCurrentIndex4(_session.Id, _cursorId.Value, null,
-                ref indexid, (uint)grbit, checked((uint)itagSequence));
+            int returnCode = NativeMethods.JetSetCurrentIndex4(_session.Id, base.Id, null, ref indexid,
+                (uint)grbit, checked((uint)itagSequence));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
             return;
@@ -1074,7 +1262,7 @@ namespace EsentLib
         public void SetIndexRange(SetIndexRangeGrbit grbit = SetIndexRangeGrbit.None)
         {
             Tracing.TraceFunctionCall("SetIndexRange");
-            int returnCode = NativeMethods.JetSetIndexRange(_session.Id, _cursorId.Value,
+            int returnCode = NativeMethods.JetSetIndexRange(_session.Id, base.Id,
                 unchecked((uint)grbit));
             Tracing.TraceResult(returnCode);
             EsentExceptionHelper.Check(returnCode);
@@ -1129,6 +1317,20 @@ namespace EsentLib
             return TryMove(JET_Move.Next, MoveGrbit.None);
         }
 
+        // Also see <seealso cref="TrySeek"/>.
+        /// <summary>Efficiently positions a cursor to an index entry that matches the search
+        /// criteria specified by the search key in that cursor and the specified inequality.
+        /// A search key must have been previously constructed using IJetTable.MakeKey.</summary>
+        /// <param name="grbit">Seek options.</param>
+        /// <returns>An ESENT warning.</returns>
+        public bool TrySeek(SeekGrbit grbit = SeekGrbit.SeekEQ)
+        {
+            Tracing.TraceFunctionCall("TrySeek");
+            int returnCode = NativeMethods.JetSeek(_session.Id, base.Id, unchecked((uint)grbit));
+            Tracing.TraceResult(returnCode);
+            return (0 <= returnCode);
+        }
+
         /// <summary>The JetUpdate function performs an update operation including inserting
         /// a new row into a table or updating an existing row. Deleting a table row is
         /// performed by calling<see cref="IJetInstance.JetDelete"/>.</summary>
@@ -1147,7 +1349,7 @@ namespace EsentLib
             Tracing.TraceFunctionCall("JetUpdate");
             Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
             uint bytesActual;
-            int returnCode = NativeMethods.JetUpdate(_session.Id, _cursorId.Value, bookmark,
+            int returnCode = NativeMethods.JetUpdate(_session.Id, base.Id, bookmark,
                 checked((uint)bookmarkSize), out bytesActual);
             Tracing.TraceResult(returnCode);
             actualBookmarkSize = Helpers.GetActualSize(bytesActual);
@@ -1172,15 +1374,15 @@ namespace EsentLib
             Helpers.CheckDataSize(bookmark, bookmarkSize, "bookmarkSize");
             uint bytesActual;
             int returnCode = (UpdateGrbit.None == grbit)
-                ? NativeMethods.JetUpdate(_session.Id, _cursorId.Value, bookmark,
+                ? NativeMethods.JetUpdate(_session.Id, base.Id, bookmark,
                     checked((uint)bookmarkSize), out bytesActual)
-                : NativeMethods.JetUpdate2(_session.Id, _cursorId.Value, bookmark,
+                : NativeMethods.JetUpdate2(_session.Id, base.Id, bookmark,
                     checked((uint)bookmarkSize), out bytesActual, (uint)grbit);
             EsentExceptionHelper.Check(returnCode);
             return Helpers.GetActualSize(bytesActual);
         }
 
-        private JET_TABLEID _cursorId;
+        // private JET_TABLEID _cursorId;
         /// <summary>The underlying JET_SESID.</summary>
         private readonly JetSession _session;
         /// <summary>The type of update.</summary>

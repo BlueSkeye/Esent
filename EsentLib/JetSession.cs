@@ -415,7 +415,8 @@ namespace EsentLib.Implementation
             Tracing.TraceResult(returnCode);
             columns.SetColumnids(columnids, nativecolumnids);
             EsentExceptionHelper.Check(returnCode);
-            return new JetCursor(null, tableid);
+            throw new NotImplementedException();
+            // return new JetCursor(this, tableid);
         }
 
         /// <summary>Disassociates a session from the current thread. This should be

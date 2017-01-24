@@ -6,9 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 #if MANAGEDESENT_SUPPORTS_SERIALIZATION
 using System.Runtime.Serialization.Formatters.Binary;
 #endif
@@ -38,19 +36,19 @@ namespace EsentLib
         /// <returns>The bookmark of the record.</returns>
         public static byte[] GetBookmark(JET_SESID sesid, JET_TABLEID tableid)
         {
-            byte[] buffer = null;
-            byte[] bookmark;
+            throw new NotImplementedException();
+            //byte[] buffer = null;
+            //byte[] bookmark;
 
-            try
-            {
-                buffer = MemoryCache.BookmarkCache.Allocate();
-                int bookmarkSize;
-                LegacyApi.JetGetBookmark(sesid, tableid, buffer, buffer.Length, out bookmarkSize);
-                bookmark = MemoryCache.Duplicate(buffer, bookmarkSize);
-            }
-            finally { if (buffer != null) { MemoryCache.BookmarkCache.Free(ref buffer); } }
+            //try {
+            //    buffer = MemoryCache.BookmarkCache.Allocate();
+            //    int bookmarkSize;
+            //    LegacyApi.JetGetBookmark(sesid, tableid, buffer, buffer.Length, out bookmarkSize);
+            //    bookmark = MemoryCache.Duplicate(buffer, bookmarkSize);
+            //}
+            //finally { if (buffer != null) { MemoryCache.BookmarkCache.Free(ref buffer); } }
             
-            return bookmark;
+            //return bookmark;
         }
 
         /// <summary>Retrieves the bookmark for the record that is associated with the index
